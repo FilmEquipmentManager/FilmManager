@@ -1,0 +1,4 @@
+.env
+node_modules
+barcodes.json
+serviceAccountKey.json
