@@ -99,7 +99,7 @@ export default function TabLayout() {
                     </SafeAreaView>
                 </SafeAreaView>
                 <LinearGradient
-                    colors={["#00FFDD", "#1B9CFF"]} 
+                    colors={["#00FFDD", "#1B9CFF"]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={{ height: 1 }}
@@ -141,6 +141,12 @@ export default function TabLayout() {
                 options={{
                     title: "Profile",
                     tabBarIcon: ({ color }) => <Icon as={User2 as any} />,
+                }}
+            />
+            <Tabs.Screen
+                name="scanner/scannerReceive"
+                options={{
+                    href: null,
                 }}
             />
         </Tabs>

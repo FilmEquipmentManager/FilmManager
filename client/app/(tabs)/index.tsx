@@ -102,7 +102,7 @@ export default function TabOneScreen() {
                                 onHoverIn={() => setHoverReceive(true)}
                                 onHoverOut={() => setHoverReceive(false)}
                                 onPress={() => {
-                                    router.push("/scannerReceive" as any);
+                                    router.push("/scanner/scannerReceive" as any);
                                 }}
                                 style={{
                                     height: "100%",
