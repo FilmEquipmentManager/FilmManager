@@ -1,174 +1,236 @@
-import { useState, useEffect, useRef } from "react";
-import { io } from "socket.io-client";
-import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
+import { useState } from "react";
 import { VStack } from "@/components/ui/vstack";
-import { Input, InputField } from "@/components/ui/input";
+import { Box } from "@/components/ui/box";
 import { HStack } from "@/components/ui/hstack";
-import { ScrollView } from "react-native";
+import { Button, ButtonText } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
-import Constants from "expo-constants";
-import server from "../../networking";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 
-interface ScannedItem {
-    id: string;
-    value: string;
-    timestamp: string;
-}
+const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+};
 
 export default function TabOneScreen() {
-    const [currentScan, setCurrentScan] = useState("");
-    const [scannedItems, setScannedItems] = useState<ScannedItem[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState<"scanner" | "management">("scanner");
+    const [hoverScannerTab, setHoverScannerTab] = useState(false);
+    const [hoverManagementTab, setHoverManagementTab] = useState(false);
+    const [hoverReceive, setHoverReceive] = useState(false);
+    const [hoverDispatch, setHoverDispatch] = useState(false);
+    const [hoverCheckInfo, setHoverCheckInfo] = useState(false);
+    const [hoverReward, setHoverReward] = useState(false);
+    const [hoverUser, setHoverUser] = useState(false);
 
-    const inputRef = useRef<any>(null);
-
-    const toast = useToast();
-    const [toastId, setToastId] = useState(0);
-
-    const BASE_URL = Constants.expoConfig?.extra?.BASE_URL;
-
-    const showToast = (title, description) => {
-        const newId = Math.random();
-        setToastId(newId);
-        toast.show({
-            id: newId.toString(),
-            placement: "top",
-            duration: 3000,
-            render: ({ id }) => {
-                const uniqueToastId = "toast-" + id;
-                return (
-                    <Toast
-                        nativeID={uniqueToastId}
-                        action="muted"
-                        variant="solid"
-                    >
-                        <ToastTitle>{title}</ToastTitle>
-                        <ToastDescription>{description}</ToastDescription>
-                    </Toast>
-                );
-            },
-        });
-    };
-
-    useEffect(() => {
-        const socket = io(BASE_URL, {
-            path: "/socket.io",
-            transports: ["websocket"],
-        });
-
-        socket.on("connect_error", (err) => {
-            console.error("Socket connection error:", err);
-            if (!toast.isActive(toastId.toString())) {
-                showToast(
-                    "Socket connection error",
-                    "Please check your internet connection and try again."
-                );
-            }
-        });
-
-        socket.on("barcodes_updated", (barcodes: ScannedItem[]) => {
-            setScannedItems(barcodes);
-        });
-
-        return () => {
-            socket.disconnect();
-        };
-    }, []);
-
-    useEffect(() => {
-        const MIN_BARCODE_LENGTH = 6;
-        if (currentScan.trim().length < MIN_BARCODE_LENGTH) return;
-
-        const timeout = setTimeout(() => {
-            handleScanSubmit();
-        }, 100);
-
-        return () => clearTimeout(timeout);
-    }, [currentScan]);
-
-    const handleScanSubmit = async () => {
-        if (currentScan.trim()) {
-            setIsLoading(true);
-            try {
-                await server.post("/api/barcodes", {
-                    barcode: currentScan.trim(),
-                });
-                setCurrentScan("");
-            } catch (error) {
-                console.error("Error submitting barcode:", error);
-            } finally {
-                setIsLoading(false);
-                setTimeout(() => inputRef.current?.focus(), 10);
-            }
-        }
-    };
-
-    const formatDate = (timestamp: string) => {
-        return new Date(timestamp).toLocaleString();
-    };
+    const getHoverStyle = (hovered: boolean, baseStyle: object = {}) => ({
+        transform: [{ scale: hovered ? 1.03 : 1 }],
+        transitionDuration: "400ms",
+        backgroundColor: "white",
+        ...baseStyle,
+    });
 
     return (
-        <VStack
-            style={{
-                flex: 1,
-                padding: 16,
-                gap: 16,
-                backgroundColor: "$background",
-            }}
+        <LinearGradient
+            colors={['#1B9CFF', '#00FFDD']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ flex: 1 }}
         >
-            <Input isDisabled={isLoading}>
-                <InputField
-                    ref={inputRef}
-                    placeholder="Scan barcode..."
-                    value={currentScan}
-                    onChangeText={(text) => {
-                        setCurrentScan(text);
-                        if (text.endsWith("\n")) {
-                            setCurrentScan(text.trim());
-                            handleScanSubmit();
-                        }
-                    }}
-                    onSubmitEditing={handleScanSubmit}
-                    returnKeyType="done"
-                    showSoftInputOnFocus={false}
-                    onBlur={() => inputRef.current?.focus()}
-                    style={{ height: 40, width: "100%" }}
-                />
-            </Input>
+            <VStack style={{ flex: 1, padding: 20 }} space="2xl">
+                {/* Welcome Header */}
+                <Box style={{ marginBottom: 50, marginTop: 50, width: "100%", alignItems: "center", height: "5%" }}>
+                    <Text style={{ color: "white", fontSize: 50, fontWeight: "bold" }}>
+                        {getGreeting()}, John Doe!
+                    </Text>
+                </Box>
 
-            <ScrollView style={{ flex: 1, width: "100%" }}>
-                <VStack style={{ gap: 8, paddingBottom: 16 }}>
-                    {scannedItems.length > 0 ? (
-                        scannedItems.map((item) => (
-                            <HStack
+                {/* Tab Navigation */}
+                <HStack style={{ backgroundColor: "backgroundLight100", padding: 2, width: "30%", borderRadius: 999, margin: "auto", marginBottom: 0, height: "5%" }} space="xl">
+                    <Button
+                        onHoverIn={() => setHoverScannerTab(true)}
+                        onHoverOut={() => setHoverScannerTab(false)}
+                        onPress={() => setActiveTab("scanner")}
+                        style={{
+                            flex: 1,
+                            borderColor: "transparent",
+                            borderRadius: 10,
+                            ...getHoverStyle(hoverScannerTab, {
+                                backgroundColor: activeTab === "scanner" ? "#1B9CFF" : "white",
+                            }),
+                        }}
+                    >
+                        <HStack style={{ justifyContent: "center", alignItems: "center" }} space="sm">
+                            <Ionicons name="scan" size={20} color={activeTab === "scanner" ? "white" : "black"} />
+                            <ButtonText style={{ fontWeight: "600", color: activeTab === "scanner" ? "white" : "black", }}>
+                                Scanner
+                            </ButtonText>
+                        </HStack>
+                    </Button>
+
+                    <Button
+                        onHoverIn={() => setHoverManagementTab(true)}
+                        onHoverOut={() => setHoverManagementTab(false)}
+                        onPress={() => setActiveTab("management")}
+                        style={{
+                            flex: 1,
+                            borderColor: "transparent",
+                            borderRadius: 10,
+                            ...getHoverStyle(hoverManagementTab, {
+                                backgroundColor: activeTab === "management" ? "#1B9CFF" : "white",
+                            }),
+                        }}
+                    >
+                        <HStack style={{ justifyContent: "center", alignItems: "center" }} space="sm">
+                            <Ionicons name="settings" size={20} color={activeTab === "management" ? "white" : "black"} />
+                            <ButtonText style={{ fontWeight: "600", color: activeTab === "management" ? "white" : "black", }}>
+                                Management
+                            </ButtonText>
+                        </HStack>
+                    </Button>
+                </HStack>
+
+                {/* Tab Content */}
+                {activeTab === "scanner" ? (
+                    <VStack space="xl" style={{ flex: 1, height: "90%" }}>
+                        <HStack style={{ justifyContent: "space-between", width: "50%", alignItems: "center", margin: "auto", marginBottom: 40, marginTop: 40, height: "60%", gap: 200 }} space="lg">
+                            <Button
+                                size="xl"
+                                onHoverIn={() => setHoverReceive(true)}
+                                onHoverOut={() => setHoverReceive(false)}
                                 style={{
-                                    justifyContent: "space-between",
+                                    height: "100%",
+                                    width: "50%",
+                                    elevation: 5,
+                                    flex: 1,
+                                    borderRadius: 20,
+                                    shadowColor: "#000",
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 4,
+                                    // Ensure the button content is centered so that the scaling transformation
+                                    // enlarges equally in all directions.
+                                    justifyContent: "center",
                                     alignItems: "center",
-                                    width: "100%",
+                                    ...getHoverStyle(hoverReceive),
                                 }}
                             >
-                                <Text
-                                    style={{ fontSize: 16, fontWeight: "bold" }}
-                                >
-                                    {item.value}
-                                </Text>
-                                <Text
-                                    style={{
-                                        fontSize: 13,
-                                        color: "$gray11",
-                                    }}
-                                >
-                                    {formatDate(item.timestamp)}
-                                </Text>
+                                <VStack style={{ alignItems: "center" }} space="sm">
+                                    <Ionicons name="download" size={200} color="#1B9CFF" />
+                                    <ButtonText style={{ color: "#1B9CFF", fontSize: 24 }}>Receive</ButtonText>
+                                </VStack>
+                            </Button>
+
+                            <Button
+                                size="xl"
+                                onHoverIn={() => setHoverDispatch(true)}
+                                onHoverOut={() => setHoverDispatch(false)}
+                                style={{
+                                    height: "100%",
+                                    width: "50%",
+                                    elevation: 5,
+                                    flex: 1,
+                                    borderRadius: 20,
+                                    shadowColor: "#000",
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 4,
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    ...getHoverStyle(hoverDispatch),
+                                }}
+                            >
+                                <VStack style={{ alignItems: "center" }} space="sm">
+                                    <Ionicons name="arrow-up" size={200} color="#1B9CFF" />
+                                    <ButtonText style={{ color: "#1B9CFF", fontSize: 24 }}>Dispatch</ButtonText>
+                                </VStack>
+                            </Button>
+                        </HStack>
+
+                        <Button
+                            onHoverIn={() => setHoverCheckInfo(true)}
+                            onHoverOut={() => setHoverCheckInfo(false)}
+                            style={{
+                                height: "10%",
+                                alignSelf: "center",
+                                elevation: 5,
+                                borderRadius: 20,
+                                shadowColor: "#000",
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.2,
+                                shadowRadius: 4,
+                                justifyContent: "center",
+                                alignItems: "center",
+                                ...getHoverStyle(hoverCheckInfo, {
+                                    backgroundColor: "white",
+                                }),
+                            }}
+                        >
+                            <HStack space="sm">
+                                <Ionicons name="information-circle" size={24} color="#1B9CFF" />
+                                <ButtonText style={{ color: "#1B9CFF", fontSize: 18 }}>
+                                    Check Item's Info
+                                </ButtonText>
                             </HStack>
-                        ))
-                    ) : (
-                        <Text style={{ color: "$gray11" }}>
-                            Scan results will appear here
-                        </Text>
-                    )}
-                </VStack>
-            </ScrollView>
-        </VStack>
+                        </Button>
+                    </VStack>
+                ) : (
+                    <VStack space="xl" style={{ flex: 1, height: "90%" }}>
+                        <HStack style={{ justifyContent: "space-between", width: "50%", alignItems: "center", margin: "auto", marginBottom: 40, marginTop: 40, height: "60%", gap: 200 }} space="lg">
+                            <Button
+                                size="xl"
+                                onHoverIn={() => setHoverReward(true)}
+                                onHoverOut={() => setHoverReward(false)}
+                                style={{
+                                    height: "100%",
+                                    width: "50%",
+                                    elevation: 5,
+                                    flex: 1,
+                                    borderRadius: 20,
+                                    shadowColor: "#000",
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 4,
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    ...getHoverStyle(hoverReward),
+                                }}
+                            >
+                                <VStack style={{ alignItems: "center" }} space="sm">
+                                    <Ionicons name="gift" size={200} color="#1B9CFF" />
+                                    <ButtonText style={{ color: "#1B9CFF", fontSize: 24 }}>Reward Management</ButtonText>
+                                </VStack>
+                            </Button>
+
+                            <Button
+                                size="xl"
+                                onHoverIn={() => setHoverUser(true)}
+                                onHoverOut={() => setHoverUser(false)}
+                                style={{
+                                    height: "100%",
+                                    width: "50%",
+                                    elevation: 5,
+                                    flex: 1,
+                                    borderRadius: 20,
+                                    shadowColor: "#000",
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 4,
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    ...getHoverStyle(hoverUser),
+                                }}
+                            >
+                                <VStack style={{ alignItems: "center" }} space="sm">
+                                    <Ionicons name="people" size={200} color="#1B9CFF" />
+                                    <ButtonText style={{ color: "#1B9CFF", fontSize: 24 }}>User Management</ButtonText>
+                                </VStack>
+                            </Button>
+                        </HStack>
+                    </VStack>
+                )}
+            </VStack>
+        </LinearGradient>
     );
 }
