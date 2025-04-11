@@ -6,11 +6,7 @@ import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 import { Input, InputField } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import {
-    Avatar,
-    AvatarFallbackText,
-    AvatarImage,
-} from "@/components/ui/avatar";
+import { Avatar, AvatarFallbackText, AvatarImage } from "@/components/ui/avatar";
 import { Icon } from "@/components/ui/icon";
 import { Eye, EyeClosed } from "lucide-react-native";
 
@@ -21,11 +17,14 @@ export default function TabTwoScreen() {
     const isLargeScreen = width >= 765;
     const isShortScreen = height < 750;
 
+    const password = "12345678";
+    const maskedPassword = "**********";
+
     return (
         <HStack
             style={{
                 flex: 1,
-                gap: isLargeScreen ? 16 : 24,
+                gap: isLargeScreen ? 16 : 8,
                 padding: isLargeScreen ? 16 : 24,
                 marginTop: isLargeScreen && isShortScreen ? 20 : 0,
                 justifyContent: isLargeScreen ? "center" : "space-between",
@@ -33,13 +32,14 @@ export default function TabTwoScreen() {
                 flexDirection: isLargeScreen ? "row" : "column",
             }}
         >
-            {/* Avatar Section */}
             <HStack
                 style={{
                     justifyContent: "center",
                     alignItems: "center",
                     width: isLargeScreen ? "40%" : "100%",
                     height: isLargeScreen ? "100%" : "30%",
+					marginTop: 20,
+					marginBottom: -50
                 }}
             >
                 <Avatar
@@ -50,16 +50,15 @@ export default function TabTwoScreen() {
                         overflow: "hidden",
                     }}
                 >
+                    <AvatarFallbackText>User Avatar</AvatarFallbackText>
                     <AvatarImage
                         accessibilityLabel="User Avatar"
                         source={{ uri: "https://bit.ly/dan-abramov" }}
                         style={{ width: "100%", height: "100%" }}
                     />
-                    <AvatarFallbackText>Nigger</AvatarFallbackText>
                 </Avatar>
             </HStack>
 
-            {/* Form Section */}
             <VStack
                 style={{
                     justifyContent: "center",
@@ -71,7 +70,6 @@ export default function TabTwoScreen() {
                     flex: 1,
                 }}
             >
-                {/* Profile Card */}
                 <Card
                     style={{
                         backgroundColor: "white",
@@ -81,22 +79,20 @@ export default function TabTwoScreen() {
                     }}
                 >
                     <VStack style={{ padding: 16, gap: 12 }}>
-                        {/* Title */}
                         <Text
                             style={{
                                 fontSize: isLargeScreen ? 32 : 28,
                                 fontWeight: "800",
                                 textAlign: "center",
-                                backgroundImage:
-                                    "linear-gradient(90deg, #1B9CFF, #00FFDD)",
-                                backgroundClip: "text",
+                                paddingTop: 10,
+                                backgroundImage: "linear-gradient(90deg, #1B9CFF, #00FFDD)",
+								marginBottom: 10,
                             }}
                         >
-                            Film Manager
+                            John Doe
                         </Text>
 
-                        {/* Username Field */}
-                        <VStack>
+                        <VStack style={{ marginBottom: 10 }}>
                             <Text
                                 style={{
                                     color: "#A0A0A0",
@@ -106,20 +102,21 @@ export default function TabTwoScreen() {
                             >
                                 Username
                             </Text>
+
                             <Input
                                 style={{
+									marginTop: 5,
                                     backgroundColor: "transparent",
                                     padding: 0,
                                 }}
                             >
                                 <InputField
-                                    placeholder="John Doe"
+                                    placeholder="johndoe19"
                                     style={{ fontSize: 20, fontWeight: "600" }}
                                 />
                             </Input>
                         </VStack>
 
-                        {/* Password Field */}
                         <VStack>
                             <Text
                                 style={{
@@ -130,54 +127,61 @@ export default function TabTwoScreen() {
                             >
                                 Password
                             </Text>
+
                             <HStack
                                 style={{
-                                    justifyContent: "space-between",
+                                    flexDirection: "row",
                                     alignItems: "center",
                                 }}
                             >
                                 <Input
                                     style={{
+                                        flex: 1,
+										marginTop: 5,
                                         backgroundColor: "transparent",
                                         padding: 0,
                                     }}
                                 >
                                     <InputField
-                                        secureTextEntry={!showPassword}
-                                        value="12345678"
+                                        value={showPassword ? password : maskedPassword}
                                         editable={false}
                                         style={{
                                             fontSize: 20,
                                             fontWeight: "600",
-                                            color: showPassword
-                                                ? "#000"
-                                                : "#A0A0A0",
                                         }}
                                     />
                                 </Input>
+
                                 <Button
                                     style={{ backgroundColor: "transparent" }}
-                                    onPress={() =>
-                                        setShowPassword(!showPassword)
-                                    }
+                                    onPress={() => setShowPassword(!showPassword)}
                                 >
                                     <Icon
-                                        as={
-                                            showPassword
-                                                ? EyeClosed
-                                                : (Eye as any)
-                                        }
-                                        size={"md"}
+                                        as={showPassword ? EyeClosed : (Eye as any)}
+                                        size="md"
                                         color="#000"
                                     />
                                 </Button>
                             </HStack>
                         </VStack>
 
-                        {/* Points Section */}
-                        <VStack style={{ marginTop: 12 }}>
+                        <VStack style={{ marginTop: 20 }}>
+							<Text
+                                style={{
+									textAlign: "center",
+                                    fontSize: isLargeScreen ? 36 : 30,
+                                    fontWeight: "800",
+                                    color: "#1B9CFF",
+                                    paddingTop: 15,
+									marginBottom: 5,
+                                }}
+                            >
+                                2,450
+                            </Text>
+
                             <Text
                                 style={{
+									textAlign: "center",
                                     color: "#A0A0A0",
                                     fontWeight: "500",
                                     fontSize: isLargeScreen ? 20 : 14,
@@ -185,20 +189,10 @@ export default function TabTwoScreen() {
                             >
                                 Points Remaining
                             </Text>
-                            <Text
-                                style={{
-                                    fontSize: isLargeScreen ? 36 : 30,
-                                    fontWeight: "800",
-                                    color: "#1B9CFF",
-                                }}
-                            >
-                                2,450
-                            </Text>
                         </VStack>
                     </VStack>
                 </Card>
 
-                {/* Logout Button */}
                 <Button
                     onHoverIn={() => setIsHovered(true)}
                     onHoverOut={() => setIsHovered(false)}
