@@ -7,6 +7,7 @@ import { Text } from "@/components/ui/text";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useWindowDimensions } from "react-native";
 
 const getGreeting = () => {
     const hour = new Date().getHours();
@@ -26,6 +27,11 @@ export default function TabOneScreen() {
     const [hoverUser, setHoverUser] = useState(false);
     const router = useRouter();
 
+    const { width, height } = useWindowDimensions();
+    const isLargeScreen = width >= 765;
+    const isShortScreen = height < 750;
+    const isMobileScreen = width < 600;
+
     const getHoverStyle = (hovered: boolean, baseStyle: object = {}) => ({
         transform: [{ scale: hovered ? 1.03 : 1 }],
         transitionDuration: "400ms",
@@ -42,14 +48,14 @@ export default function TabOneScreen() {
         >
             <VStack style={{ flex: 1, padding: 20 }} space="2xl">
                 {/* Welcome Header */}
-                <Box style={{ marginBottom: 50, marginTop: 50, width: "100%", alignItems: "center", height: "5%" }}>
-                    <Text style={{ color: "white", fontSize: 50, fontWeight: "bold" }}>
+                <Box style={{ marginBottom: 50, marginTop: isMobileScreen ? isShortScreen ? 36 : 100 : isShortScreen ? 36 : 50, width: "100%", alignItems: "center", height: "5%" }}>
+                    <Text style={{ color: "white", fontSize: isMobileScreen ? isShortScreen ? 20 : 28 : isShortScreen ? 36 : 50, fontWeight: "bold", textAlign: "center", padding: 10 }}>
                         {getGreeting()}, John Doe!
                     </Text>
                 </Box>
 
                 {/* Tab Navigation */}
-                <HStack style={{ backgroundColor: "backgroundLight100", padding: 2, width: "30%", borderRadius: 999, margin: "auto", marginBottom: 0, height: "5%" }} space="xl">
+                <HStack style={{ backgroundColor: "backgroundLight100", padding: 2, width: isMobileScreen ? isShortScreen ? "90%" : "80%" : isShortScreen ? "60%" : "30%", borderRadius: 999, margin: "auto", marginBottom: 0, height: "5%" }} space="xl">
                     <Button
                         onHoverIn={() => setHoverScannerTab(true)}
                         onHoverOut={() => setHoverScannerTab(false)}
@@ -64,8 +70,9 @@ export default function TabOneScreen() {
                         }}
                     >
                         <HStack style={{ justifyContent: "center", alignItems: "center" }} space="sm">
-                            <Ionicons name="scan" size={20} color={activeTab === "scanner" ? "white" : "black"} />
-                            <ButtonText style={{ fontWeight: "600", color: activeTab === "scanner" ? "white" : "black", }}>
+                            <Ionicons name="scan" size={24} color={activeTab === "scanner" ? "white" : "black"} />
+                            <ButtonText style={{ fontWeight: "600", color: activeTab === "scanner" ? "white" : "black",
+                            fontSize: isMobileScreen ? isShortScreen ? 16 : 18 : isShortScreen ? 20 : 20, textAlign: "center" }}>
                                 Scanner
                             </ButtonText>
                         </HStack>
@@ -85,7 +92,7 @@ export default function TabOneScreen() {
                         }}
                     >
                         <HStack style={{ justifyContent: "center", alignItems: "center" }} space="sm">
-                            <Ionicons name="settings" size={20} color={activeTab === "management" ? "white" : "black"} />
+                            <Ionicons name="settings" size={24} color={activeTab === "management" ? "white" : "black"} />
                             <ButtonText style={{ fontWeight: "600", color: activeTab === "management" ? "white" : "black", }}>
                                 Management
                             </ButtonText>
@@ -96,7 +103,20 @@ export default function TabOneScreen() {
                 {/* Tab Content */}
                 {activeTab === "scanner" ? (
                     <VStack space="xl" style={{ flex: 1, height: "90%" }}>
-                        <HStack style={{ justifyContent: "space-between", width: "50%", alignItems: "center", margin: "auto", marginBottom: 40, marginTop: 40, height: "60%", gap: 200 }} space="lg">
+                        <HStack
+                            style={{
+                                flexDirection: isMobileScreen ? "column" : isShortScreen ? "row" : "row",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                width: isMobileScreen ? "100%" : "50%",
+                                margin: "auto",
+                                marginBottom: isMobileScreen ? 24 : 40,
+                                marginTop: 40,
+                                height: isMobileScreen ? "70%" : "60%",
+                                gap: isMobileScreen ? 50 : 100,
+                            }}
+                            space="lg"
+                        >
                             <Button
                                 size="xl"
                                 onHoverIn={() => setHoverReceive(true)}
@@ -105,8 +125,8 @@ export default function TabOneScreen() {
                                     router.push("/scanner/scannerReceive" as any);
                                 }}
                                 style={{
-                                    height: "100%",
-                                    width: "50%",
+                                    height: isMobileScreen ? "auto" : "100%",
+                                    width: isMobileScreen ? "50%" : "50%",
                                     elevation: 5,
                                     flex: 1,
                                     borderRadius: 20,
@@ -114,16 +134,14 @@ export default function TabOneScreen() {
                                     shadowOffset: { width: 0, height: 2 },
                                     shadowOpacity: 0.2,
                                     shadowRadius: 4,
-                                    // Ensure the button content is centered so that the scaling transformation
-                                    // enlarges equally in all directions.
                                     justifyContent: "center",
                                     alignItems: "center",
                                     ...getHoverStyle(hoverReceive),
                                 }}
                             >
                                 <VStack style={{ alignItems: "center" }} space="sm">
-                                    <Ionicons name="download" size={200} color="#1B9CFF" />
-                                    <ButtonText style={{ color: "#1B9CFF", fontSize: 24 }}>Receive</ButtonText>
+                                    <Ionicons name="download" size={isMobileScreen ? isShortScreen ? 50 : 80 : isShortScreen ? 50 : 200} color="#1B9CFF" />
+                                    <ButtonText style={{ color: "#1B9CFF", fontSize: isMobileScreen ? 20 : isShortScreen ? 24 :24, textAlign: "center" }}>Receive</ButtonText>
                                 </VStack>
                             </Button>
 
@@ -132,8 +150,8 @@ export default function TabOneScreen() {
                                 onHoverIn={() => setHoverDispatch(true)}
                                 onHoverOut={() => setHoverDispatch(false)}
                                 style={{
-                                    height: "100%",
-                                    width: "50%",
+                                    height: isMobileScreen ? "auto" : "100%",
+                                    width: isMobileScreen ? "50%" : "50%",
                                     elevation: 5,
                                     flex: 1,
                                     borderRadius: 20,
@@ -147,8 +165,8 @@ export default function TabOneScreen() {
                                 }}
                             >
                                 <VStack style={{ alignItems: "center" }} space="sm">
-                                    <Ionicons name="arrow-up" size={200} color="#1B9CFF" />
-                                    <ButtonText style={{ color: "#1B9CFF", fontSize: 24 }}>Dispatch</ButtonText>
+                                    <Ionicons name="arrow-up" size={isMobileScreen ? isShortScreen ? 50 : 80 : isShortScreen ? 50 : 200} color="#1B9CFF" />
+                                    <ButtonText style={{ color: "#1B9CFF", fontSize: isMobileScreen ? 20 : isShortScreen ? 24 :24, textAlign: "center" }}>Dispatch</ButtonText>
                                 </VStack>
                             </Button>
                         </HStack>
@@ -157,7 +175,7 @@ export default function TabOneScreen() {
                             onHoverIn={() => setHoverCheckInfo(true)}
                             onHoverOut={() => setHoverCheckInfo(false)}
                             style={{
-                                height: "10%",
+                                height: isMobileScreen ? "10%" : isShortScreen ? "20%" : "10%",
                                 alignSelf: "center",
                                 elevation: 5,
                                 borderRadius: 20,
@@ -182,29 +200,41 @@ export default function TabOneScreen() {
                     </VStack>
                 ) : (
                     <VStack space="xl" style={{ flex: 1, height: "90%" }}>
-                        <HStack style={{ justifyContent: "space-between", width: "50%", alignItems: "center", margin: "auto", marginBottom: 40, marginTop: 40, height: "60%", gap: 200 }} space="lg">
-                            <Button
-                                size="xl"
-                                onHoverIn={() => setHoverReward(true)}
-                                onHoverOut={() => setHoverReward(false)}
-                                style={{
-                                    height: "100%",
-                                    width: "50%",
-                                    elevation: 5,
-                                    flex: 1,
-                                    borderRadius: 20,
-                                    shadowColor: "#000",
-                                    shadowOffset: { width: 0, height: 2 },
-                                    shadowOpacity: 0.2,
-                                    shadowRadius: 4,
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    ...getHoverStyle(hoverReward),
-                                }}
-                            >
+                        <HStack
+                            style={{
+                                flexDirection: isMobileScreen ? "column" : isShortScreen ? "row" : "row",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                width: isMobileScreen ? "100%" : "50%",
+                                margin: "auto",
+                                marginBottom: isMobileScreen ? 24 : 40,
+                                marginTop: 40,
+                                height: isMobileScreen ? "70%" : "60%",
+                                gap: isMobileScreen ? 50 : 100,
+                            }}
+                            space="lg"
+                        >                            <Button
+                            size="xl"
+                            onHoverIn={() => setHoverReward(true)}
+                            onHoverOut={() => setHoverReward(false)}
+                            style={{
+                                height: isMobileScreen ? "auto" : "100%",
+                                    width: isMobileScreen ? "50%" : "50%",
+                                elevation: 5,
+                                flex: 1,
+                                borderRadius: 20,
+                                shadowColor: "#000",
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.2,
+                                shadowRadius: 4,
+                                justifyContent: "center",
+                                alignItems: "center",
+                                ...getHoverStyle(hoverReward),
+                            }}
+                        >
                                 <VStack style={{ alignItems: "center" }} space="sm">
-                                    <Ionicons name="gift" size={200} color="#1B9CFF" />
-                                    <ButtonText style={{ color: "#1B9CFF", fontSize: 24 }}>Reward Management</ButtonText>
+                                    <Ionicons name="gift" size={isMobileScreen ? 80 : isShortScreen ? 50 : 200} color="#1B9CFF" />
+                                    <ButtonText style={{ color: "#1B9CFF", fontSize: isMobileScreen ? 20 : isShortScreen ? 24 :24, textAlign: "center" }}>Reward Management</ButtonText>
                                 </VStack>
                             </Button>
 
@@ -213,8 +243,8 @@ export default function TabOneScreen() {
                                 onHoverIn={() => setHoverUser(true)}
                                 onHoverOut={() => setHoverUser(false)}
                                 style={{
-                                    height: "100%",
-                                    width: "50%",
+                                    height: isMobileScreen ? "auto" : "100%",
+                                    width: isMobileScreen ? "50%" : "50%",
                                     elevation: 5,
                                     flex: 1,
                                     borderRadius: 20,
@@ -228,8 +258,8 @@ export default function TabOneScreen() {
                                 }}
                             >
                                 <VStack style={{ alignItems: "center" }} space="sm">
-                                    <Ionicons name="people" size={200} color="#1B9CFF" />
-                                    <ButtonText style={{ color: "#1B9CFF", fontSize: 24 }}>User Management</ButtonText>
+                                    <Ionicons name="people" size={isMobileScreen ? 80 : isShortScreen ? 50 : 200} color="#1B9CFF" />
+                                    <ButtonText style={{ color: "#1B9CFF", fontSize: isMobileScreen ? 20 : isShortScreen ? 24 :24, textAlign: "center" }}>User Management</ButtonText>
                                 </VStack>
                             </Button>
                         </HStack>
