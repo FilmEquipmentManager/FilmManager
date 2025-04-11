@@ -141,6 +141,7 @@ export default function TabOneScreen() {
                     {scannedItems.length > 0 ? (
                         scannedItems.map((item) => (
                             <HStack
+                                key={item.id}
                                 style={{
                                     justifyContent: "space-between",
                                     alignItems: "center",

@@ -25,7 +25,6 @@ export default function TabLayout() {
                         justifyContent: "space-between",
                         alignItems: "center",
                         paddingHorizontal: 16,
-                        paddingVertical: 6,
                         backgroundColor: "#fff",
                     }}
                 >
@@ -41,11 +40,7 @@ export default function TabLayout() {
                         >
                             <Image
                                 source={require("../../assets/images/icon.png")}
-                                style={{
-                                    width: 10,
-                                    height: 10,
-                                    marginRight: 8,
-                                }}
+                                size="xs"
                             />
                             <Text
                                 style={{
@@ -118,6 +113,12 @@ export default function TabLayout() {
                         borderTopColor: "#ccc",
                     },
                 tabBarActiveTintColor: "#e11d48",
+                tabBarShowLabel: true,
+                tabBarLabelStyle: {
+                    fontSize: 12,
+                    fontWeight: "bold",
+                    textTransform: "capitalize",
+                },
                 headerStyle: {
                     backgroundColor: "#fff",
                     borderBottomColor: "#ccc",
