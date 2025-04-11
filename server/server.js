@@ -25,7 +25,7 @@ app.get("/", (req, res) => {
 
 app.get("/api/barcodes", async (req, res) => {
     try {
-        const barcodes = DM.peek(["barcodes"]);
+        const barcodes = DM.peek(["Barcodes"]);
 
         const barcodeList = Array.isArray(barcodes) ? barcodes : typeof barcodes === "object" && barcodes !== null ? Object.values(barcodes) : [];
         
@@ -55,7 +55,7 @@ app.post("/api/barcodes", async (req, res) => {
 
         await DM.save();
 
-        const barcodeList = Object.values(DM["barcodes"] || {});
+        const barcodeList = Object.values(DM["Barcodes"] || {});
 
         io.emit("barcodes_updated", barcodeList);
 
@@ -80,7 +80,7 @@ io.on("connection", (socket) => {
     console.log(`\n[WEBSOCKET] - New client connected: ${socket.id}\n`);
 
     try {
-        const barcodes = DM.peek(["barcodes"]);
+        const barcodes = DM.peek(["Barcodes"]);
 
         const barcodeList = barcodes && typeof barcodes === "object" ? Object.values(barcodes) : [];
 
