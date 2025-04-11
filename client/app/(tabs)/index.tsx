@@ -6,6 +6,7 @@ import { Button, ButtonText } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 const getGreeting = () => {
     const hour = new Date().getHours();
@@ -23,6 +24,7 @@ export default function TabOneScreen() {
     const [hoverCheckInfo, setHoverCheckInfo] = useState(false);
     const [hoverReward, setHoverReward] = useState(false);
     const [hoverUser, setHoverUser] = useState(false);
+    const router = useRouter();
 
     const getHoverStyle = (hovered: boolean, baseStyle: object = {}) => ({
         transform: [{ scale: hovered ? 1.03 : 1 }],
@@ -99,6 +101,9 @@ export default function TabOneScreen() {
                                 size="xl"
                                 onHoverIn={() => setHoverReceive(true)}
                                 onHoverOut={() => setHoverReceive(false)}
+                                onPress={() => {
+                                    router.push("/scannerReceive" as any);
+                                }}
                                 style={{
                                     height: "100%",
                                     width: "50%",

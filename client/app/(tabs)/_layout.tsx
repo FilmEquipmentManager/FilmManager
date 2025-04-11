@@ -52,7 +52,6 @@ export default function TabLayout() {
 
     const CustomHeader = () => {
         const tabs = [
-            { name: "Components", route: "/components", icon: BookOpen },
             { name: "Profile", route: "/profile", icon: User },
         ];
 
