@@ -144,7 +144,7 @@ export default function TabLayout() {
                 }}
             />
             <Tabs.Screen
-                name="scanner/scannerReceive"
+                name="scanner/scanner"
                 options={{
                     href: null,
                 }}
