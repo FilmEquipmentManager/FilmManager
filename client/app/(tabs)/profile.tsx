@@ -38,16 +38,17 @@ export default function TabTwoScreen() {
                     alignItems: "center",
                     width: isLargeScreen ? "40%" : "100%",
                     height: isLargeScreen ? "100%" : "30%",
-					marginTop: 20,
-					marginBottom: -50
+                    marginTop: 20,
+                    marginBottom: -50,
                 }}
             >
                 <Avatar
                     style={{
                         borderRadius: 9999,
-                        width: isLargeScreen ? 120 : isShortScreen ? 70 : 100,
-                        height: isLargeScreen ? 120 : isShortScreen ? 70 : 100,
+                        width: isLargeScreen ? 300 : isShortScreen ? 100 : 140,
+                        height: isLargeScreen ? 300 : isShortScreen ? 100 : 140,
                         overflow: "hidden",
+						marginTop: isLargeScreen ? -80 : 50,
                     }}
                 >
                     <AvatarFallbackText>User Avatar</AvatarFallbackText>
@@ -85,7 +86,6 @@ export default function TabTwoScreen() {
                                 fontWeight: "800",
                                 textAlign: "center",
                                 paddingTop: 10,
-                                backgroundImage: "linear-gradient(90deg, #1B9CFF, #00FFDD)",
 								marginBottom: 10,
                             }}
                         >
@@ -104,13 +104,15 @@ export default function TabTwoScreen() {
                             </Text>
 
                             <Input
+								variant="underlined"
                                 style={{
 									marginTop: 5,
                                     backgroundColor: "transparent",
-                                    padding: 0,
+                                    padding: 0
                                 }}
                             >
                                 <InputField
+									editable={false}
                                     placeholder="johndoe19"
                                     style={{ fontSize: 20, fontWeight: "600" }}
                                 />
@@ -135,11 +137,12 @@ export default function TabTwoScreen() {
                                 }}
                             >
                                 <Input
+									variant="underlined"
                                     style={{
                                         flex: 1,
 										marginTop: 5,
                                         backgroundColor: "transparent",
-                                        padding: 0,
+                                        padding: 0
                                     }}
                                 >
                                     <InputField
@@ -173,7 +176,7 @@ export default function TabTwoScreen() {
                                     fontWeight: "800",
                                     color: "#1B9CFF",
                                     paddingTop: 15,
-									marginBottom: 5,
+									marginBottom: isLargeScreen ? 15 : 0,
                                 }}
                             >
                                 2,450
