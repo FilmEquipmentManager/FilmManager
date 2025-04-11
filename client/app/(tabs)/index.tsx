@@ -127,7 +127,7 @@ export default function TabOneScreen() {
                                 onHoverIn={() => setHoverReceive(true)}
                                 onHoverOut={() => setHoverReceive(false)}
                                 onPress={() => {
-                                    router.push("/scanner/scannerReceive" as any);
+                                    router.push("/scanner/scanner" as any);
                                 }}
                                 style={{
                                     height: isMobileScreen ? "auto" : "100%",
@@ -154,6 +154,9 @@ export default function TabOneScreen() {
                                 size="xl"
                                 onHoverIn={() => setHoverDispatch(true)}
                                 onHoverOut={() => setHoverDispatch(false)}
+                                onPress={() => {
+                                    router.push("/scanner/scanner" as any);
+                                }}
                                 style={{
                                     height: isMobileScreen ? "auto" : "100%",
                                     width: isMobileScreen ? "50%" : "50%",
@@ -179,6 +182,9 @@ export default function TabOneScreen() {
                         <Button
                             onHoverIn={() => setHoverCheckInfo(true)}
                             onHoverOut={() => setHoverCheckInfo(false)}
+                            onPress={() => {
+                                router.push("/scanner/scanner" as any);
+                            }}
                             style={{
                                 height: isMobileScreen ? "10%" : isShortScreen ? "20%" : "10%",
                                 alignSelf: "center",
