@@ -1,18 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
-import Constants from "expo-constants";
-import server from "../../networking";
-import {
-    useToast,
-    Toast,
-    ToastTitle,
-    ToastDescription,
-} from "@/components/ui/toast";
+import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
 import { VStack } from "@/components/ui/vstack";
 import { Input, InputField } from "@/components/ui/input";
 import { HStack } from "@/components/ui/hstack";
 import { ScrollView } from "react-native";
 import { Text } from "@/components/ui/text";
+import Constants from "expo-constants";
+import server from "../../networking";
 
 interface ScannedItem {
     id: string;
