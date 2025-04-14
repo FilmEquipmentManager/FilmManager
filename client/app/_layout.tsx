@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
 import { useColorScheme } from "@/components/useColorScheme";
 import { Slot } from "expo-router";
+import { AuthProvider } from "./contexts/AuthContext";
 
 import "../global.css";
 
@@ -63,7 +64,9 @@ function RootLayoutNav() {
             <ThemeProvider
                 value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
             >
-                <Slot />
+                <AuthProvider>
+                    <Slot />
+                </AuthProvider>
             </ThemeProvider>
         </GluestackUIProvider>
     );

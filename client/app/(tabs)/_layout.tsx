@@ -1,7 +1,7 @@
 import React from "react";
 import { SafeAreaView, useWindowDimensions } from "react-native";
 import { Tabs } from "expo-router";
-import { HouseIcon, ShoppingCart, User, User2 } from "lucide-react-native";
+import { HouseIcon, ShoppingCart, User2 } from "lucide-react-native";
 import { HStack } from "@/components/ui/hstack";
 import { useRouter } from "expo-router";
 import { Pressable } from "@/components/ui/pressable";
@@ -10,11 +10,14 @@ import { Text } from "@/components/ui/text";
 import { Icon } from "@/components/ui/icon";
 import { Avatar, AvatarFallbackText, AvatarImage } from '@/components/ui/avatar';
 import { LinearGradient } from "expo-linear-gradient";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function TabLayout() {
     const { width } = useWindowDimensions();
     const isLargeScreen = width >= 600;
     const router = useRouter();
+
+    const { user } = useAuth();
 
     const CustomHeader = () => {
         return (
@@ -68,7 +71,7 @@ export default function TabLayout() {
 
                         {/* Avatar for Profile */}
                         <Pressable
-                            onPress={() => router.push("/profile" as any)}
+                            onPress={() => router.push("/profile/profile" as any)}
                             style={{
                                 marginRight: 20,
                                 marginTop: 20,
@@ -134,6 +137,13 @@ export default function TabLayout() {
                     title: "Home",
                     tabBarIcon: ({ color }) => <Icon as={HouseIcon as any} color={color} />,
                 }}
+                listeners={{
+                    tabPress: (e) => {
+                      if (!user) {
+                        router.push("/(auth)/login" as any);
+                      }
+                    }
+                }}
             />
             <Tabs.Screen
                 name="profile/profile"
@@ -141,11 +151,25 @@ export default function TabLayout() {
                     title: "Profile",
                     tabBarIcon: ({ color }) => <Icon as={User2 as any} color={color} />,
                 }}
+                listeners={{
+                    tabPress: (e) => {
+                      if (!user) {
+                        router.push("/(auth)/login" as any);
+                      }
+                    }
+                }}
             />
             <Tabs.Screen
                 name="scanner/scanner"
                 options={{
                     href: null,
+                }}
+                listeners={{
+                    tabPress: (e) => {
+                      if (!user) {
+                        router.push("/(auth)/login" as any);
+                      }
+                    }
                 }}
             />
         </Tabs>

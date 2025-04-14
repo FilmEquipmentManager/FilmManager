@@ -6,6 +6,9 @@ import { Input, InputField } from "@/components/ui/input";
 import { HStack } from "@/components/ui/hstack";
 import { ScrollView } from "react-native";
 import { Text } from "@/components/ui/text";
+import { LinearGradient } from "expo-linear-gradient";
+import { Spinner } from "@/components/ui/spinner";
+import { useAuth, ProtectedRoute } from "../../contexts/AuthContext";
 import Constants from "expo-constants";
 import server from "../../../networking";
 
@@ -24,6 +27,8 @@ export default function ScannerScreen() {
 
     const toast = useToast();
     const [toastId, setToastId] = useState(0);
+
+    const { userData, loading } = useAuth();
 
     const BASE_URL = Constants.expoConfig?.extra?.BASE_URL;
 
@@ -107,69 +112,82 @@ export default function ScannerScreen() {
         return new Date(timestamp).toLocaleString();
     };
 
-    return (
-        <VStack
-            style={{
-                flex: 1,
-                padding: 16,
-                gap: 16,
-                backgroundColor: "$background",
-            }}
-        >
-            <Input isDisabled={isLoading}>
-                <InputField
-                    ref={inputRef}
-                    placeholder="Scan barcode..."
-                    value={currentScan}
-                    onChangeText={(text) => {
-                        setCurrentScan(text);
-                        if (text.endsWith("\n")) {
-                            setCurrentScan(text.trim());
-                            handleScanSubmit();
-                        }
-                    }}
-                    onSubmitEditing={handleScanSubmit}
-                    returnKeyType="done"
-                    showSoftInputOnFocus={false}
-                    onBlur={() => inputRef.current?.focus()}
-                    style={{ height: 40, width: "100%" }}
-                />
-            </Input>
+    if (loading) {
+        return (
+          <LinearGradient
+            colors={["#1B9CFF", "#00FFDD"]}
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
+            <Spinner size="large" />
+          </LinearGradient>
+        );
+    }
 
-            <ScrollView style={{ flex: 1, width: "100%" }}>
-                <VStack style={{ gap: 8, paddingBottom: 16 }}>
-                    {scannedItems.length > 0 ? (
-                        scannedItems.map((item) => (
-                            <HStack
-                                key={item.id}
-                                style={{
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    width: "100%",
-                                }}
-                            >
-                                <Text
-                                    style={{ fontSize: 16, fontWeight: "bold" }}
-                                >
-                                    {item.value}
-                                </Text>
-                                <Text
+    return (
+        <ProtectedRoute>
+            <VStack
+                style={{
+                    flex: 1,
+                    padding: 16,
+                    gap: 16,
+                    backgroundColor: "$background",
+                }}
+            >
+                <Input isDisabled={isLoading}>
+                    <InputField
+                        ref={inputRef}
+                        placeholder="Scan barcode..."
+                        value={currentScan}
+                        onChangeText={(text) => {
+                            setCurrentScan(text);
+                            if (text.endsWith("\n")) {
+                                setCurrentScan(text.trim());
+                                handleScanSubmit();
+                            }
+                        }}
+                        onSubmitEditing={handleScanSubmit}
+                        returnKeyType="done"
+                        showSoftInputOnFocus={false}
+                        onBlur={() => inputRef.current?.focus()}
+                        style={{ height: 40, width: "100%" }}
+                    />
+                </Input>
+
+                <ScrollView style={{ flex: 1, width: "100%" }}>
+                    <VStack style={{ gap: 8, paddingBottom: 16 }}>
+                        {scannedItems.length > 0 ? (
+                            scannedItems.map((item) => (
+                                <HStack
+                                    key={item.id}
                                     style={{
-                                        fontSize: 13,
-                                        color: "$gray11",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                        width: "100%",
                                     }}
                                 >
-                                    {formatDate(item.timestamp)}
-                                </Text>
-                            </HStack>
-                        ))
-                    ) : (
-                        <Text style={{ color: "$gray11" }}>
-                            Scan results will appear here
-                        </Text>
-                    )}
-                </VStack>
-            </ScrollView>
-        </VStack>
+                                    <Text
+                                        style={{ fontSize: 16, fontWeight: "bold" }}
+                                    >
+                                        {item.value}
+                                    </Text>
+                                    <Text
+                                        style={{
+                                            fontSize: 13,
+                                            color: "$gray11",
+                                        }}
+                                    >
+                                        {formatDate(item.timestamp)}
+                                    </Text>
+                                </HStack>
+                            ))
+                        ) : (
+                            <Text style={{ color: "$gray11" }}>
+                                Scan results will appear here
+                            </Text>
+                        )}
+                    </VStack>
+                </ScrollView>
+            </VStack>
+        </ProtectedRoute>
     );
 }

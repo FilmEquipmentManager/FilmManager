@@ -1,17 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useWindowDimensions, ScrollView, Alert } from "react-native";
 import { LinearGradient, LinearGradientProps } from "expo-linear-gradient";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
+import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Input, InputField } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallbackText, AvatarImage } from "@/components/ui/avatar";
 import { Icon } from "@/components/ui/icon";
 import { Eye, EyeClosed } from "lucide-react-native";
-import { signInWithEmailAndPassword, signOut, User } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { router } from 'expo-router';
 import { auth } from "@/firebase/firebase";
+import { useAuth } from "../../contexts/AuthContext";
 import server from "../../../networking";
 
 type AuthFormProps = {
@@ -143,32 +146,12 @@ export default function ProfileScreen() {
     const isShortScreen = height < 750;
     const isMobileScreen = width < 600;
 
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
-    const [userData, setUserData] = useState<any>(null);
+    const { userData, loading } = useAuth();
+
     const [isRegister, setIsRegister] = useState(false);
     const [authError, setAuthError] = useState("");
 
     const LG = LinearGradient as unknown as React.ComponentType<LinearGradientProps>;
-
-    useEffect(() => {
-		const unsubscribe = auth.onAuthStateChanged(async (user) => {
-			setCurrentUser(user);
-			if (user) {
-				try {
-					const token = await user.getIdToken();
-					const response = await server.get("/api/user", {
-						headers: {
-							'Authorization': `Bearer ${token}`
-						}
-					});
-                    setUserData(response.data);
-				} catch (error) {
-					console.error('Failed to fetch user data:', error);
-				}
-			}
-		});
-		return unsubscribe;
-	}, []);
 	
 	const handleAuth = async (email: string, password: string, username?: string) => {
 		try {
@@ -179,10 +162,18 @@ export default function ProfileScreen() {
 					username,
 				});
 				await signInWithEmailAndPassword(auth, email, password);
+
+                setAuthError('');
+
+                router.replace("/profile/profile");
+
 			} else {
 				await signInWithEmailAndPassword(auth, email, password);
+
+                setAuthError('');
+
+                router.replace("/profile/profile");
 			}
-			setAuthError('');
 		} catch (error: any) {
 			setAuthError(error.message);
 		}
@@ -191,12 +182,24 @@ export default function ProfileScreen() {
     const handleLogout = async () => {
         try {
             await signOut(auth);
+            Alert.alert("Success", "You have successfully logged out.");
         } catch (error: any) {
             Alert.alert("Logout Error", error.message);
         }
     };
 
-    if (!currentUser) {
+    if (loading) {
+        return (
+          <LinearGradient
+            colors={["#1B9CFF", "#00FFDD"]}
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
+            <Spinner size="large" />
+          </LinearGradient>
+        );
+    }
+
+    if (!userData) {
         return (
             <LinearGradient
                 colors={["#00FFDD", "#1B9CFF"]}
@@ -204,7 +207,7 @@ export default function ProfileScreen() {
             >
                 <AuthForm
                     isRegister={isRegister}
-                    onSubmit={handleAuth}
+                    onSubmit={handleAuth as any}
                     error={authError}
                     switchForm={() => setIsRegister(!isRegister)}
                 />
@@ -212,24 +215,11 @@ export default function ProfileScreen() {
         );
     }
 
-	if (!userData) {
-		return (
-			<LinearGradient
-				colors={["#00FFDD", "#1B9CFF"]}
-				style={{ flex: 1, justifyContent: "center", padding: 24 }}
-			>
-				<Text style={{ textAlign: "center", fontSize: 20, color: "white" }}>
-					Loading data...
-				</Text>
-			</LinearGradient>
-		);
-	}
-
     if (userData) return (
         <LG
             colors={["#00FFDD", "#1B9CFF"]}
-            start={{ x: isMobileScreen ? 0 : 1, y: 0 }}
-            end={{ x: isMobileScreen ? 1 : 0, y: 1 }}
+            start={isLargeScreen ? { x: 0, y: 0.5 } : { x: 0.5, y: 0 }}
+            end={isLargeScreen ? { x: 1, y: 0.5 } : { x: 0.5, y: 1 }}
             style={{ flex: 1 }}
         >
             <ScrollView
@@ -329,17 +319,17 @@ export default function ProfileScreen() {
                                     >
                                         <InputField
                                             editable={false}
-											value={userData?.username || "Fetching..."}
+                                            value={userData?.username || "Fetching..."}
                                             style={{
                                                 fontSize: 20,
                                                 fontWeight: "600",
-												color: "gray"
+                                                color: "gray"
                                             }}
                                         />
                                     </Input>
                                 </VStack>
 
-								<VStack style={{ marginBottom: 10 }}>
+                                <VStack style={{ marginBottom: 10 }}>
                                     <Text
                                         style={{
                                             color: "#A0A0A0",
@@ -364,50 +354,50 @@ export default function ProfileScreen() {
                                             style={{
                                                 fontSize: 20,
                                                 fontWeight: "600",
-												color: "gray"
+                                                color: "gray"
                                             }}
                                         />
                                     </Input>
                                 </VStack>
 
-								{userData.points !== null ? (
-									<VStack style={{ marginTop: 20 }}>
-										<Text
-											style={{
-												textAlign: "center",
-												fontSize: isLargeScreen ? 36 : 30,
-												fontWeight: "800",
-												color: "#1B9CFF",
-												paddingTop: 15,
-												marginBottom: isLargeScreen	? 15 : 0,
-											}}
-										>
-											{userData.points}
-										</Text>
+                                {userData.points !== null ? (
+                                    <VStack style={{ marginTop: 20 }}>
+                                        <Text
+                                            style={{
+                                                textAlign: "center",
+                                                fontSize: isLargeScreen ? 36 : 30,
+                                                fontWeight: "800",
+                                                color: "#1B9CFF",
+                                                paddingTop: 15,
+                                                marginBottom: isLargeScreen	? 15 : 0,
+                                            }}
+                                        >
+                                            {userData.points}
+                                        </Text>
 
-										<Text
-											style={{
-												textAlign: "center",
-												color: "#A0A0A0",
-												fontWeight: "500",
-												fontSize: isLargeScreen ? 20 : 14,
-											}}
-										>
-											Points Remaining
-										</Text>
-									</VStack>
-								) : (
-									<Text
-										style={{
-											textAlign: "center",
-											color: "#A0A0A0",
-											fontWeight: "500",
-											fontSize: isLargeScreen ? 20 : 14,
-										}}
-									>
-										Fetching points...
-									</Text>
-								)}
+                                        <Text
+                                            style={{
+                                                textAlign: "center",
+                                                color: "#A0A0A0",
+                                                fontWeight: "500",
+                                                fontSize: isLargeScreen ? 20 : 14,
+                                            }}
+                                        >
+                                            Points Remaining
+                                        </Text>
+                                    </VStack>
+                                ) : (
+                                    <Text
+                                        style={{
+                                            textAlign: "center",
+                                            color: "#A0A0A0",
+                                            fontWeight: "500",
+                                            fontSize: isLargeScreen ? 20 : 14,
+                                        }}
+                                    >
+                                        Fetching points...
+                                    </Text>
+                                )}
                             </VStack>
                         </Card>
 
