@@ -12,7 +12,7 @@ import { Icon } from "@/components/ui/icon";
 import { Eye, EyeClosed } from "lucide-react-native";
 import { signInWithEmailAndPassword, signOut, User } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
-import server from "../../networking";
+import server from "../../../networking";
 
 type AuthFormProps = {
     isRegister: boolean;

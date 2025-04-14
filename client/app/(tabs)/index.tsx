@@ -16,7 +16,7 @@ const getGreeting = () => {
     return "Good evening";
 };
 
-export default function TabOneScreen() {
+export default function HomepageScreen() {
     const [activeTab, setActiveTab] = useState<"scanner" | "management">("scanner");
     const [hoverScannerTab, setHoverScannerTab] = useState(false);
     const [hoverManagementTab, setHoverManagementTab] = useState(false);

@@ -128,7 +128,6 @@ export default function TabLayout() {
                 header: () => <CustomHeader />,
             }}
         >
-            {/* Explicitly define the Home screen */}
             <Tabs.Screen
                 name="index"
                 options={{
@@ -136,12 +135,11 @@ export default function TabLayout() {
                     tabBarIcon: ({ color }) => <Icon as={HouseIcon as any} />,
                 }}
             />
-            {/* Explicitly define the Profile screen */}
             <Tabs.Screen
-                name="profile"
+                name="profile/profile"
                 options={{
                     title: "Profile",
-                    tabBarIcon: ({ color }) => <Icon as={User2 as any} />,
+                    tabBarIcon: ({ color }) => <Icon as={User2 as any} color={color} />,
                 }}
             />
             <Tabs.Screen

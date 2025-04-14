@@ -15,7 +15,7 @@ interface ScannedItem {
     timestamp: string;
 }
 
-export default function TabOneScreen() {
+export default function ScannerScreen() {
     const [currentScan, setCurrentScan] = useState("");
     const [scannedItems, setScannedItems] = useState<ScannedItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
