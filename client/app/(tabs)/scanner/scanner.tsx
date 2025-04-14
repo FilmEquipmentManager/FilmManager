@@ -174,8 +174,6 @@ export default function ScannerScreen() {
                     newPendingItems = [...currentPendingList, newItem];
                 }
 
-                console.log("New pending items:", newPendingItems);
-
                 setPendingList(newPendingItems);
                 setCurrentScan("");
             } catch (error) {
@@ -245,10 +243,6 @@ export default function ScannerScreen() {
     const handleReceive = async () => {
         const knownItemsToReceive = pendingItems.filter(item => selectedIds.has(item.id));
         const unknownItemsToReceive = pendingUnknownItems.filter(item => selectedIds.has(item.id));
-        for (const item of knownItemsToReceive) {
-            console.log("Total Count : ", item.totalCount);
-            console.log("Session Count : ", item.sessionCount);
-        }
 
         try {
             // Update known items (PUT)
@@ -267,7 +261,7 @@ export default function ScannerScreen() {
                     barcode: item.barcode,
                     itemName: item.itemName,
                     itemDescription: item.itemDescription,
-                    count: item.sessionCount,
+                    count: item.totalCount + item.sessionCount,
                     createdAt: item.createdAt,
                     updatedAt: item.updatedAt,
                     updatedBy: item.updatedBy,
@@ -292,6 +286,8 @@ export default function ScannerScreen() {
 
     const saveEditedBarcode = async () => {
         if (!editingItem) return;
+
+        const updatedTotalCount = parseInt(editingItemCount) || 0;
     
         const updatedItem = {
             ...editingItem,
@@ -302,9 +298,12 @@ export default function ScannerScreen() {
         };
     
         if (isEditingUnknown) {
-            // update locally
             setPendingUnknownItems((prev) =>
-                prev.map((item) => (item.id === editingItem.id ? updatedItem : item))
+                prev.map((item) =>
+                    item.id === editingItem.id
+                        ? { ...updatedItem, totalCount: updatedTotalCount }
+                        : item
+                )
             );
         } else {
             try {

@@ -140,7 +140,7 @@ app.get("/api/barcodes", authMiddleware, async (req, res) => {
 
 app.post("/api/barcodes", authMiddleware, async (req, res) => {
     try {
-        const { barcode, itemName, itemDescription } = req.body;
+        const { barcode, itemName, itemDescription, count } = req.body;
 
         if (
             typeof barcode !== "string" || barcode.trim() === "" ||
@@ -163,7 +163,7 @@ app.post("/api/barcodes", authMiddleware, async (req, res) => {
             createdAt: now,
             updatedAt: now,
             updatedBy,
-            count: 1,
+            count: count || 1,
         };
 
         DM["Barcodes"][newBarcode.id] = newBarcode;
@@ -211,6 +211,8 @@ app.put("/api/barcodes/:id", authMiddleware, async (req, res) => {
         } else {
             newCount = existingBarcode.count;
         }
+
+        console.log(newCount);
 
         DM["Barcodes"][id] = {
             ...existingBarcode,
