@@ -15,7 +15,7 @@ class DatabaseManager {
         
         admin.database().ref().on('value', (snapshot) => {
             this.data = snapshot.val() || {};
-            console.log(`\n[DATABASEMANAGER] - LIVE TAIL: Changes detected. Database refreshed.\n`);
+            console.log(`\n[INTERNAL DATABASEMANAGER] - LIVE TAIL: Database re-synchronised.\n`);
         });
         
         return this._createProxy([]);
