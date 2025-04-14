@@ -58,6 +58,7 @@ export default function ScannerScreen() {
     const [originalItemName, setOriginalItemName] = useState('');
     const [originalItemDescription, setOriginalItemDescription] = useState('');
     const [originalItemCount, setOriginalItemCount] = useState('');
+    const [isEditingUnknown, setIsEditingUnknown] = useState(false);
 
     const inputRef = useRef<any>(null);
 
@@ -116,7 +117,7 @@ export default function ScannerScreen() {
 
     // Auto-submit scan when the length of the scanned text meets a threshold
     useEffect(() => {
-        const MIN_BARCODE_LENGTH = 999;
+        const MIN_BARCODE_LENGTH = 6;
         if (currentScan.trim().length < MIN_BARCODE_LENGTH) return;
 
         const timeout = setTimeout(() => {
@@ -224,14 +225,17 @@ export default function ScannerScreen() {
         setEditingItemName(item.itemName);
         setEditingItemDescription(item.itemDescription);
         setEditingItemCount(item.totalCount.toString());
-
+    
         setOriginalItemName(item.itemName);
         setOriginalItemDescription(item.itemDescription);
         setOriginalItemCount(item.totalCount.toString());
-
+    
+        const isUnknown = pendingUnknownItems.some(i => i.id === item.id);
+        setIsEditingUnknown(isUnknown);
+    
         setShowEditModal(true);
     };
-
+    
     const hasChanges =
         editingBarcode.trim() !== editingItem?.barcode.trim() ||
         editingItemName.trim() !== originalItemName.trim() ||
@@ -287,25 +291,44 @@ export default function ScannerScreen() {
     };
 
     const saveEditedBarcode = async () => {
-        if (editingItem && editingBarcode.trim().length > 0) {
+        if (!editingItem) return;
+    
+        const updatedItem = {
+            ...editingItem,
+            barcode: editingBarcode.trim(),
+            itemName: editingItemName.trim(),
+            itemDescription: editingItemDescription.trim(),
+            totalCount: parseInt(editingItemCount) || 0,
+        };
+    
+        if (isEditingUnknown) {
+            // update locally
+            setPendingUnknownItems((prev) =>
+                prev.map((item) => (item.id === editingItem.id ? updatedItem : item))
+            );
+        } else {
             try {
-                await server.put(`/api/barcodes/${editingItem.id}`, { barcode: editingBarcode.trim(), itemName: editingItemName.trim(), itemDescription: editingItemDescription.trim() });
+                await server.put(`/api/barcodes/${editingItem.id}`, {
+                    barcode: editingBarcode.trim(),
+                    itemName: editingItemName.trim(),
+                    itemDescription: editingItemDescription.trim(),
+                });
+    
                 setPendingItems((prev) =>
                     prev.map((item) =>
-                        item.id === editingItem.id
-                            ? { ...item, barcode: editingBarcode, itemName: editingItemName, itemDescription: editingItemDescription }
-                            : item
+                        item.id === editingItem.id ? updatedItem : item
                     )
                 );
-                setEditingItem(null);
             } catch (error) {
                 console.error("Error updating barcode:", error);
                 showToast("Edit failed", "Failed to update barcode. Please try again.");
             }
         }
+    
+        setEditingItem(null);
         setShowEditModal(false);
-    };
-
+    };    
+    
     const handleDelete = async (id: string) => {
         try {
             await server.delete(`/api/barcodes/${id}`);
