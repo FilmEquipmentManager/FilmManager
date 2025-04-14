@@ -12,6 +12,12 @@ admin.initializeApp({
 class DatabaseManager {
     constructor() {
         this.data = {};
+        
+        admin.database().ref().on('value', (snapshot) => {
+            this.data = snapshot.val() || {};
+            console.log(`\n[DATABASEMANAGER] - LIVE TAIL: Changes detected. Database refreshed.\n`);
+        });
+        
         return this._createProxy([]);
     }
 
