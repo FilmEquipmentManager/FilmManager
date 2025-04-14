@@ -217,9 +217,9 @@ export default function ProfileScreen() {
 
     if (userData) return (
         <LG
-            colors={["#00FFDD", "#1B9CFF"]}
-            start={isLargeScreen ? { x: 0, y: 0.5 } : { x: 0.5, y: 0 }}
-            end={isLargeScreen ? { x: 1, y: 0.5 } : { x: 0.5, y: 1 }}
+            colors={isMobileScreen ? ['#00FFDD', '#1B9CFF'] : ['#1B9CFF', '#00FFDD']}
+            start={isMobileScreen ? { x: 0, y: 0 } : { x: 0, y: 0 }}
+            end={isMobileScreen ? { x: 0, y: 1 } : { x: 1, y: 1 }}
             style={{ flex: 1 }}
         >
             <ScrollView
