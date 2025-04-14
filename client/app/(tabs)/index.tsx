@@ -36,11 +36,11 @@ export default function HomepageScreen() {
     const { userData, loading } = useAuth();
     const { width, height } = useWindowDimensions();
     const isShortScreen = height < 750;
-    const isMobileScreen = width < 600;
     const isLargeScreen = width >= 765;
+    const isMobileScreen = width < 680;
 
     const getHoverStyle = (hovered: boolean, baseStyle: object = {}) => ({
-        transform: [{ scale: hovered ? 1.03 : 1 }],
+        transform: [{ scale: hovered ? 1.02 : 1 }],
         transitionDuration: "400ms",
         backgroundColor: "white",
         ...baseStyle,
@@ -158,9 +158,9 @@ export default function HomepageScreen() {
 
     if (userData) return (
         <LinearGradient
-            colors={["#00FFDD", "#1B9CFF"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+            colors={isMobileScreen ? ['#00FFDD', '#1B9CFF'] : ['#1B9CFF', '#00FFDD']}
+            start={isMobileScreen ? { x: 0, y: 0 } : { x: 0, y: 0 }}
+            end={isMobileScreen ? { x: 0, y: 1 } : { x: 1, y: 1 }}
             style={{ flex: 1 }}
         >
             <VStack style={{ flex: 1, padding: 20 }} space="2xl">
@@ -198,24 +198,8 @@ export default function HomepageScreen() {
                     </Text>
                 </Box>
 
-                <HStack
-                    style={{
-                        backgroundColor: "backgroundLight100",
-                        padding: 2,
-                        width: isMobileScreen
-                            ? isShortScreen
-                                ? "90%"
-                                : "80%"
-                            : isShortScreen
-                            ? "60%"
-                            : "30%",
-                        borderRadius: 999,
-                        margin: "auto",
-                        marginBottom: 0,
-                        height: "5%",
-                    }}
-                    space="xl"
-                >
+                {/* Tab Navigation */}
+                <HStack style={{ backgroundColor: "backgroundLight100", padding: 2, width: isMobileScreen ? isShortScreen ? "100%" : "90%" : isShortScreen ? "60%" : "60%", borderRadius: 999, margin: "auto", marginBottom: 0, height: "5%" }} space="xl">
                     <Button
                         onHoverIn={() => setHoverScannerTab(true)}
                         onHoverOut={() => setHoverScannerTab(false)}
@@ -234,33 +218,12 @@ export default function HomepageScreen() {
                             }),
                         }}
                     >
-                        <HStack space="sm">
-                            <Ionicons
-                                name="scan"
-                                size={24}
-                                color={
-                                    activeTab === "scanner"
-                                        ? "white"
-                                        : "black"
-                                }
-                            />
-                            <ButtonText
-                                style={{
-                                    fontWeight: "600",
-                                    color:
-                                        activeTab === "scanner"
-                                            ? "white"
-                                            : "black",
-                                    fontSize: isMobileScreen
-                                        ? isShortScreen
-                                            ? 16
-                                            : 18
-                                        : isShortScreen
-                                        ? 20
-                                        : 20,
-                                    textAlign: "center",
-                                }}
-                            >
+                        <HStack space="sm" style={{ alignItems: "center", justifyContent: "center" }}>
+                            <Ionicons name="scan" size={ isMobileScreen ? 16 : 24} color={activeTab === "scanner" ? "white" : "black"} />
+                            <ButtonText style={{
+                                fontWeight: "600", color: activeTab === "scanner" ? "white" : "black",
+                                fontSize: isMobileScreen ? isShortScreen ? 16 : 18 : isShortScreen ? 20 : 20, textAlign: "center"
+                            }}>
                                 Scanner
                             </ButtonText>
                         </HStack>
@@ -284,25 +247,12 @@ export default function HomepageScreen() {
                             }),
                         }}
                     >
-                        <HStack space="sm">
-                            <Ionicons
-                                name="settings"
-                                size={24}
-                                color={
-                                    activeTab === "management"
-                                        ? "white"
-                                        : "black"
-                                }
-                            />
-                            <ButtonText
-                                style={{
-                                    fontWeight: "600",
-                                    color:
-                                        activeTab === "management"
-                                            ? "white"
-                                            : "black",
-                                }}
-                            >
+                        <HStack space="sm" style={{ alignItems: "center", justifyContent: "center" }}>
+                            <Ionicons name="settings" size={ isMobileScreen ? 16 : 24} color={activeTab === "management" ? "white" : "black"} />
+                            <ButtonText style={{
+                                fontWeight: "600", color: activeTab === "management" ? "white" : "black",
+                                fontSize: isMobileScreen ? isShortScreen ? 16 : 18 : isShortScreen ? 20 : 20, textAlign: "center"
+                            }}>
                                 Management
                             </ButtonText>
                         </HStack>
@@ -320,7 +270,7 @@ export default function HomepageScreen() {
                                     : "row",
                                 justifyContent: "space-between",
                                 alignItems: "center",
-                                width: isMobileScreen ? "100%" : "50%",
+                                width: isMobileScreen ? "100%" : "70%",
                                 margin: "auto",
                                 marginBottom: isMobileScreen ? 24 : 40,
                                 marginTop: 40,
@@ -498,7 +448,7 @@ export default function HomepageScreen() {
                                     : "row",
                                 justifyContent: "space-between",
                                 alignItems: "center",
-                                width: isMobileScreen ? "100%" : "50%",
+                                width: isMobileScreen ? "100%" : "70%",
                                 margin: "auto",
                                 marginBottom: isMobileScreen ? 24 : 40,
                                 marginTop: 40,

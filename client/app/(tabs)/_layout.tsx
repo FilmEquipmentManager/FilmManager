@@ -14,7 +14,7 @@ import { useAuth } from "../contexts/AuthContext";
 
 export default function TabLayout() {
     const { width } = useWindowDimensions();
-    const isLargeScreen = width >= 600;
+    const isLargeScreen = width >= 680;
     const router = useRouter();
 
     const { user } = useAuth();
@@ -42,6 +42,7 @@ export default function TabLayout() {
                             }}
                         >
                             <Image
+                                alt="Film Manager Logo"
                                 source={require("../../assets/images/icon.png")}
                                 size="xs"
                             />

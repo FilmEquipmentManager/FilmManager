@@ -122,7 +122,11 @@ app.get("/api/barcodes", authMiddleware, async (req, res) => {
     try {
         const barcodes = DM.peek(["Barcodes"]);
 
-        const barcodeList = Array.isArray(barcodes) ? barcodes : typeof barcodes === "object" && barcodes !== null ? Object.values(barcodes) : [];
+        const barcodeList = Array.isArray(barcodes)
+            ? barcodes
+            : typeof barcodes === "object" && barcodes !== null
+            ? Object.values(barcodes)
+            : [];
 
         res.status(200).json({
             message: "SUCCESS: Data fetched successfully.",
@@ -136,18 +140,30 @@ app.get("/api/barcodes", authMiddleware, async (req, res) => {
 
 app.post("/api/barcodes", authMiddleware, async (req, res) => {
     try {
-        const { barcode } = req.body;
+        const { barcode, itemName, itemDescription } = req.body;
 
-        if (typeof barcode !== "string" || barcode.trim() === "") {
+        if (
+            typeof barcode !== "string" || barcode.trim() === "" ||
+            typeof itemName !== "string" || itemName.trim() === "" ||
+            typeof itemDescription !== "string" || itemDescription.trim() === ""
+        ) {
             return res.status(400).json({
-                error: "UERROR: One or more required parameters missing.",
+                error: "UERROR: Missing required parameters.",
             });
         }
 
+        const now = new Date().toISOString();
+        const updatedBy = req.user.name || req.user.email || req.user.uid || "Unknown";
+
         const newBarcode = {
             id: Date.now().toString(),
-            value: barcode.trim(),
-            timestamp: new Date().toISOString(),
+            barcode: barcode.trim(),
+            itemName: itemName.trim(),
+            itemDescription: itemDescription.trim(),
+            createdAt: now,
+            updatedAt: now,
+            updatedBy,
+            count: 1,
         };
 
         DM["Barcodes"][newBarcode.id] = newBarcode;
@@ -155,7 +171,6 @@ app.post("/api/barcodes", authMiddleware, async (req, res) => {
         await DM.save();
 
         const barcodeList = Object.values(DM["Barcodes"] || {});
-
         io.emit("barcodes_updated", barcodeList);
 
         res.status(200).json({
@@ -165,6 +180,79 @@ app.post("/api/barcodes", authMiddleware, async (req, res) => {
     } catch (error) {
         console.log(`\n[API] - FAILED: /api/barcodes POST - ${error.stack || error}\n`);
         res.status(500).json({ error: "ERROR: Failed to save data." });
+    }
+});
+
+app.put("/api/barcodes/:id", authMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { barcode, itemName, itemDescription, count } = req.body;
+
+        if (
+            !id ||
+            typeof barcode !== "string" || barcode.trim() === "" ||
+            typeof itemName !== "string" || itemName.trim() === "" ||
+            typeof itemDescription !== "string" || itemDescription.trim() === ""
+        ) {
+            return res.status(400).json({ error: "UERROR: All fields are required." });
+        }
+
+        const existingBarcode = DM.peek(["Barcodes", id]);
+        if (!existingBarcode) {
+            return res.status(404).json({ error: "UERROR: Barcode not found." });
+        }
+
+        const now = new Date().toISOString();
+        const updatedBy = req.user.name || req.user.email || req.user.uid || "Unknown";
+
+        let newCount;
+        if (typeof count === "number") {
+            newCount = count;
+        } else {
+            newCount = existingBarcode.count;
+        }
+
+        DM["Barcodes"][id] = {
+            ...existingBarcode,
+            barcode: barcode.trim(),
+            itemName: itemName.trim(),
+            itemDescription: itemDescription.trim(),
+            updatedAt: now,
+            updatedBy: updatedBy,
+            count: newCount,
+        };
+
+        await DM.save();
+
+        io.emit("barcodes_updated", Object.values(DM["Barcodes"] || {}));
+
+        res.status(200).json({ message: "SUCCESS: Barcode updated successfully." });
+    } catch (error) {
+        console.log(`\n[API] - FAILED: /api/barcodes/:id PUT - ${error.stack || error}\n`);
+        res.status(500).json({ error: "ERROR: Failed to update barcode." });
+    }
+});
+
+app.delete("/api/barcodes/:id", authMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const existingBarcode = DM.peek(["Barcodes", id]);
+
+        if (!existingBarcode) {
+            return res.status(404).json({ error: "UERROR: Barcode not found." });
+        }
+
+        DM.destroy(["Barcodes", id]);
+
+        await DM.save();
+
+        io.emit("barcodes_updated", Object.values(DM["Barcodes"] || {}));
+
+        res.status(200).json({ message: "SUCCESS: Barcode deleted successfully." });
+    } catch (error) {
+        console.log(`\n[API] - FAILED: /api/barcodes/:id DELETE - ${error.stack || error}\n`);
+        res.status(500).json({ error: "ERROR: Failed to delete barcode." });
     }
 });
 

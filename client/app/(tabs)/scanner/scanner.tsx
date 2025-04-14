@@ -1,27 +1,63 @@
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
+import { ScrollView } from "react-native";
 import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
 import { VStack } from "@/components/ui/vstack";
 import { Input, InputField } from "@/components/ui/input";
 import { HStack } from "@/components/ui/hstack";
-import { ScrollView } from "react-native";
 import { Text } from "@/components/ui/text";
 import { LinearGradient } from "expo-linear-gradient";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth, ProtectedRoute } from "../../contexts/AuthContext";
+import { Button, ButtonText } from "@/components/ui/button";
+import { Heading } from "@/components/ui/heading";
+import {
+    Modal,
+    ModalBackdrop,
+    ModalContent,
+    ModalCloseButton,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
+} from "@/components/ui/modal";
+import {
+    Checkbox,
+    CheckboxIndicator,
+    CheckboxLabel,
+    CheckboxIcon,
+  } from "@/components/ui/checkbox"
+import { Icon, CloseIcon, CheckIcon } from "@/components/ui/icon";
 import Constants from "expo-constants";
 import server from "../../../networking";
 
 interface ScannedItem {
     id: string;
-    value: string;
-    timestamp: string;
+    barcode: string;
+    itemName: string;
+    itemDescription: string;
+    createdAt: string;
+    updatedAt: string;
+    updatedBy: string;
+    totalCount: number;
+    sessionCount: number;
 }
 
 export default function ScannerScreen() {
     const [currentScan, setCurrentScan] = useState("");
     const [scannedItems, setScannedItems] = useState<ScannedItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingItem, setEditingItem] = useState<ScannedItem | null>(null);
+    const [editingBarcode, setEditingBarcode] = useState("");
+    const [pendingItems, setPendingItems] = useState<ScannedItem[]>([]);
+    const [pendingUnknownItems, setPendingUnknownItems] = useState<ScannedItem[]>([]);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [editingItemName, setEditingItemName] = useState("");
+    const [editingItemDescription, setEditingItemDescription] = useState("");
+    const [editingItemCount, setEditingItemCount] = useState('');
+    const [originalItemName, setOriginalItemName] = useState('');
+    const [originalItemDescription, setOriginalItemDescription] = useState('');
+    const [originalItemCount, setOriginalItemCount] = useState('');
 
     const inputRef = useRef<any>(null);
 
@@ -32,7 +68,8 @@ export default function ScannerScreen() {
 
     const BASE_URL = Constants.expoConfig?.extra?.BASE_URL;
 
-    const showToast = (title, description) => {
+    // Toast helper
+    const showToast = (title: string, description: string) => {
         const newId = Math.random();
         setToastId(newId);
         toast.show({
@@ -42,11 +79,7 @@ export default function ScannerScreen() {
             render: ({ id }) => {
                 const uniqueToastId = "toast-" + id;
                 return (
-                    <Toast
-                        nativeID={uniqueToastId}
-                        action="muted"
-                        variant="solid"
-                    >
+                    <Toast nativeID={uniqueToastId} action="muted" variant="solid">
                         <ToastTitle>{title}</ToastTitle>
                         <ToastDescription>{description}</ToastDescription>
                     </Toast>
@@ -55,6 +88,7 @@ export default function ScannerScreen() {
         });
     };
 
+    // Set up socket connection to listen for barcode updates
     useEffect(() => {
         const socket = io(BASE_URL, {
             path: "/socket.io",
@@ -80,37 +114,208 @@ export default function ScannerScreen() {
         };
     }, []);
 
+    // Auto-submit scan when the length of the scanned text meets a threshold
     useEffect(() => {
-        const MIN_BARCODE_LENGTH = 6;
+        const MIN_BARCODE_LENGTH = 999;
         if (currentScan.trim().length < MIN_BARCODE_LENGTH) return;
 
         const timeout = setTimeout(() => {
-            handleScanSubmit();
+            handleScannedItems();
         }, 100);
 
         return () => clearTimeout(timeout);
     }, [currentScan]);
 
-    const handleScanSubmit = async () => {
+    const handleScannedItems = async () => {
         if (currentScan.trim()) {
-            setIsLoading(true);
+            const barcodeToScan = currentScan.trim();
+
             try {
-                await server.post("/api/barcodes", {
-                    barcode: currentScan.trim(),
-                });
+                // Fetch existing barcodes from DB
+                const response = await server.get("/api/barcodes");
+                const existingBarcodes: ScannedItem[] = response.data.result;
+
+                const matchedItem = existingBarcodes.find(item => item.barcode === barcodeToScan);
+                const isKnown = !!matchedItem;
+                const currentPendingList = isKnown ? pendingItems : pendingUnknownItems;
+                const setPendingList = isKnown ? setPendingItems : setPendingUnknownItems;
+
+                const existingPendingItem = currentPendingList.find(item => item.barcode === barcodeToScan);
+
+                let newPendingItems: ScannedItem[];
+
+                if (existingPendingItem) {
+                    // Already in session, just increase session count
+                    newPendingItems = currentPendingList.map(item =>
+                        item.barcode === barcodeToScan
+                            ? { ...item, sessionCount: (item.sessionCount || 0) + 1 }
+                            : item
+                    );
+                } else {
+                    const newItem: ScannedItem = matchedItem
+                        ? {
+                            ...matchedItem,
+                            totalCount: (matchedItem as any)["count"] || 0,
+                            sessionCount: 1,
+                        }
+                        : {
+                            id: Date.now().toString(),
+                            barcode: barcodeToScan,
+                            itemName: "Item Name",
+                            itemDescription: "Item Description",
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString(),
+                            updatedBy: "You",
+                            totalCount: 0,
+                            sessionCount: 1,
+                        };
+
+                    newPendingItems = [...currentPendingList, newItem];
+                }
+
+                console.log("New pending items:", newPendingItems);
+
+                setPendingList(newPendingItems);
                 setCurrentScan("");
             } catch (error) {
-                console.error("Error submitting barcode:", error);
-            } finally {
-                setIsLoading(false);
-                setTimeout(() => inputRef.current?.focus(), 10);
+                console.error("Error checking barcode:", error);
+                showToast("Scan failed", "Could not verify barcode with the server.");
             }
         }
     };
 
-    const formatDate = (timestamp: string) => {
-        return new Date(timestamp).toLocaleString();
+    const toggleSelect = (id: string) => {
+        setSelectedIds((prev) => {
+            const newSet = new Set(prev);
+            newSet.has(id) ? newSet.delete(id) : newSet.add(id);
+            return newSet;
+        });
+    }
+
+    const allPendingItems = [...pendingItems, ...pendingUnknownItems];
+    const allSelected = selectedIds.size === allPendingItems.length;
+
+    const selectAll = () => {
+        setSelectedIds(new Set(allPendingItems.map(item => item.id)));
     };
+
+    const unselectAll = () => {
+        setSelectedIds(new Set());
+    };
+
+    const handleRemoveAll = () => {
+        setPendingItems((prev) => prev.filter(item => selectedIds.has(item.id)));
+        setPendingUnknownItems((prev) => prev.filter(item => selectedIds.has(item.id)));
+        setSelectedIds(new Set());
+        showToast("Removed", "Selected items have been removed.");
+    }
+
+    const handleRemove = (id: string) => {
+        if (pendingItems.some(item => item.id === id)) {
+            setPendingItems(prev => prev.filter(item => item.id !== id));
+        } else {
+            setPendingUnknownItems(prev => prev.filter(item => item.id !== id));
+        }
+    };
+
+    const handleEdit = (item: ScannedItem) => {
+        setEditingItem(item);
+        setEditingBarcode(item.barcode);
+        setEditingItemName(item.itemName);
+        setEditingItemDescription(item.itemDescription);
+        setEditingItemCount(item.totalCount.toString());
+
+        setOriginalItemName(item.itemName);
+        setOriginalItemDescription(item.itemDescription);
+        setOriginalItemCount(item.totalCount.toString());
+
+        setShowEditModal(true);
+    };
+
+    const hasChanges =
+        editingBarcode.trim() !== editingItem?.barcode.trim() ||
+        editingItemName.trim() !== originalItemName.trim() ||
+        editingItemDescription.trim() !== originalItemDescription.trim() ||
+        editingItemCount.trim() !== originalItemCount.trim();
+
+    const handleReceive = async () => {
+        const knownItemsToReceive = pendingItems.filter(item => selectedIds.has(item.id));
+        const unknownItemsToReceive = pendingUnknownItems.filter(item => selectedIds.has(item.id));
+        for (const item of knownItemsToReceive) {
+            console.log("Total Count : ", item.totalCount);
+            console.log("Session Count : ", item.sessionCount);
+        }
+
+        try {
+            // Update known items (PUT)
+            const updatePromises = knownItemsToReceive.map(item =>
+                server.put(`/api/barcodes/${item.id}`, {
+                    barcode: item.barcode,
+                    itemName: item.itemName,
+                    itemDescription: item.itemDescription,
+                    count: item.totalCount + item.sessionCount,
+                })
+            );
+
+            // Create unknown items (POST)
+            const createPromises = unknownItemsToReceive.map(item =>
+                server.post(`/api/barcodes`, {
+                    barcode: item.barcode,
+                    itemName: item.itemName,
+                    itemDescription: item.itemDescription,
+                    count: item.sessionCount,
+                    createdAt: item.createdAt,
+                    updatedAt: item.updatedAt,
+                    updatedBy: item.updatedBy,
+                })
+            );
+
+            // Execute all requests
+            await Promise.all([...updatePromises, ...createPromises]);
+
+            // Remove items from lists
+            setPendingItems(prev => prev.filter(item => !selectedIds.has(item.id)));
+            setPendingUnknownItems(prev => prev.filter(item => !selectedIds.has(item.id)));
+            setSelectedIds(new Set());
+
+            const totalReceived = knownItemsToReceive.length + unknownItemsToReceive.length;
+            showToast("Items Received", `${totalReceived} barcodes saved.`);
+        } catch (error) {
+            console.error("Error receiving barcodes:", error);
+            showToast("Error", "Failed to receive some items.");
+        }
+    };
+
+    const saveEditedBarcode = async () => {
+        if (editingItem && editingBarcode.trim().length > 0) {
+            try {
+                await server.put(`/api/barcodes/${editingItem.id}`, { barcode: editingBarcode.trim(), itemName: editingItemName.trim(), itemDescription: editingItemDescription.trim() });
+                setPendingItems((prev) =>
+                    prev.map((item) =>
+                        item.id === editingItem.id
+                            ? { ...item, barcode: editingBarcode, itemName: editingItemName, itemDescription: editingItemDescription }
+                            : item
+                    )
+                );
+                setEditingItem(null);
+            } catch (error) {
+                console.error("Error updating barcode:", error);
+                showToast("Edit failed", "Failed to update barcode. Please try again.");
+            }
+        }
+        setShowEditModal(false);
+    };
+
+    const handleDelete = async (id: string) => {
+        try {
+            await server.delete(`/api/barcodes/${id}`);
+            setPendingItems((prev) => prev.filter((item) => item.id !== id));
+        } catch (error) {
+            console.error("Error deleting barcode:", error);
+            showToast("Delete failed", "Failed to delete barcode. Please try again.");
+        }
+        setShowEditModal(false);
+    }
 
     if (loading) {
         return (
@@ -123,71 +328,202 @@ export default function ScannerScreen() {
         );
     }
 
-    return (
-        <ProtectedRoute>
-            <VStack
+    if (userData) return (
+        <VStack
+            style={{
+                flex: 1,
+                padding: 16,
+                gap: 16,
+                backgroundColor: "$background",
+            }}
+        >
+            <Input isDisabled={isLoading}>
+                <InputField
+                    ref={inputRef}
+                    placeholder="Scan barcode..."
+                    value={currentScan}
+                    onChangeText={(text) => {
+                        setCurrentScan(text);
+                        if (text.endsWith("\n")) {
+                            setCurrentScan(text.trim());
+                            handleScannedItems();
+                        }
+                    }}
+                    onSubmitEditing={handleScannedItems}
+                    returnKeyType="done"
+                    showSoftInputOnFocus={false}
+                    onBlur={() => inputRef.current?.focus()}
+                    style={{ height: 40, width: "100%" }}
+                />
+            </Input>
+
+            <ScrollView style={{ flex: 1, width: "100%" }}>
+                <VStack style={{ gap: 8, paddingBottom: 16 }}>
+                    {[...pendingItems, ...pendingUnknownItems].length > 0 ? (
+                        [...pendingItems, ...pendingUnknownItems].map((item) => (
+                            <HStack
+                                key={item.id}
+                                style={{
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    width: "100%",
+                                    borderBottomWidth: 1,
+                                    borderColor: "$gray3",
+                                    paddingVertical: 8,
+                                }}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={selectedIds.has(item.id)}
+                                    onChange={() => toggleSelect(item.id)}
+                                    style={{ marginRight: 8 }}
+                                />
+                                <VStack style={{ flex: 1 }}>
+                                    <Text style={{ fontSize: 16, fontWeight: "bold" }}>
+                                        {item.barcode}{" "}
+                                        <Text style={{ color: "$gray11" }}>x{item.sessionCount}</Text>
+                                    </Text>
+                                    <Text style={{ color: "$gray11" }}>
+                                        {item.itemName ? item.itemName : "Unknown"} -{" "}
+                                        {item.itemDescription ? item.itemDescription : "No description"}
+                                    </Text>
+                                </VStack>
+                                <HStack style={{ gap: 8 }}>
+                                    <Button onPress={() => handleEdit(item)}>
+                                        <ButtonText>Edit</ButtonText>
+                                    </Button>
+                                    <Button onPress={() => handleRemove(item.id)}>
+                                        <ButtonText>Remove</ButtonText>
+                                    </Button>
+                                    <Button onPress={() => handleDelete(item.id)}>
+                                        <ButtonText>Delete</ButtonText>
+                                    </Button>
+                                </HStack>
+                            </HStack>
+                        ))
+                    ) : (
+                        <Text style={{ color: "$gray11" }}>Scan results will appear here</Text>
+                    )}
+                </VStack>
+
+                {/* Gluestack Modal for Editing a Barcode */}
+                <Modal
+                    isOpen={showEditModal}
+                    onClose={() => setShowEditModal(false)}
+                    size="lg"
+                >
+                    <ModalBackdrop />
+                    <ModalContent>
+                        <ModalHeader>
+                            <Heading size="md" className="text-typography-950">
+                                Edit Items
+                            </Heading>
+                            <ModalCloseButton>
+                                <Icon
+                                    as={CloseIcon}
+                                    size="md"
+                                    className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
+                                />
+                            </ModalCloseButton>
+                        </ModalHeader>
+                        <ModalBody>
+                            <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
+                                <InputField
+                                    ref={inputRef}
+                                    value={editingBarcode}
+                                    onChangeText={setEditingBarcode}
+                                    placeholder="Enter new barcode value"
+                                    style={{ height: 40, width: "100%" }}
+                                />
+                            </Input>
+
+                            <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
+                                <InputField
+                                    ref={inputRef}
+                                    value={editingItemName}
+                                    onChangeText={setEditingItemName}
+                                    placeholder="Enter item name"
+                                    style={{ height: 40, width: "100%" }}
+                                />
+                            </Input>
+
+                            <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
+                                <InputField
+                                    ref={inputRef}
+                                    value={editingItemDescription}
+                                    onChangeText={setEditingItemDescription}
+                                    placeholder="Enter item description"
+                                    style={{ height: 40, width: "100%" }}
+                                />
+                            </Input>
+
+                            <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
+                                <InputField
+                                    ref={inputRef}
+                                    value={editingItemCount}
+                                    onChangeText={setEditingItemCount}
+                                    placeholder="Enter item count"
+                                    keyboardType="numeric"
+                                    style={{ height: 40, width: "100%" }}
+                                />
+                            </Input>
+                        </ModalBody>
+                        <ModalFooter>
+                            <Button
+                                variant="outline"
+                                action="secondary"
+                                onPress={() => setShowEditModal(false)}
+                            >
+                                <ButtonText>Cancel</ButtonText>
+                            </Button>
+                            <Button onPress={saveEditedBarcode} isDisabled={isLoading || editingBarcode.trim().length === 0 || editingItemName.trim().length === 0 || !hasChanges}>
+                                <ButtonText>Save</ButtonText>
+                            </Button>
+                        </ModalFooter>
+                    </ModalContent>
+                </Modal>
+            </ScrollView>
+
+            <HStack
                 style={{
-                    flex: 1,
-                    padding: 16,
-                    gap: 16,
-                    backgroundColor: "$background",
+                    justifyContent: "space-between",
+                    paddingTop: 12,
+                    borderTopWidth: 1,
+                    borderColor: "gray4",
+                    display: pendingItems.length || pendingUnknownItems.length > 0 ? "flex" : "none",
                 }}
             >
-                <Input isDisabled={isLoading}>
-                    <InputField
-                        ref={inputRef}
-                        placeholder="Scan barcode..."
-                        value={currentScan}
-                        onChangeText={(text) => {
-                            setCurrentScan(text);
-                            if (text.endsWith("\n")) {
-                                setCurrentScan(text.trim());
-                                handleScanSubmit();
-                            }
+                <HStack space="sm" style={{ alignItems: "center" }}>
+                    <Checkbox
+                        value="selectAll"
+                        size="sm"
+                        isChecked={allSelected}
+                        onChange={(isChecked) => {
+                            isChecked ? selectAll() : unselectAll();
                         }}
-                        onSubmitEditing={handleScanSubmit}
-                        returnKeyType="done"
-                        showSoftInputOnFocus={false}
-                        onBlur={() => inputRef.current?.focus()}
-                        style={{ height: 40, width: "100%" }}
-                    />
-                </Input>
+                    >
+                        <CheckboxIndicator>
+                            <CheckboxIcon as={CheckIcon} color="white" />
+                        </CheckboxIndicator>
+                    </Checkbox>
+                    <Text size="sm" onPress={allSelected ? unselectAll : selectAll}>
+                        Select All
+                    </Text>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        action="negative"
+                        onPress={handleRemoveAll}
+                        style={{ marginLeft: 8 }}
+                    >
+                        <ButtonText>Remove All</ButtonText>
+                    </Button>
+                </HStack>
 
-                <ScrollView style={{ flex: 1, width: "100%" }}>
-                    <VStack style={{ gap: 8, paddingBottom: 16 }}>
-                        {scannedItems.length > 0 ? (
-                            scannedItems.map((item) => (
-                                <HStack
-                                    key={item.id}
-                                    style={{
-                                        justifyContent: "space-between",
-                                        alignItems: "center",
-                                        width: "100%",
-                                    }}
-                                >
-                                    <Text
-                                        style={{ fontSize: 16, fontWeight: "bold" }}
-                                    >
-                                        {item.value}
-                                    </Text>
-                                    <Text
-                                        style={{
-                                            fontSize: 13,
-                                            color: "$gray11",
-                                        }}
-                                    >
-                                        {formatDate(item.timestamp)}
-                                    </Text>
-                                </HStack>
-                            ))
-                        ) : (
-                            <Text style={{ color: "$gray11" }}>
-                                Scan results will appear here
-                            </Text>
-                        )}
-                    </VStack>
-                </ScrollView>
-            </VStack>
-        </ProtectedRoute>
+                <Button onPress={handleReceive} isDisabled={selectedIds.size === 0}>
+                    <ButtonText>Receive</ButtonText>
+                </Button>
+            </HStack>
+        </VStack>
     );
 }
