@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useWindowDimensions, ScrollView, Alert } from "react-native";
 import { LinearGradient, LinearGradientProps } from "expo-linear-gradient";
+import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
@@ -24,15 +25,35 @@ export default function ProfileScreen() {
     const [imageLoaded, setImageLoaded] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
+    const toast = useToast();
+
     const LG = LinearGradient as unknown as React.ComponentType<LinearGradientProps>;
+
+    const showToast = (title: string, description: string) => {
+        const newId = Math.random();
+        toast.show({
+            id: newId.toString(),
+            placement: "top",
+            duration: 3000,
+            render: ({ id }) => {
+                const uniqueToastId = "toast-" + id;
+                return (
+                    <Toast nativeID={uniqueToastId} action="muted" variant="solid">
+                        <ToastTitle>{title}</ToastTitle>
+                        <ToastDescription>{description}</ToastDescription>
+                    </Toast>
+                );
+            },
+        });
+    };
 
     const handleLogout = async () => {
         setIsLoggingOut(true);
         try {
             await signOut(auth);
-            Alert.alert("Success", "You have successfully logged out.");
+            showToast("Logout Successful", "You have been logged out successfully.");
         } catch (error: any) {
-            Alert.alert("Logout Error", error.message);
+            showToast("Logout error", error.message);
         } finally {
             setIsLoggingOut(false);
         }

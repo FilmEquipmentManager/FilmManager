@@ -11,7 +11,7 @@ import { Text } from "@/components/ui/text";
 import { Film, LogInIcon } from "lucide-react-native";
 import { auth } from "@/firebase/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input, InputField } from "@/components/ui/input";
 import { Eye, EyeClosed } from "lucide-react-native";
 import server from "../../networking";
@@ -38,10 +38,91 @@ const AuthForm = ({
     const [username, setUsername] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    // Validation states
+    const [emailError, setEmailError] = useState("");
+    const [passwordError, setPasswordError] = useState("");
+    const [usernameError, setUsernameError] = useState("");
+    const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
+    // Validate email format
+    const validateEmail = (email: string) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email) {
+            setEmailError("Email is required");
+            return false;
+        } else if (!emailRegex.test(email)) {
+            setEmailError("Invalid email format");
+            return false;
+        } else {
+            setEmailError("");
+            return true;
+        }
+    };
+
+    // Validate password
+    const validatePassword = (password: string) => {
+        if (!password) {
+            setPasswordError("Password is required");
+            return false;
+        } else if (password.length < 12) {
+            setPasswordError("Password must be at least 12 characters");
+            return false;
+        } else {
+            setPasswordError("");
+            return true;
+        }
+    };
+
+    // Validate username
+    const validateUsername = (username: string) => {
+        if (isRegister && !username) {
+            setUsernameError("Username is required");
+            return false;
+        } else if (isRegister && username.length < 3) {
+            setUsernameError("Username must be at least 3 characters");
+            return false;
+        } else {
+            setUsernameError("");
+            return true;
+        }
+    };
+
+    // Clear validation errors when switching between login/register forms
+    useEffect(() => {
+        setEmailError("");
+        setPasswordError("");
+        setUsernameError("");
+        setAttemptedSubmit(false);
+    }, [isRegister]);
+
+    const validateForm = () => {
+        const isEmailValid = validateEmail(email);
+        const isPasswordValid = validatePassword(password);
+        const isUsernameValid = validateUsername(username);
+        
+        return isEmailValid && isPasswordValid && (isRegister ? isUsernameValid : true);
+    };
 
     const handleSubmit = async () => {
-        setIsSubmitting(true);
-        await onSubmit(email, password, username);
+        setAttemptedSubmit(true);
+        
+        // Run all validations
+        const isValid = validateForm();
+        
+        if (!isValid) {
+            // Don't proceed if validation fails
+            return;
+        }
+        
+        try {
+            setIsSubmitting(true);
+            await onSubmit(email, password, username);
+        } catch (err) {
+            // Error handling is done in the parent component
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -74,10 +155,15 @@ const AuthForm = ({
                             <InputField
                                 value={username}
                                 onChangeText={setUsername}
-                                placeholder="Enter username"
+                                placeholder="Enter username (Min. 3 char)"
                                 autoCapitalize="none"
                             />
                         </Input>
+                        {attemptedSubmit && usernameError ? (
+                            <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>
+                                {usernameError}
+                            </Text>
+                        ) : null}
                     </VStack>
                 )}
 
@@ -94,6 +180,11 @@ const AuthForm = ({
                             keyboardType="email-address"
                         />
                     </Input>
+                    {attemptedSubmit && emailError ? (
+                        <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>
+                            {emailError}
+                        </Text>
+                    ) : null}
                 </VStack>
 
                 <VStack>
@@ -117,11 +208,19 @@ const AuthForm = ({
                             />
                         </Button>
                     </HStack>
+                    {attemptedSubmit && passwordError ? (
+                        <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>
+                            {passwordError}
+                        </Text>
+                    ) : null}
                 </VStack>
 
                 <Button
                     onPress={handleSubmit}
-                    style={{ backgroundColor: "#1B9CFF", borderRadius: 8 }}
+                    style={{ 
+                        backgroundColor: "#1B9CFF", 
+                        borderRadius: 8 
+                    }}
                     disabled={isSubmitting}
                 >
                     {isSubmitting ? (
