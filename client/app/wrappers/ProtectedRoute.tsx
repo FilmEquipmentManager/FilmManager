@@ -9,12 +9,12 @@ import { Card } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
-import { Film, LogInIcon } from "lucide-react-native";
 import { auth } from "@/firebase/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { Input, InputField } from "@/components/ui/input";
-import { Eye, EyeClosed } from "lucide-react-native";
+import { Eye, EyeClosed, LogInIcon } from "lucide-react-native";
+import { Platform } from "react-native";
 import server from "../../networking";
 
 type AuthFormProps = {
@@ -46,6 +46,8 @@ const AuthForm = ({
     const [passwordError, setPasswordError] = useState("");
     const [usernameError, setUsernameError] = useState("");
     const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
+    const isWeb = Platform.OS === "web";
 
     const showToast = (title: string, description: string) => {
         const newId = Math.random();
@@ -158,33 +160,38 @@ const AuthForm = ({
             style={{
                 backgroundColor: "white",
                 borderRadius: 20,
-                padding: 16,
+                padding: isWeb ? 24 : 16,
                 width: "100%",
+                maxWidth: isWeb ? 480 : "100%",
+                alignSelf: "center",
+                boxShadow: isWeb ? "0px 4px 20px rgba(0, 0, 0, 0.1)" : undefined,
             }}
         >
-            <VStack space="md" style={{ padding: 16 }}>
+            <VStack space="md" style={{ padding: isWeb ? 24 : 16 }}>
                 <Text
                     style={{
                         fontSize: 24,
                         fontWeight: "800",
                         textAlign: "center",
-                        padding: 10
+                        padding: 10,
+                        color: "#333",
                     }}
                 >
                     {isRegister ? "Register" : "Login"}
                 </Text>
 
                 {isRegister && (
-                    <VStack>
+                    <VStack style={{ marginBottom: isWeb ? 16 : 8 }}>
                         <Text style={{ color: "#A0A0A0", fontWeight: "500" }}>
                             Username
                         </Text>
-                        <Input variant="underlined">
+                        <Input variant="underlined" style={{ marginTop: 4 }}>
                             <InputField
                                 value={username}
                                 onChangeText={setUsername}
                                 placeholder="Enter username (Min. 3 char)"
                                 autoCapitalize="none"
+                                style={{ fontSize: isWeb ? 16 : 14 }}
                             />
                         </Input>
                         {attemptedSubmit && usernameError ? (
@@ -195,17 +202,18 @@ const AuthForm = ({
                     </VStack>
                 )}
 
-                <VStack>
+                <VStack style={{ marginBottom: isWeb ? 16 : 8 }}>
                     <Text style={{ color: "#A0A0A0", fontWeight: "500" }}>
                         Email
                     </Text>
-                    <Input variant="underlined">
+                    <Input variant="underlined" style={{ marginTop: 4 }}>
                         <InputField
                             value={email}
                             onChangeText={setEmail}
                             placeholder="Enter email"
                             autoCapitalize="none"
                             keyboardType="email-address"
+                            style={{ fontSize: isWeb ? 16 : 14 }}
                         />
                     </Input>
                     {attemptedSubmit && emailError ? (
@@ -215,20 +223,27 @@ const AuthForm = ({
                     ) : null}
                 </VStack>
 
-                <VStack>
+                <VStack style={{ marginBottom: isWeb ? 24 : 16 }}>
                     <Text style={{ color: "#A0A0A0", fontWeight: "500" }}>
                         Password
                     </Text>
-                    <HStack style={{ alignItems: "center" }}>
+                    <HStack style={{ alignItems: "center", marginTop: 4 }}>
                         <Input variant="underlined" style={{ flex: 1 }}>
                             <InputField
                                 value={password}
                                 onChangeText={setPassword}
                                 placeholder="Enter password (Min. 12 char)"
                                 secureTextEntry={!showPassword}
+                                style={{ fontSize: isWeb ? 16 : 14 }}
                             />
                         </Input>
-                        <Button onPress={() => setShowPassword(!showPassword)} style={{ backgroundColor: "transparent" }}>
+                        <Button 
+                            onPress={() => setShowPassword(!showPassword)} 
+                            style={{ 
+                                backgroundColor: "transparent", 
+                                ...(isWeb && { cursor: "pointer" }) 
+                            }}
+                        >
                             <Icon
                                 as={showPassword ? EyeClosed : Eye}
                                 size="md"
@@ -247,21 +262,40 @@ const AuthForm = ({
                     onPress={handleSubmit}
                     style={{ 
                         backgroundColor: "#1B9CFF", 
-                        borderRadius: 8 
+                        borderRadius: 8,
+                        paddingVertical: isWeb ? 12 : 8,
+                        marginTop: 8,
+                        ...(isWeb && { cursor: "pointer" })
                     }}
                     disabled={isSubmitting}
                 >
                     {isSubmitting ? (
                         <Spinner size="small" color={"white"} />
                     ) : (
-                        <Text style={{ color: "white", fontWeight: "700" }}>
+                        <Text style={{ 
+                            color: "white", 
+                            fontWeight: "700",
+                            fontSize: isWeb ? 16 : 14
+                        }}>
                             {isRegister ? "Register" : "Login"}
                         </Text>
                     )}
                 </Button>
 
-                <Button variant="link" onPress={switchForm} style={{ marginTop: 10, marginBottom: 10 }}>
-                    <Text style={{ color: "#1B9CFF", textAlign: "center" }}>
+                <Button 
+                    variant="link" 
+                    onPress={switchForm} 
+                    style={{ 
+                        marginTop: 16, 
+                        marginBottom: 8,
+                        ...(isWeb && { cursor: "pointer" })
+                    }}
+                >
+                    <Text style={{ 
+                        color: "#1B9CFF", 
+                        textAlign: "center",
+                        fontSize: isWeb ? 15 : 14
+                    }}>
                         {isRegister ? "Already have an account? Login" : "Don't have an account? Register"}
                     </Text>
                 </Button>
@@ -279,31 +313,28 @@ const AuthForm = ({
 export default function ProtectedRoute({ showAuth, children }: { showAuth?: boolean; children: React.ReactNode | ((userData: any) => React.ReactNode) }) {
     const [isRegister, setIsRegister] = useState(false);
     const [authError, setAuthError] = useState("");
-
     const { userData, loading } = useAuth();
-
     const router = useRouter();
+    const isWeb = Platform.OS === "web";
 
     const handleAuth = async (email: string, password: string, username?: string) => {
-		try {
-			if (isRegister && username) {
-				await server.post("/api/register", {
-					email,
-					password,
-					username,
-				});
-				await signInWithEmailAndPassword(auth, email, password);
-
+        try {
+            if (isRegister && username) {
+                await server.post("/api/register", {
+                    email,
+                    password,
+                    username,
+                });
+                await signInWithEmailAndPassword(auth, email, password);
                 setAuthError('');
-			} else {
-				await signInWithEmailAndPassword(auth, email, password);
-
+            } else {
+                await signInWithEmailAndPassword(auth, email, password);
                 setAuthError('');
-			}
-		} catch (error: any) {
-			setAuthError(error.message);
-		}
-	};
+            }
+        } catch (error: any) {
+            setAuthError(error.message);
+        }
+    };
 
     if (loading) {
         return (
@@ -325,7 +356,14 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
             return (
                 <LinearGradient
                     colors={["#00FFDD", "#1B9CFF"]}
-                    style={{ flex: 1, justifyContent: "center", padding: 24 }}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    style={{ 
+                        flex: 1, 
+                        justifyContent: "center", 
+                        padding: isWeb ? 40 : 24,
+                        minHeight: isWeb ? "100%" : undefined
+                    }}
                 >
                     <AuthForm
                         isRegister={isRegister}
@@ -336,14 +374,18 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
                 </LinearGradient>
             );
         } else {
+            // Display a web browser and mobile app friendly screen to welcome the user to the FilmManager app, and have a button that redirects them to /auth/account
             return (
                 <LinearGradient
                     colors={["#00FFDD", "#1B9CFF"]}
-                    style={{
-                        flex: 1,
-                        justifyContent: "center",
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    style={{ 
+                        flex: 1, 
+                        justifyContent: "center", 
                         alignItems: "center",
-                        padding: 24,
+                        padding: isWeb ? 12 : 16,
+                        minHeight: "100%"
                     }}
                 >
                     <Card
@@ -361,39 +403,31 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
                         }}
                     >
                         <VStack space="xl" style={{ alignItems: "center" }}>
-                            <Icon
-                                as={Film as any}
-                                color="#1B9CFF"
-                                style={{ marginBottom: 16, width: 40, height: 40 }}
-                            />
-    
+                            <HStack space="xl" style={{ alignItems: "center", marginTop: 0, display: "flex", flexDirection: "column" }}>
+                                <Text
+                                    style={{
+                                        marginTop: 5,
+                                        fontSize: isWeb ? 20 : 18,
+                                        fontWeight: "800",
+                                        color: "#333",
+                                    }}
+                                >
+                                    Welcome to FilmManager
+                                </Text>
+                            </HStack>
+                            
                             <Text
                                 style={{
-                                    color: "#333",
-                                    fontSize: 28,
-                                    fontWeight: "700",
+                                    fontSize: isWeb ? 13 : 12,
                                     textAlign: "center",
-                                    marginBottom: 8,
-                                    padding: 10,
-                                    lineHeight: 35,
-                                }}
-                            >
-                                Welcome to FilmManager
-                            </Text>
-    
-                            <Text
-                                style={{
                                     color: "#666",
-                                    fontSize: 16,
-                                    textAlign: "center",
-                                    marginBottom: 24,
-                                    lineHeight: 24,
+                                    marginTop: 2,
+                                    marginBottom: 6,
                                 }}
                             >
-                                Please log in or create an account to access your
-                                profile and manage your content.
+                                Please log in or create an account to access your profile and manage your content.
                             </Text>
-    
+                            
                             <Button
                                 onPress={() => {
                                     router.push("/auth/account");
