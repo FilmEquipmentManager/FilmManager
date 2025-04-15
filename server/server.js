@@ -289,6 +289,14 @@ io.on("connection", (socket) => {
     }
 });
 
+io.on("disconnect", (socket) => {
+    try {
+        console.log(`\n[WEBSOCKET] - Client disconnected: ${socket.id}\n`);
+    } catch (error) {
+        console.log(`\n[WEBSOCKET] - FAILED: Socket disconnection error - ${error.stack || error}\n`);
+    }
+});
+
 async function startServer() {
     try {
         await DM.load();
