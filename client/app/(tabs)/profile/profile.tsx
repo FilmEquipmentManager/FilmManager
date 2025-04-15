@@ -11,13 +11,17 @@ import { Avatar, AvatarFallbackText, AvatarImage } from "@/components/ui/avatar"
 import { signOut } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
 import ProtectedRoute from "@/app/wrappers/ProtectedRoute";
+import { View } from "@/components/Themed";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function ProfileScreen() {
     const [isHovered, setIsHovered] = useState(false);
     const { width, height } = useWindowDimensions();
     const isLargeScreen = width >= 765;
     const isShortScreen = height < 750;
-    const isMobileScreen = width < 600;
+    const isMobileScreen = width < 680;
+
+    const [imageLoaded, setImageLoaded] = useState(false);
 
     const LG = LinearGradient as unknown as React.ComponentType<LinearGradientProps>;
 
@@ -74,11 +78,17 @@ export default function ProfileScreen() {
                                         marginTop: isLargeScreen ? -80 : 50,
                                     }}
                                 >
+                                    {!imageLoaded && (
+                                        <View>
+                                            <Spinner size="small" />
+                                        </View>
+                                    )}
                                     <AvatarFallbackText>{userData?.username}</AvatarFallbackText>
                                     <AvatarImage
                                         accessibilityLabel={userData?.username}
                                         source={{ uri: "https://bit.ly/dan-abramov" }}
                                         style={{ width: "100%", height: "100%" }}
+                                        onLoadEnd={() => setImageLoaded(true)}
                                     />
                                 </Avatar>
                             </HStack>
