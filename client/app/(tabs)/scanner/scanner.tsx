@@ -10,7 +10,8 @@ import { Button, ButtonText } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import { Modal, ModalBackdrop, ModalContent, ModalCloseButton, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { Checkbox, CheckboxIndicator, CheckboxIcon } from "@/components/ui/checkbox"
-import { Icon, CloseIcon, CheckIcon } from "@/components/ui/icon";
+import { Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem } from '@/components/ui/select';
+import { Icon, CloseIcon, CheckIcon, ChevronDownIcon } from "@/components/ui/icon";
 import Constants from "expo-constants";
 import server from "../../../networking";
 import ProtectedRoute from "@/app/wrappers/ProtectedRoute";
@@ -18,6 +19,7 @@ import ProtectedRoute from "@/app/wrappers/ProtectedRoute";
 interface ScannedItem {
     id: string;
     barcode: string;
+    group: string;
     itemName: string;
     itemDescription: string;
     createdAt: string;
@@ -25,6 +27,8 @@ interface ScannedItem {
     updatedBy: string;
     totalCount: number;
     sessionCount: number;
+    location: string;
+    pointsToRedeem: number;
 }
 
 export default function ScannerScreen() {
@@ -39,10 +43,18 @@ export default function ScannerScreen() {
     const [editingItemName, setEditingItemName] = useState("");
     const [editingItemDescription, setEditingItemDescription] = useState("");
     const [editingItemCount, setEditingItemCount] = useState('');
+    const [editingItemLocation, setEditingItemLocation] = useState("");
+    const [editingItemPointsToRedeem, setEditingItemPointsToRedeem] = useState("");
+    const [editingItemGroup, setEditingItemGroup] = useState("");
     const [originalItemName, setOriginalItemName] = useState('');
     const [originalItemDescription, setOriginalItemDescription] = useState('');
     const [originalItemCount, setOriginalItemCount] = useState('');
+    const [originalItemLocation, setOriginalItemLocation] = useState('');
+    const [originalItemPointsToRedeem, setOriginalItemPointsToRedeem] = useState('');
+    const [originalItemGroup, setOriginalItemGroup] = useState('');
     const [isEditingUnknown, setIsEditingUnknown] = useState(false);
+
+    const groupLabels = { camera: "Camera", lighting: "Lighting", audio: "Audio", lenses: "Lenses", accessories: "Accessories", grip: "Grip Equipment", power: "Power Supply", cables: "Cables", misc: "Miscellaneous", unknown: "Unknown" };
 
     const inputRef = useRef<any>(null);
 
@@ -125,7 +137,6 @@ export default function ScannerScreen() {
                 let newPendingItems: ScannedItem[];
 
                 if (existingPendingItem) {
-                    // Already in session, just increase session count
                     newPendingItems = currentPendingList.map(item =>
                         item.barcode === barcodeToScan
                             ? { ...item, sessionCount: (item.sessionCount || 0) + 1 }
@@ -135,12 +146,13 @@ export default function ScannerScreen() {
                     const newItem: ScannedItem = matchedItem
                         ? {
                             ...matchedItem,
-                            totalCount: (matchedItem as any)["count"] || 0,
+                            totalCount: matchedItem.totalCount || 0,
                             sessionCount: 1,
                         }
                         : {
                             id: Date.now().toString(),
                             barcode: barcodeToScan,
+                            group: "Unknown",
                             itemName: "Item Name",
                             itemDescription: "Item Description",
                             createdAt: new Date().toISOString(),
@@ -148,6 +160,8 @@ export default function ScannerScreen() {
                             updatedBy: "You",
                             totalCount: 0,
                             sessionCount: 1,
+                            location: "Unknown Location",
+                            pointsToRedeem: 0,
                         };
 
                     newPendingItems = [...currentPendingList, newItem];
@@ -173,6 +187,14 @@ export default function ScannerScreen() {
     }
 
     const allPendingItems = [...pendingItems, ...pendingUnknownItems];
+
+    const groupedItems: Record<string, ScannedItem[]> = allPendingItems.reduce((groups, item) => {
+        const group = item.group?.toLowerCase() || "Unknown";
+        if (!groups[group]) groups[group] = [];
+        groups[group].push(item);
+        return groups;
+    }, {});
+
     const allSelected = selectedIds.size === allPendingItems.length;
 
     const selectAll = () => {
@@ -191,7 +213,7 @@ export default function ScannerScreen() {
         setSelectedIds(new Set());
         showToast("Cleared", "All scanned results have been removed.");
         setIsLoading(false);
-    };    
+    };
 
     const handleRemove = (id: string) => {
         if (pendingItems.some(item => item.id === id)) {
@@ -203,26 +225,35 @@ export default function ScannerScreen() {
 
     const handleEdit = (item: ScannedItem) => {
         setEditingItem(item);
-        setEditingBarcode(item.barcode);
-        setEditingItemName(item.itemName);
-        setEditingItemDescription(item.itemDescription);
-        setEditingItemCount(item.totalCount.toString());
-    
-        setOriginalItemName(item.itemName);
-        setOriginalItemDescription(item.itemDescription);
-        setOriginalItemCount(item.totalCount.toString());
-    
+        setEditingBarcode(item.barcode ?? "");
+        setEditingItemName(item.itemName ?? "");
+        setEditingItemDescription(item.itemDescription ?? "");
+        setEditingItemCount(item.totalCount?.toString() ?? "0");
+        setEditingItemLocation(item.location ?? "");
+        setEditingItemPointsToRedeem(item.pointsToRedeem?.toString() ?? "0");
+        setEditingItemGroup(item.group ?? "");
+
+        setOriginalItemName(item.itemName ?? "");
+        setOriginalItemDescription(item.itemDescription ?? "");
+        setOriginalItemCount(item.totalCount?.toString() ?? "0");
+        setOriginalItemLocation(item.location ?? "");
+        setOriginalItemPointsToRedeem(item.pointsToRedeem?.toString() ?? "0");
+        setOriginalItemGroup(item.group ?? "");
+
         const isUnknown = pendingUnknownItems.some(i => i.id === item.id);
         setIsEditingUnknown(isUnknown);
-    
+
         setShowEditModal(true);
     };
-    
+
     const hasChanges =
         editingBarcode.trim() !== editingItem?.barcode.trim() ||
         editingItemName.trim() !== originalItemName.trim() ||
         editingItemDescription.trim() !== originalItemDescription.trim() ||
-        editingItemCount.trim() !== originalItemCount.trim();
+        editingItemCount.trim() !== originalItemCount.trim() ||
+        editingItemLocation.trim() !== originalItemLocation.trim() ||
+        editingItemPointsToRedeem.trim() !== originalItemPointsToRedeem.trim() ||
+        editingItemGroup.trim() !== originalItemGroup.trim();
 
     const handleReceive = async () => {
         setIsLoading(true);
@@ -234,8 +265,11 @@ export default function ScannerScreen() {
             const updatePromises = knownItemsToReceive.map(item =>
                 server.put(`/api/barcodes/${item.id}`, {
                     barcode: item.barcode,
+                    group: item.group,
                     itemName: item.itemName,
                     itemDescription: item.itemDescription,
+                    location: item.location,
+                    pointsToRedeem: item.pointsToRedeem,
                     count: item.totalCount + item.sessionCount,
                 })
             );
@@ -244,9 +278,12 @@ export default function ScannerScreen() {
             const createPromises = unknownItemsToReceive.map(item =>
                 server.post(`/api/barcodes`, {
                     barcode: item.barcode,
+                    group: item.group,
                     itemName: item.itemName,
                     itemDescription: item.itemDescription,
                     count: item.totalCount + item.sessionCount,
+                    location: item.location,
+                    pointsToRedeem: item.pointsToRedeem,
                     createdAt: item.createdAt,
                     updatedAt: item.updatedAt,
                     updatedBy: item.updatedBy,
@@ -275,15 +312,18 @@ export default function ScannerScreen() {
         if (!editingItem) return;
         setIsLoading(true);
         const updatedTotalCount = parseInt(editingItemCount) || 0;
-    
+
         const updatedItem = {
             ...editingItem,
             barcode: editingBarcode.trim(),
             itemName: editingItemName.trim(),
             itemDescription: editingItemDescription.trim(),
+            location: editingItemLocation.trim(),
+            pointsToRedeem: parseInt(editingItemPointsToRedeem) || 0,
+            group: editingItemGroup.trim(),
             totalCount: parseInt(editingItemCount) || 0,
         };
-    
+
         if (isEditingUnknown) {
             setPendingUnknownItems((prev) =>
                 prev.map((item) =>
@@ -296,10 +336,13 @@ export default function ScannerScreen() {
             try {
                 await server.put(`/api/barcodes/${editingItem.id}`, {
                     barcode: editingBarcode.trim(),
+                    group: editingItemGroup.trim(),
+                    location: editingItemLocation.trim(),
+                    pointsToRedeem: parseInt(editingItemPointsToRedeem) || 0,
                     itemName: editingItemName.trim(),
                     itemDescription: editingItemDescription.trim(),
                 });
-    
+
                 setPendingItems((prev) =>
                     prev.map((item) =>
                         item.id === editingItem.id ? updatedItem : item
@@ -310,7 +353,7 @@ export default function ScannerScreen() {
                 showToast("Edit failed", "Failed to update barcode. Please try again.");
             }
         }
-    
+
         setEditingItem(null);
         setShowEditModal(false);
         setIsLoading(false);
@@ -318,8 +361,11 @@ export default function ScannerScreen() {
         setEditingItemName(editingItem?.itemName || "");
         setEditingItemDescription(editingItem?.itemDescription || "");
         setEditingItemCount(editingItem?.totalCount.toString() || "");
-    };    
-    
+        setEditingItemLocation(editingItem?.location || "");
+        setEditingItemPointsToRedeem(editingItem?.pointsToRedeem.toString() || "");
+        setEditingItemGroup(editingItem?.group || "");
+    };
+
     const handleDelete = async (id: string) => {
         setIsLoading(true);
         try {
@@ -363,54 +409,88 @@ export default function ScannerScreen() {
                     />
                 </Input>
 
-                <ScrollView style={{ flex: 1, width: "100%" }}>
-                    <VStack style={{ gap: 8, paddingBottom: 16 }}>
-                        {[...pendingItems, ...pendingUnknownItems].length > 0 ? (
-                            [...pendingItems, ...pendingUnknownItems].map((item) => (
-                                <HStack
-                                    key={item.id}
-                                    style={{
-                                        justifyContent: "space-between",
-                                        alignItems: "center",
-                                        width: "100%",
-                                        borderBottomWidth: 1,
-                                        borderColor: "$gray3",
-                                        paddingVertical: 8,
-                                    }}
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedIds.has(item.id)}
-                                        onChange={() => toggleSelect(item.id)}
-                                        style={{ marginRight: 8 }}
-                                    />
-                                    <VStack style={{ flex: 1 }}>
-                                        <Text style={{ fontSize: 16, fontWeight: "bold" }}>
-                                            {item.barcode}{" "}
-                                            <Text style={{ color: "$gray11" }}>x{item.sessionCount}</Text>
-                                        </Text>
-                                        <Text style={{ color: "$gray11" }}>
-                                            {item.itemName ? item.itemName : "Unknown"} -{" "}
-                                            {item.itemDescription ? item.itemDescription : "No description"}
-                                        </Text>
+            <ScrollView style={{ flex: 1, width: "100%" }}>
+                <VStack style={{ gap: 8, paddingBottom: 16 }}>
+                    {Object.entries(groupedItems).length > 0 ? (
+                        Object.entries(groupedItems).map(([group, items]) => (
+                            <VStack key={group} style={{ gap: 8 }}>
+                                <Text style={{ fontSize: 18, fontWeight: "bold", marginTop: 16 }}>
+                                    {groupLabels[group] || group}
+                                </Text>
+
+                                {items.map((item) => (
+                                    <VStack
+                                        key={item.id}
+                                        style={{
+                                            borderBottomWidth: 1,
+                                            borderColor: "$gray3",
+                                            paddingVertical: 8,
+                                            paddingHorizontal: 8,
+                                            backgroundColor: "$backgroundCard",
+                                            borderRadius: 8,
+                                        }}
+                                    >
+                                        <HStack
+                                            style={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                marginBottom: 4,
+                                            }}
+                                        >
+                                            <Checkbox
+                                                value="selectItems"
+                                                size="sm"
+                                                isChecked={selectedIds.has(item.id)}
+                                                onChange={() => toggleSelect(item.id)}
+                                                style={{ marginRight: 8 }}
+                                            >
+                                                <CheckboxIndicator>
+                                                    <CheckboxIcon as={CheckIcon} color="white" />
+                                                </CheckboxIndicator>
+                                            </Checkbox>
+
+                                            <VStack style={{ flex: 1 }}>
+                                                <Text style={{ fontSize: 16, fontWeight: "bold" }}>
+                                                    {item.barcode}{" "}
+                                                    <Text style={{ color: "gray" }}>x{item.sessionCount}</Text>
+                                                </Text>
+                                                <Text style={{ color: "gray" }}>
+                                                    {item.itemName || "Unknown"} - {item.itemDescription || "No description"}
+                                                </Text>
+                                                <Text style={{ fontSize: 12, color: "$gray10" }}>
+                                                    Location: {item.location || "Unknown"}
+                                                </Text>
+                                                <Text style={{ fontSize: 12, color: "$gray10" }}>
+                                                    Points: {item.pointsToRedeem ?? 0}
+                                                </Text>
+                                                <Text style={{ fontSize: 12, color: "$gray10" }}>
+                                                    Updated By: {item.updatedBy}
+                                                </Text>
+                                                <Text style={{ fontSize: 12, color: "$gray10" }}>
+                                                    Created: {new Date(item.createdAt).toLocaleString()}
+                                                </Text>
+                                            </VStack>
+
+                                            <HStack style={{ gap: 4 }}>
+                                                <Button size="sm" onPress={() => handleEdit(item)} isDisabled={isLoading}>
+                                                    <ButtonText>Edit</ButtonText>
+                                                </Button>
+                                                <Button size="sm" onPress={() => handleRemove(item.id)} isDisabled={isLoading}>
+                                                    <ButtonText>Remove</ButtonText>
+                                                </Button>
+                                                <Button size="sm" onPress={() => handleDelete(item.id)} isDisabled={isLoading}>
+                                                    <ButtonText>Delete</ButtonText>
+                                                </Button>
+                                            </HStack>
+                                        </HStack>
                                     </VStack>
-                                    <HStack style={{ gap: 8 }}>
-                                        <Button onPress={() => handleEdit(item)} isDisabled={isLoading}>
-                                            <ButtonText>Edit</ButtonText>
-                                        </Button>
-                                        <Button onPress={() => handleRemove(item.id)} isDisabled={isLoading}>
-                                            <ButtonText>Remove</ButtonText>
-                                        </Button>
-                                        <Button onPress={() => handleDelete(item.id)} isDisabled={isLoading}>
-                                            <ButtonText>Delete</ButtonText>
-                                        </Button>
-                                    </HStack>
-                                </HStack>
-                            ))
-                        ) : (
-                            <Text style={{ color: "$gray11" }}>Scan results will appear here</Text>
-                        )}
-                    </VStack>
+                                ))}
+                            </VStack>
+                        ))
+                    ) : (
+                        <Text style={{ color: "$gray11" }}>Scan results will appear here</Text>
+                    )}
+                </VStack>
 
                     {/* Gluestack Modal for Editing a Barcode */}
                     <Modal
@@ -453,42 +533,92 @@ export default function ScannerScreen() {
                                     />
                                 </Input>
 
-                                <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
-                                    <InputField
-                                        ref={inputRef}
-                                        value={editingItemDescription}
-                                        onChangeText={setEditingItemDescription}
-                                        placeholder="Enter item description"
-                                        style={{ height: 40, width: "100%" }}
-                                    />
-                                </Input>
+                            <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
+                                <InputField
+                                    ref={inputRef}
+                                    value={editingItemDescription}
+                                    onChangeText={setEditingItemDescription}
+                                    placeholder="Enter item description"
+                                    style={{ height: 40, width: "100%" }}
+                                />
+                            </Input>
 
-                                <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
-                                    <InputField
-                                        ref={inputRef}
-                                        value={editingItemCount}
-                                        onChangeText={setEditingItemCount}
-                                        placeholder="Enter item count"
-                                        keyboardType="numeric"
-                                        style={{ height: 40, width: "100%" }}
-                                    />
-                                </Input>
-                            </ModalBody>
-                            <ModalFooter>
-                                <Button
-                                    variant="outline"
-                                    action="secondary"
-                                    onPress={() => setShowEditModal(false)}
-                                >
-                                    <ButtonText>Cancel</ButtonText>
-                                </Button>
-                                <Button onPress={saveEditedBarcode} isDisabled={isLoading || editingBarcode.trim().length === 0 || editingItemName.trim().length === 0 || !hasChanges}>
-                                    <ButtonText>Save</ButtonText>
-                                </Button>
-                            </ModalFooter>
-                        </ModalContent>
-                    </Modal>
-                </ScrollView>
+                            <Select
+                                isDisabled={isLoading}
+                                selectedValue={editingItemGroup}
+                                onValueChange={setEditingItemGroup}
+                            >
+                                <SelectTrigger variant="outline" size="md" style={{ marginBottom: 12 }}>
+                                    <SelectInput placeholder="Select item group" />
+                                    <SelectIcon className="mr-3" as={ChevronDownIcon} />
+                                </SelectTrigger>
+                                <SelectPortal>
+                                    <SelectBackdrop />
+                                    <SelectContent>
+                                        <SelectDragIndicatorWrapper>
+                                            <SelectDragIndicator />
+                                        </SelectDragIndicatorWrapper>
+                                        <SelectItem label="Camera" value="camera" />
+                                        <SelectItem label="Lighting" value="lighting" />
+                                        <SelectItem label="Audio" value="audio" />
+                                        <SelectItem label="Lenses" value="lenses" />
+                                        <SelectItem label="Accessories" value="accessories" />
+                                        <SelectItem label="Grip Equipment" value="grip" />
+                                        <SelectItem label="Power Supply" value="power" />
+                                        <SelectItem label="Cables" value="cables" />
+                                        <SelectItem label="Miscellaneous" value="misc" />
+                                        <SelectItem label="Unknown" value="unknown" />
+                                    </SelectContent>
+                                </SelectPortal>
+                            </Select>
+
+                            <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
+                                <InputField
+                                    ref={inputRef}
+                                    value={editingItemLocation}
+                                    onChangeText={setEditingItemLocation}
+                                    placeholder="Enter item location"
+                                    style={{ height: 40, width: "100%" }}
+                                />
+                            </Input>
+
+                            <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
+                                <InputField
+                                    ref={inputRef}
+                                    value={editingItemCount}
+                                    onChangeText={setEditingItemCount}
+                                    placeholder="Enter item count"
+                                    keyboardType="numeric"
+                                    style={{ height: 40, width: "100%" }}
+                                />
+                            </Input>
+
+                            <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
+                                <InputField
+                                    ref={inputRef}
+                                    value={editingItemPointsToRedeem}
+                                    onChangeText={setEditingItemPointsToRedeem}
+                                    placeholder="Enter points to redeem"
+                                    keyboardType="numeric"
+                                    style={{ height: 40, width: "100%" }}
+                                />
+                            </Input>
+                        </ModalBody>
+                        <ModalFooter>
+                            <Button
+                                variant="outline"
+                                action="secondary"
+                                onPress={() => setShowEditModal(false)}
+                            >
+                                <ButtonText>Cancel</ButtonText>
+                            </Button>
+                            <Button onPress={saveEditedBarcode} isDisabled={isLoading || editingBarcode.trim().length === 0 || editingItemName.trim().length === 0 || !hasChanges}>
+                                <ButtonText>Save</ButtonText>
+                            </Button>
+                        </ModalFooter>
+                    </ModalContent>
+                </Modal>
+            </ScrollView>
 
                 <HStack
                     style={{

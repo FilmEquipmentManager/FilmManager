@@ -140,7 +140,15 @@ app.get("/api/barcodes", authMiddleware, async (req, res) => {
 
 app.post("/api/barcodes", authMiddleware, async (req, res) => {
     try {
-        const { barcode, itemName, itemDescription, count } = req.body;
+        const {
+            barcode,
+            itemName,
+            itemDescription,
+            count,
+            group,
+            location,
+            pointsToRedeem,
+        } = req.body;
 
         if (
             typeof barcode !== "string" || barcode.trim() === "" ||
@@ -158,18 +166,21 @@ app.post("/api/barcodes", authMiddleware, async (req, res) => {
         const newBarcode = {
             id: Date.now().toString(),
             barcode: barcode.trim(),
+            group: group || "Unknown",
             itemName: itemName.trim(),
             itemDescription: itemDescription.trim(),
             createdAt: now,
             updatedAt: now,
             updatedBy,
-            count: count || 1,
+            totalCount: count || 1,
+            sessionCount: 0,
+            location: location || "Unknown",
+            pointsToRedeem: pointsToRedeem || 0,
         };
 
         DM["Barcodes"][newBarcode.id] = newBarcode;
 
         await DM.save();
-
         const barcodeList = Object.values(DM["Barcodes"] || {});
         io.emit("barcodes_updated", barcodeList);
 
@@ -186,7 +197,15 @@ app.post("/api/barcodes", authMiddleware, async (req, res) => {
 app.put("/api/barcodes/:id", authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
-        const { barcode, itemName, itemDescription, count } = req.body;
+        const {
+            barcode,
+            itemName,
+            itemDescription,
+            count,
+            group,
+            location,
+            pointsToRedeem,
+        } = req.body;
 
         if (
             !id ||
@@ -205,27 +224,25 @@ app.put("/api/barcodes/:id", authMiddleware, async (req, res) => {
         const now = new Date().toISOString();
         const updatedBy = req.user.name || req.user.email || req.user.uid || "Unknown";
 
-        let newCount;
-        if (typeof count === "number") {
-            newCount = count;
-        } else {
-            newCount = existingBarcode.count;
-        }
+        console.log(count)
 
-        console.log(newCount);
-
-        DM["Barcodes"][id] = {
+        const updatedBarcode = {
             ...existingBarcode,
             barcode: barcode.trim(),
             itemName: itemName.trim(),
             itemDescription: itemDescription.trim(),
+            group: group || existingBarcode.group || "",
+            location: location || existingBarcode.location || "",
+            pointsToRedeem: typeof pointsToRedeem === "number" ? pointsToRedeem : existingBarcode.pointsToRedeem || 0,
+            sessionCount: 0,
+            totalCount: typeof count === "number" ? count : existingBarcode.totalCount || 1,
             updatedAt: now,
-            updatedBy: updatedBy,
-            count: newCount,
+            updatedBy,
         };
 
-        await DM.save();
+        DM["Barcodes"][id] = updatedBarcode;
 
+        await DM.save();
         io.emit("barcodes_updated", Object.values(DM["Barcodes"] || {}));
 
         res.status(200).json({ message: "SUCCESS: Barcode updated successfully." });
