@@ -22,15 +22,19 @@ export default function ProfileScreen() {
     const isMobileScreen = width < 680;
 
     const [imageLoaded, setImageLoaded] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const LG = LinearGradient as unknown as React.ComponentType<LinearGradientProps>;
 
     const handleLogout = async () => {
+        setIsLoggingOut(true);
         try {
             await signOut(auth);
             Alert.alert("Success", "You have successfully logged out.");
         } catch (error: any) {
             Alert.alert("Logout Error", error.message);
+        } finally {
+            setIsLoggingOut(false);
         }
     };
 
@@ -232,6 +236,7 @@ export default function ProfileScreen() {
                                     onHoverIn={() => setIsHovered(true)}
                                     onHoverOut={() => setIsHovered(false)}
                                     onPress={handleLogout}
+                                    disabled={isLoggingOut}
                                     style={{
                                         marginTop: 10,
                                         marginBottom: 20,
@@ -243,9 +248,13 @@ export default function ProfileScreen() {
                                         transitionDuration: "200ms",
                                     }}
                                 >
-                                    <Text style={{ color: "white", fontWeight: "700" }}>
-                                        Log Out
-                                    </Text>
+                                    {isLoggingOut ? (
+                                        <Spinner size="small" color="white" />
+                                    ) : (
+                                        <Text style={{ color: "white", fontWeight: "700" }}>
+                                            Log Out
+                                        </Text>
+                                    )}
                                 </Button>
                             </VStack>
                         </HStack>
