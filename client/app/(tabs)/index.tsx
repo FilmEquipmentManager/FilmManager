@@ -61,8 +61,7 @@ export default function HomepageScreen() {
                                     ? 36
                                     : 50,
                                 width: "100%",
-                                alignItems: "center",
-                                height: "5%",
+                                alignItems: "center"
                             }}
                         >
                             <Text
@@ -78,9 +77,10 @@ export default function HomepageScreen() {
                                     fontWeight: "bold",
                                     textAlign: "center",
                                     padding: 10,
+                                    lineHeight: 35,
                                 }}
                             >
-                                {getGreeting()}, {userData?.username}!
+                                {getGreeting()}, bombardino crocodillo!
                             </Text>
                         </Box>
 

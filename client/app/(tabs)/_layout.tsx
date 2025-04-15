@@ -69,7 +69,7 @@ export default function TabLayout() {
 
                         {/* Avatar for Profile */}
                         <Pressable
-                            onPress={() => router.push("/profile/profile" as any)}
+                            onPress={() => router.push("/auth/account" as any)}
                             style={{
                                 marginRight: 20,
                                 marginTop: 20,
@@ -137,7 +137,7 @@ export default function TabLayout() {
                 }}
             />
             <Tabs.Screen
-                name="profile/profile"
+                name="auth/account"
                 options={{
                     title: "Profile",
                     tabBarIcon: ({ color }) => <Icon as={User2 as any} color={color} />,

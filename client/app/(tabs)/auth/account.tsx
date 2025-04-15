@@ -12,7 +12,6 @@ import { Avatar, AvatarFallbackText, AvatarImage } from "@/components/ui/avatar"
 import { signOut } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
 import ProtectedRoute from "@/app/wrappers/ProtectedRoute";
-import { View } from "@/components/Themed";
 import { Spinner } from "@/components/ui/spinner";
 
 export default function ProfileScreen() {
@@ -22,7 +21,6 @@ export default function ProfileScreen() {
     const isShortScreen = height < 750;
     const isMobileScreen = width < 680;
 
-    const [imageLoaded, setImageLoaded] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const toast = useToast();
@@ -103,17 +101,11 @@ export default function ProfileScreen() {
                                         marginTop: isLargeScreen ? -80 : 50,
                                     }}
                                 >
-                                    {!imageLoaded && (
-                                        <View>
-                                            <Spinner size="small" />
-                                        </View>
-                                    )}
                                     <AvatarFallbackText>{userData?.username}</AvatarFallbackText>
                                     <AvatarImage
                                         accessibilityLabel={userData?.username}
                                         source={{ uri: "https://bit.ly/dan-abramov" }}
                                         style={{ width: "100%", height: "100%" }}
-                                        onLoadEnd={() => setImageLoaded(true)}
                                     />
                                 </Avatar>
                             </HStack>

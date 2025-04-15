@@ -396,7 +396,7 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
     
                             <Button
                                 onPress={() => {
-                                    router.push("/profile/profile");
+                                    router.push("/auth/account");
                                 }}
                                 style={{
                                     backgroundColor: "#1B9CFF",
