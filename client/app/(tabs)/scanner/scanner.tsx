@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { io } from "socket.io-client";
-import { ScrollView } from "react-native";
+import { ScrollView, useWindowDimensions } from "react-native";
 import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
 import { VStack } from "@/components/ui/vstack";
 import { Input, InputField } from "@/components/ui/input";
@@ -11,11 +11,14 @@ import { Heading } from "@/components/ui/heading";
 import { Modal, ModalBackdrop, ModalContent, ModalCloseButton, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { Checkbox, CheckboxIndicator, CheckboxIcon } from "@/components/ui/checkbox"
 import { Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem } from '@/components/ui/select';
+import { FormControl, FormControlError, FormControlErrorText, FormControlErrorIcon, FormControlLabel, FormControlLabelText, FormControlHelper, FormControlHelperText } from "@/components/ui/form-control"
 import { Icon, CloseIcon, CheckIcon, ChevronDownIcon } from "@/components/ui/icon";
 import Constants from "expo-constants";
 import server from "../../../networking";
 import ProtectedRoute from "@/app/wrappers/ProtectedRoute";
 import { useFocusEffect } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
+import { AlertTriangleIcon, CheckCircleIcon, ScanIcon } from "lucide-react-native";
 
 interface ScannedItem {
     id: string;
@@ -36,6 +39,7 @@ export default function ScannerScreen() {
     const [currentScan, setCurrentScan] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [scannedCode, setScannedCode] = useState("");
     const [editingItem, setEditingItem] = useState<ScannedItem | null>(null);
     const [editingBarcode, setEditingBarcode] = useState("");
     const [pendingItems, setPendingItems] = useState<ScannedItem[]>([]);
@@ -59,6 +63,10 @@ export default function ScannerScreen() {
     const [showDispatchModal, setShowDispatchModal] = useState(false);
     const [showUnknownEditModal, setShowUnknownEditModal] = useState(false);
     const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
+    const [isFocused, setIsFocused] = useState(false);
+    const { width, height } = useWindowDimensions();
+    const isShortScreen = height < 750;
+    const isMobileScreen = width < 680;
 
     const groupLabels = { camera: "Camera", lighting: "Lighting", audio: "Audio", lenses: "Lenses", accessories: "Accessories", grip: "Grip Equipment", power: "Power Supply", cables: "Cables", misc: "Miscellaneous", others: "Others" };
 
@@ -182,11 +190,14 @@ export default function ScannerScreen() {
                 }
 
                 setCurrentScan("");
+                setScannedCode(barcodeToScan);
+                setIsFocused(false);
                 setIsLoading(false);
             } catch (error) {
                 console.error("Error checking barcode:", error);
                 showToast("Scan failed", "Could not verify barcode with the server.");
                 setIsLoading(false);
+                setIsFocused(false);
             }
         }
     };
@@ -221,6 +232,8 @@ export default function ScannerScreen() {
     const handleClearResults = () => {
         setIsLoading(true);
         setCurrentScan("");
+        setIsFocused(false);
+        setScannedCode("");
         setPendingItems([]);
         setPendingUnknownItems([]);
         setSelectedIds(new Set());
@@ -331,6 +344,8 @@ export default function ScannerScreen() {
             setIsLoading(false);
             setShowReceiveModal(false);
             setCurrentScan("");
+            setScannedCode("");
+            setIsFocused(false);
         }
     };
 
@@ -372,6 +387,8 @@ export default function ScannerScreen() {
             setIsLoading(false);
             setShowDispatchModal(false);
             setCurrentScan("");
+            setScannedCode("");
+            setIsFocused(false);
         }
     };
 
@@ -484,468 +501,513 @@ export default function ScannerScreen() {
             setPendingItems([]);
             setPendingUnknownItems([]);
             setShowEditModal(false);
+            setCurrentScan("");
+            setScannedCode("");
+            setIsFocused(false);
         }, [])
     );
 
     return (
         <ProtectedRoute showAuth={false}>
             {(userData) => (
-                <VStack
-                    style={{
-                        flex: 1,
-                        padding: 16,
-                        gap: 16,
-                        backgroundColor: "$background",
-                    }}
+                <LinearGradient
+                    colors={isMobileScreen ? ['#00FFDD', '#1B9CFF'] : ['#1B9CFF', '#00FFDD']}
+                    start={isMobileScreen ? { x: 0, y: 0 } : { x: 0, y: 0 }}
+                    end={isMobileScreen ? { x: 0, y: 1 } : { x: 1, y: 1 }}
+                    style={{ flex: 1 }}
                 >
-                    <Input isDisabled={isLoading}>
-                        <InputField
-                            ref={inputRef}
-                            placeholder="Scan barcode..."
-                            value={currentScan}
-                            onChangeText={(text) => {
-                                setCurrentScan(text);
-                                if (text.endsWith("\n")) {
-                                    setCurrentScan(text.trim());
-                                    handleScannedItems();
-                                }
+                    <HStack style={{ flex: 1, padding: 16, gap: 16 }}>
+                        <VStack
+                            style={{
+                                flex: 1,
+                                justifyContent: "center",
+                                alignItems: "center",
+                                backgroundColor: "transparent",
+                                padding: 24
                             }}
-                            onSubmitEditing={handleScannedItems}
-                            returnKeyType="done"
-                            showSoftInputOnFocus={false}
-                            onBlur={() => inputRef.current?.focus()}
-                            style={{ height: 40, width: "100%" }}
-                        />
-                    </Input>
+                        >
+                            <VStack
+                                style={{
+                                    width: "100%",
+                                    maxWidth: 500,
+                                    backgroundColor: "white",
+                                    borderRadius: 16,
+                                    padding: 32,
+                                    gap: 24,
+                                    shadowColor: "#000",
+                                    shadowOffset: { width: 0, height: 4 },
+                                    shadowOpacity: 0.1,
+                                    shadowRadius: 8,
+                                    elevation: 4
+                                }}
+                            >
+                                {/* Title Section */}
+                                <VStack style={{ gap: 8, alignItems: "center" }}>
+                                    <ScanIcon size={32} color="#3b82f6" />
+                                    <Text style={{ fontSize: 20, fontWeight: "700", color: "#1e293b" }}>
+                                        Scan Area
+                                    </Text>
+                                </VStack>
 
-                    <ScrollView style={{ flex: 1, width: "100%" }}>
-                        <VStack style={{ gap: 8, paddingBottom: 16 }}>
-                            {Object.entries(groupedItems).length > 0 ? (
-                                Object.entries(groupedItems).map(([group, items]) => (
-                                    <VStack key={group} style={{ gap: 8 }}>
-                                        <Text style={{ fontSize: 18, fontWeight: "bold", marginTop: 16 }}>
-                                            {groupLabels[group] || group}
+                                {/* Input Field */}
+                                <VStack style={{ gap: 12 }}>
+                                    <Input isDisabled={isLoading} variant="outline">
+                                        <InputField
+                                            ref={inputRef}
+                                            placeholder={isFocused ? "" : "Scan barcode here..."}
+                                            value={currentScan}
+                                            onChangeText={(text) => {
+                                                setCurrentScan(text);
+                                                if (text.endsWith("\n")) {
+                                                    setCurrentScan(text.trim());
+                                                    handleScannedItems();
+                                                }
+                                            }}
+                                            onSubmitEditing={handleScannedItems}
+                                            returnKeyType="done"
+                                            onFocus={() => setIsFocused(true)}
+                                            onBlur={() => setIsFocused(false)}
+                                            style={{
+                                                height: 48,
+                                                fontSize: 16,
+                                                textAlign: "center",
+                                                borderRadius: 8,
+                                                backgroundColor: "#f8fafc"
+                                            }}
+                                        />
+                                    </Input>
+
+                                    {/* Barcode Type Notice */}
+                                    <HStack style={{ gap: 8, alignItems: "center", justifyContent: "center" }}>
+                                        <AlertTriangleIcon size={16} color="#64748b" />
+                                        <Text style={{ fontSize: 12, color: "#64748b", textAlign: "center", fontWeight: "500" }}>
+                                            We only accept 1D barcodes
                                         </Text>
+                                    </HStack>
+                                </VStack>
 
-                                        {items.map((item) => (
-                                            <VStack
-                                                key={item.id}
-                                                style={{
-                                                    borderBottomWidth: 1,
-                                                    borderColor: "$gray3",
-                                                    paddingVertical: 8,
-                                                    paddingHorizontal: 8,
-                                                    backgroundColor: "$backgroundCard",
-                                                    borderRadius: 8,
-                                                }}
-                                            >
-                                                <HStack
-                                                    style={{
-                                                        justifyContent: "space-between",
-                                                        alignItems: "center",
-                                                        marginBottom: 4,
-                                                    }}
-                                                >
-                                                    <Checkbox
-                                                        value="selectItems"
-                                                        size="sm"
-                                                        isChecked={selectedIds.has(item.id)}
-                                                        onChange={() => toggleSelect(item.id)}
-                                                        style={{ marginRight: 8 }}
-                                                    >
-                                                        <CheckboxIndicator>
-                                                            <CheckboxIcon as={CheckIcon} color="white" />
-                                                        </CheckboxIndicator>
-                                                    </Checkbox>
-
-                                                    <VStack style={{ flex: 1 }}>
-                                                        <Text style={{ fontSize: 16, fontWeight: "bold" }}>
-                                                            {item.barcode}{" "}
-                                                            <Text style={{ color: "gray" }}>x{item.sessionCount}</Text>
-                                                        </Text>
-                                                        <Text style={{ color: "gray" }}>
-                                                            {item.itemName || "Unknown"} - {item.itemDescription || "No description"}
-                                                        </Text>
-                                                        <Text style={{ fontSize: 12, color: "gray10" }}>
-                                                            Location: {item.location || "Unknown"}
-                                                        </Text>
-                                                        <Text style={{ fontSize: 12, color: "gray10" }}>
-                                                            In Stock: {item.totalCount ?? 0}
-                                                        </Text>
-                                                        <Text style={{ fontSize: 12, color: "gray10" }}>
-                                                            Points: {item.pointsToRedeem ?? 0}
-                                                        </Text>
-                                                    </VStack>
-
-                                                    <HStack style={{ gap: 4 }}>
-                                                        <Button size="sm" onPress={() => handleEdit(item)} isDisabled={isLoading}>
-                                                            <ButtonText>Edit</ButtonText>
-                                                        </Button>
-                                                        <Button size="sm" onPress={() => handleRemove(item.id)} isDisabled={isLoading}>
-                                                            <ButtonText>Remove</ButtonText>
-                                                        </Button>
-                                                        <Button size="sm" onPress={() => { setDeleteItemId(item.id); setShowDeleteModal(true); }} isDisabled={isLoading}>
-                                                            <ButtonText>Delete</ButtonText>
-                                                        </Button>
-                                                    </HStack>
-                                                </HStack>
-                                            </VStack>
-                                        ))}
+                                {/* Scanned Result Display */}
+                                {scannedCode && (
+                                    <VStack
+                                        style={{
+                                            backgroundColor: "#f0fdf4",
+                                            borderRadius: 8,
+                                            padding: 16,
+                                            gap: 8,
+                                            alignItems: "center"
+                                        }}
+                                    >
+                                        <HStack style={{ gap: 8, alignItems: "center" }}>
+                                            <CheckCircleIcon size={20} color="#16a34a" />
+                                            <Text style={{ fontSize: 14, fontWeight: "500", color: "#166534" }}>
+                                                Last Scanned:
+                                            </Text>
+                                        </HStack>
+                                        <Text
+                                            style={{
+                                                fontSize: 18,
+                                                fontWeight: "600",
+                                                color: "#166534",
+                                                letterSpacing: 2
+                                            }}
+                                        >
+                                            {scannedCode}
+                                        </Text>
                                     </VStack>
-                                ))
-                            ) : (
-                                <Text style={{ color: "$gray11" }}>Scan results will appear here</Text>
-                            )}
+                                )}
+                            </VStack>
                         </VStack>
 
-                        {/* Known Items Editing Modal */}
-                        <Modal
-                            isOpen={showEditModal}
-                            onClose={() => setShowEditModal(false)}
-                            size="lg"
+                        <VStack
+                            style={{
+                                flex: 1,
+                                padding: 16,
+                                gap: 16,
+                            }}
                         >
-                            <ModalBackdrop />
-                            <ModalContent>
-                                <ModalHeader>
-                                    <Heading size="md" className="text-typography-950">
-                                        Edit Items
-                                    </Heading>
-                                    <ModalCloseButton>
-                                        <Icon
-                                            as={CloseIcon}
-                                            size="md"
-                                            className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
-                                        />
-                                    </ModalCloseButton>
-                                </ModalHeader>
-                                <ModalBody>
-                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
-                                        <InputField
-                                            ref={inputRef}
-                                            value={editingBarcode}
-                                            onChangeText={setEditingBarcode}
-                                            placeholder="Enter new barcode value"
-                                            style={{ height: 40, width: "100%" }}
-                                        />
-                                    </Input>
+                            <ScrollView style={{ flex: 1, width: "100%" }}>
+                                <VStack style={{ gap: 8, paddingBottom: 16 }}>
+                                    {Object.entries(groupedItems).length > 0 ? (
+                                        Object.entries(groupedItems).map(([group, items]) => (
+                                            <VStack key={group} style={{ gap: 8 }}>
+                                                <Text style={{ fontSize: 18, fontWeight: "bold", marginTop: 16 }}>
+                                                    {groupLabels[group] || group}
+                                                </Text>
 
-                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
-                                        <InputField
-                                            ref={inputRef}
-                                            value={editingItemName}
-                                            onChangeText={setEditingItemName}
-                                            placeholder="Enter item name"
-                                            style={{ height: 40, width: "100%" }}
-                                        />
-                                    </Input>
+                                                {items.map((item) => (
+                                                    <VStack
+                                                        key={item.id}
+                                                        style={{
+                                                            borderBottomWidth: 1,
+                                                            borderColor: "$gray3",
+                                                            paddingVertical: 8,
+                                                            paddingHorizontal: 8,
+                                                            backgroundColor: "$backgroundCard",
+                                                            borderRadius: 8,
+                                                        }}
+                                                    >
+                                                        <HStack
+                                                            style={{
+                                                                justifyContent: "space-between",
+                                                                alignItems: "center",
+                                                                marginBottom: 4,
+                                                            }}
+                                                        >
+                                                            <Checkbox
+                                                                value="selectItems"
+                                                                size="sm"
+                                                                isChecked={selectedIds.has(item.id)}
+                                                                onChange={() => toggleSelect(item.id)}
+                                                                style={{ marginRight: 8 }}
+                                                            >
+                                                                <CheckboxIndicator>
+                                                                    <CheckboxIcon as={CheckIcon} color="white" />
+                                                                </CheckboxIndicator>
+                                                            </Checkbox>
 
-                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
-                                        <InputField
-                                            ref={inputRef}
-                                            value={editingItemDescription}
-                                            onChangeText={setEditingItemDescription}
-                                            placeholder="Enter item description"
-                                            style={{ height: 40, width: "100%" }}
-                                        />
-                                    </Input>
+                                                            <VStack style={{ flex: 1 }}>
+                                                                <Text style={{ fontSize: 16, fontWeight: "bold" }}>
+                                                                    {item.barcode}{" "}
+                                                                    <Text style={{ color: "gray" }}>x{item.sessionCount}</Text>
+                                                                </Text>
+                                                                <Text style={{ color: "gray" }}>
+                                                                    {item.itemName || "Unknown"} - {item.itemDescription || "No description"}
+                                                                </Text>
+                                                                <Text style={{ fontSize: 12, color: "gray10" }}>
+                                                                    Warehouse Location: {item.location || "Unknown"}
+                                                                </Text>
+                                                                <Text style={{ fontSize: 12, color: "gray10" }}>
+                                                                    In Stock: {item.totalCount ?? 0}
+                                                                </Text>
+                                                                <Text style={{ fontSize: 12, color: "gray10" }}>
+                                                                    Points: {item.pointsToRedeem ?? 0}
+                                                                </Text>
+                                                            </VStack>
 
-                                    <Select
-                                        isDisabled={isLoading}
-                                        selectedValue={editingItemGroup}
-                                        onValueChange={setEditingItemGroup}
-                                    >
-                                        <SelectTrigger variant="outline" size="md" style={{ marginBottom: 12 }}>
-                                            <SelectInput value={groupLabels[editingItemGroup] ?? "Select item group"} placeholder="Select Item Group" />
-                                            <SelectIcon className="mr-3" as={ChevronDownIcon} />
-                                        </SelectTrigger>
-                                        <SelectPortal>
-                                            <SelectBackdrop />
-                                            <SelectContent>
-                                                <SelectDragIndicatorWrapper>
-                                                    <SelectDragIndicator />
-                                                </SelectDragIndicatorWrapper>
-                                                <SelectItem label="Camera" value="camera" />
-                                                <SelectItem label="Lighting" value="lighting" />
-                                                <SelectItem label="Audio" value="audio" />
-                                                <SelectItem label="Lenses" value="lenses" />
-                                                <SelectItem label="Accessories" value="accessories" />
-                                                <SelectItem label="Grip Equipment" value="grip" />
-                                                <SelectItem label="Power Supply" value="power" />
-                                                <SelectItem label="Cables" value="cables" />
-                                                <SelectItem label="Miscellaneous" value="misc" />
-                                                <SelectItem label="Others" value="others" />
-                                            </SelectContent>
-                                        </SelectPortal>
-                                    </Select>
-
-                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
-                                        <InputField
-                                            ref={inputRef}
-                                            value={editingItemLocation}
-                                            onChangeText={setEditingItemLocation}
-                                            placeholder="Enter item location"
-                                            style={{ height: 40, width: "100%" }}
-                                        />
-                                    </Input>
-
-                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
-                                        <InputField
-                                            ref={inputRef}
-                                            value={editingItemCount}
-                                            onChangeText={setEditingItemCount}
-                                            placeholder="Enter item count"
-                                            keyboardType="numeric"
-                                            style={{ height: 40, width: "100%" }}
-                                        />
-                                    </Input>
-
-                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
-                                        <InputField
-                                            ref={inputRef}
-                                            value={editingItemPointsToRedeem}
-                                            onChangeText={setEditingItemPointsToRedeem}
-                                            placeholder="Enter points to redeem"
-                                            keyboardType="numeric"
-                                            style={{ height: 40, width: "100%" }}
-                                        />
-                                    </Input>
-                                </ModalBody>
-                                <ModalFooter>
-                                    <Button
-                                        variant="outline"
-                                        action="secondary"
-                                        onPress={() => setShowEditModal(false)}
-                                    >
-                                        <ButtonText>Cancel</ButtonText>
-                                    </Button>
-                                    <Button onPress={saveEditedBarcode} isDisabled={isLoading || editingBarcode.trim().length === 0 || editingItemName.trim().length === 0 || !hasChanges}>
-                                        <ButtonText>Save</ButtonText>
-                                    </Button>
-                                </ModalFooter>
-                            </ModalContent>
-                        </Modal>
-
-                        {/* Unknown Items Editing Modal */}
-                        <Modal
-                            isOpen={showUnknownEditModal}
-                            onClose={() => setShowUnknownEditModal(false)}
-                            size="lg"
-                        >
-                            <ModalBackdrop />
-                            <ModalContent>
-                                <ModalHeader>
-                                    <Heading size="md" className="text-typography-950">
-                                        Add New Item
-                                    </Heading>
-                                    <ModalCloseButton>
-                                        <Icon
-                                            as={CloseIcon}
-                                            size="md"
-                                            className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
-                                        />
-                                    </ModalCloseButton>
-                                </ModalHeader>
-                                <ModalBody>
-                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
-                                        <InputField
-                                            ref={inputRef}
-                                            value={editingBarcode}
-                                            onChangeText={setEditingBarcode}
-                                            placeholder="Enter new barcode value"
-                                            style={{ height: 40, width: "100%" }}
-                                        />
-                                    </Input>
-
-                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
-                                        <InputField
-                                            ref={inputRef}
-                                            value={editingItemName}
-                                            onChangeText={setEditingItemName}
-                                            placeholder="Enter item name"
-                                            style={{ height: 40, width: "100%" }}
-                                        />
-                                    </Input>
-
-                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
-                                        <InputField
-                                            ref={inputRef}
-                                            value={editingItemDescription}
-                                            onChangeText={setEditingItemDescription}
-                                            placeholder="Enter item description"
-                                            style={{ height: 40, width: "100%" }}
-                                        />
-                                    </Input>
-
-                                    {/* For unknown items */}
-                                    <Select
-                                        isDisabled={isLoading}
-                                        selectedValue={editingItemGroup}
-                                        onValueChange={setEditingItemGroup}
-                                    >
-                                        <SelectTrigger variant="outline" size="md" style={{ marginBottom: 12 }}>
-                                            <SelectInput placeholder="Select item group" value={groupLabels[editingItemGroup] ?? "Select item group"} />
-                                            <SelectIcon className="mr-3" as={ChevronDownIcon} />
-                                        </SelectTrigger>
-                                        <SelectPortal>
-                                            <SelectBackdrop />
-                                            <SelectContent>
-                                                <SelectDragIndicatorWrapper>
-                                                    <SelectDragIndicator />
-                                                </SelectDragIndicatorWrapper>
-                                                {Object.entries(groupLabels).map(([value, label]) => (
-                                                    <SelectItem key={value} label={label} value={value} />
+                                                            <HStack style={{ gap: 4 }}>
+                                                                <Button size="sm" onPress={() => handleEdit(item)} isDisabled={isLoading}>
+                                                                    <ButtonText>Edit</ButtonText>
+                                                                </Button>
+                                                                <Button size="sm" onPress={() => handleRemove(item.id)} isDisabled={isLoading}>
+                                                                    <ButtonText>Remove</ButtonText>
+                                                                </Button>
+                                                                <Button size="sm" onPress={() => { setDeleteItemId(item.id); setShowDeleteModal(true); }} isDisabled={isLoading}>
+                                                                    <ButtonText>Delete</ButtonText>
+                                                                </Button>
+                                                            </HStack>
+                                                        </HStack>
+                                                    </VStack>
                                                 ))}
-                                            </SelectContent>
-                                        </SelectPortal>
-                                    </Select>
+                                            </VStack>
+                                        ))
+                                    ) : (
+                                        <Text style={{ color: "$gray11" }}>Scan results will appear here</Text>
+                                    )}
+                                </VStack>
 
-                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
-                                        <InputField
-                                            ref={inputRef}
-                                            value={editingItemLocation}
-                                            onChangeText={setEditingItemLocation}
-                                            placeholder="Enter item location"
-                                            style={{ height: 40, width: "100%" }}
-                                        />
-                                    </Input>
+                                {/* Known Items Editing Modal */}
+                                <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} size="lg">
+                                    <ModalBackdrop />
+                                    <ModalContent>
+                                        <ModalHeader>
+                                            <Heading size="md" className="text-typography-950">Edit Items</Heading>
+                                            <ModalCloseButton>
+                                                <Icon as={CloseIcon} size="md" className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900" />
+                                            </ModalCloseButton>
+                                        </ModalHeader>
+                                        <ModalBody>
+                                            <FormControl style={{ marginBottom: 12 }}>
+                                                <FormControlLabel>
+                                                    <FormControlLabelText>Barcode</FormControlLabelText>
+                                                </FormControlLabel>
+                                                <Input isDisabled={isLoading}>
+                                                    <InputField ref={inputRef} value={editingBarcode} onChangeText={setEditingBarcode} placeholder="Enter Item's Barcode" style={{ height: 40, width: "100%" }} />
+                                                </Input>
+                                            </FormControl>
 
-                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
-                                        <InputField
-                                            ref={inputRef}
-                                            value={editingItemCount}
-                                            onChangeText={setEditingItemCount}
-                                            placeholder="Enter item count"
-                                            keyboardType="numeric"
-                                            style={{ height: 40, width: "100%" }}
-                                        />
-                                    </Input>
+                                            <FormControl style={{ marginBottom: 12 }}>
+                                                <FormControlLabel>
+                                                    <FormControlLabelText>Item Name</FormControlLabelText>
+                                                </FormControlLabel>
+                                                <Input isDisabled={isLoading}>
+                                                    <InputField ref={inputRef} value={editingItemName} onChangeText={setEditingItemName} placeholder="Enter Item Name" style={{ height: 40, width: "100%" }} />
+                                                </Input>
+                                            </FormControl>
 
-                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
-                                        <InputField
-                                            ref={inputRef}
-                                            value={editingItemPointsToRedeem}
-                                            onChangeText={setEditingItemPointsToRedeem}
-                                            placeholder="Enter points to redeem"
-                                            keyboardType="numeric"
-                                            style={{ height: 40, width: "100%" }}
-                                        />
-                                    </Input>
-                                </ModalBody>
-                                <ModalFooter>
-                                    <Button
-                                        variant="outline"
-                                        action="secondary"
-                                        onPress={handleCancelUnknownItem}
-                                        isDisabled={isLoading}
-                                    >
-                                        <ButtonText>Cancel</ButtonText>
-                                    </Button>
-                                    <Button
-                                        onPress={saveEditedUnknownItem}
-                                        isDisabled={
-                                            isLoading ||
-                                            editingBarcode.trim().length === 0 ||
-                                            editingItemName.trim().length === 0
-                                        }
-                                    >
-                                        <ButtonText>Save</ButtonText>
-                                    </Button>
-                                </ModalFooter>
-                            </ModalContent>
-                        </Modal>
+                                            <FormControl style={{ marginBottom: 12 }}>
+                                                <FormControlLabel>
+                                                    <FormControlLabelText>Item Description</FormControlLabelText>
+                                                </FormControlLabel>
+                                                <Input isDisabled={isLoading}>
+                                                    <InputField ref={inputRef} value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder="Enter Item Description" style={{ height: 40, width: "100%" }} />
+                                                </Input>
+                                            </FormControl>
 
-                        {/* Delete Confirmation Modal */}
-                        <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} size="md">
-                            <ModalBackdrop />
-                            <ModalContent>
-                                <ModalHeader>
-                                    <Heading size="md">Confirm Deletion</Heading>
-                                    <ModalCloseButton>
-                                        <Icon as={CloseIcon} size="md" />
-                                    </ModalCloseButton>
-                                </ModalHeader>
-                                <ModalBody>
-                                    <Text size="sm">Are you sure you want to delete this item? This action cannot be undone.</Text>
-                                </ModalBody>
-                                <ModalFooter>
-                                    <Button variant="outline" action="secondary" onPress={() => setShowDeleteModal(false)}>
-                                        <ButtonText>Cancel</ButtonText>
-                                    </Button>
-                                    <Button
-                                        action="negative"
-                                        onPress={() => {
-                                            if (deleteItemId) handleDelete(deleteItemId);
-                                            setShowDeleteModal(false);
-                                        }}
-                                    >
-                                        <ButtonText>Delete</ButtonText>
-                                    </Button>
-                                </ModalFooter>
-                            </ModalContent>
-                        </Modal>
+                                            <FormControl style={{ marginBottom: 12 }}>
+                                                <FormControlLabel>
+                                                    <FormControlLabelText>Item Group</FormControlLabelText>
+                                                </FormControlLabel>
+                                                <Select isDisabled={isLoading} selectedValue={editingItemGroup} onValueChange={setEditingItemGroup}>
+                                                    <SelectTrigger variant="outline" size="md">
+                                                        <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
+                                                        <SelectIcon className="mr-3" as={ChevronDownIcon} />
+                                                    </SelectTrigger>
+                                                    <SelectPortal>
+                                                        <SelectBackdrop />
+                                                        <SelectContent >
+                                                            <SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
+                                                            {Object.entries(groupLabels).map(([value, label]) => (
+                                                                <SelectItem key={value} label={label} value={value} />
+                                                            ))}
+                                                        </SelectContent>
+                                                    </SelectPortal>
+                                                </Select>
+                                            </FormControl>
 
-                        {/* Receive Confirmation Modal */}
-                        <Modal isOpen={showReceiveModal} onClose={() => setShowReceiveModal(false)} size="md">
-                            <ModalBackdrop />
-                            <ModalContent>
-                                <ModalHeader>
-                                    <Heading size="md">Confirm Receive</Heading>
-                                    <ModalCloseButton>
-                                        <Icon as={CloseIcon} size="md" />
-                                    </ModalCloseButton>
-                                </ModalHeader>
-                                <ModalBody>
-                                    <Text size="sm">Are you sure you want to receive all selected items?</Text>
-                                </ModalBody>
-                                <ModalFooter>
-                                    <Button variant="outline" action="secondary" onPress={() => setShowReceiveModal(false)}>
-                                        <ButtonText>Cancel</ButtonText>
-                                    </Button>
-                                    <Button
-                                        onPress={() => {
-                                            handleReceive();
-                                            setShowReceiveModal(false);
-                                        }}
-                                    >
-                                        <ButtonText>Confirm</ButtonText>
-                                    </Button>
-                                </ModalFooter>
-                            </ModalContent>
-                        </Modal>
+                                            <FormControl style={{ marginBottom: 12 }}>
+                                                <FormControlLabel>
+                                                    <FormControlLabelText>Location</FormControlLabelText>
+                                                </FormControlLabel>
+                                                <Input isDisabled={isLoading}>
+                                                    <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder="Enter Item Warehouse Location" style={{ height: 40, width: "100%" }} />
+                                                </Input>
+                                            </FormControl>
 
-                        {/* Dispatch Confirmation Modal */}
-                        <Modal isOpen={showDispatchModal} onClose={() => setShowDispatchModal(false)} size="md">
-                            <ModalBackdrop />
-                            <ModalContent>
-                                <ModalHeader>
-                                    <Heading size="md">Confirm Dispatch</Heading>
-                                    <ModalCloseButton>
-                                        <Icon as={CloseIcon} size="md" />
-                                    </ModalCloseButton>
-                                </ModalHeader>
-                                <ModalBody>
-                                    <Text size="sm">
-                                        Are you sure you want to dispatch the selected items? This will deduct the dispatched quantity from the available stock. Note: Only items with sufficient stock will be dispatched.
-                                    </Text>
-                                </ModalBody>
-                                <ModalFooter>
-                                    <Button variant="outline" action="secondary" onPress={() => setShowDispatchModal(false)}>
-                                        <ButtonText>Cancel</ButtonText>
-                                    </Button>
-                                    <Button onPress={handleDispatch}>
-                                        <ButtonText>Confirm</ButtonText>
-                                    </Button>
-                                </ModalFooter>
-                            </ModalContent>
-                        </Modal>
-                    </ScrollView>
+                                            <FormControl style={{ marginBottom: 12 }}>
+                                                <FormControlLabel>
+                                                    <FormControlLabelText>Item Count</FormControlLabelText>
+                                                </FormControlLabel>
+                                                <Input isDisabled={isLoading}>
+                                                    <InputField ref={inputRef} value={editingItemCount} onChangeText={setEditingItemCount} placeholder="Enter Item Stock Count" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
+                                                </Input>
+                                            </FormControl>
 
+                                            <FormControl style={{ marginBottom: 12 }}>
+                                                <FormControlLabel>
+                                                    <FormControlLabelText>Points to Redeem</FormControlLabelText>
+                                                </FormControlLabel>
+                                                <Input isDisabled={isLoading}>
+                                                    <InputField ref={inputRef} value={editingItemPointsToRedeem} onChangeText={setEditingItemPointsToRedeem} placeholder="Enter Points To Redeem For Item" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
+                                                </Input>
+                                            </FormControl>
+                                        </ModalBody>
+                                        <ModalFooter>
+                                            <Button variant="outline" action="secondary" onPress={() => setShowEditModal(false)}>Cancel</Button>
+                                            <Button onPress={saveEditedBarcode} isDisabled={isLoading || !hasChanges}>
+                                                <ButtonText>Save</ButtonText>
+                                            </Button>
+                                        </ModalFooter>
+                                    </ModalContent>
+                                </Modal>
+
+
+                                {/* Unknown Items Editing Modal */}
+                                <Modal
+                                    isOpen={showUnknownEditModal}
+                                    onClose={() => setShowUnknownEditModal(false)}
+                                    size="lg"
+                                >
+                                    <ModalBackdrop />
+                                    <ModalContent>
+                                        <ModalHeader>
+                                            <Heading size="md" className="text-typography-950">
+                                                Add New Item
+                                            </Heading>
+                                            <ModalCloseButton>
+                                                <Icon
+                                                    as={CloseIcon}
+                                                    size="md"
+                                                    className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
+                                                />
+                                            </ModalCloseButton>
+                                        </ModalHeader>
+                                        <ModalBody>
+                                            <FormControl style={{ marginBottom: 12 }}>
+                                                <FormControlLabel>
+                                                    <FormControlLabelText>Barcode</FormControlLabelText>
+                                                </FormControlLabel>
+                                                <Input isDisabled={isLoading}>
+                                                    <InputField ref={inputRef} value={editingBarcode} onChangeText={setEditingBarcode} placeholder="Enter Item's Barcode" style={{ height: 40, width: "100%" }} />
+                                                </Input>
+                                            </FormControl>
+
+                                            <FormControl style={{ marginBottom: 12 }}>
+                                                <FormControlLabel>
+                                                    <FormControlLabelText>Item Name</FormControlLabelText>
+                                                </FormControlLabel>
+                                                <Input isDisabled={isLoading}>
+                                                    <InputField ref={inputRef} value={editingItemName} onChangeText={setEditingItemName} placeholder="Enter Item Name" style={{ height: 40, width: "100%" }} />
+                                                </Input>
+                                            </FormControl>
+
+                                            <FormControl style={{ marginBottom: 12 }}>
+                                                <FormControlLabel>
+                                                    <FormControlLabelText>Item Description</FormControlLabelText>
+                                                </FormControlLabel>
+                                                <Input isDisabled={isLoading}>
+                                                    <InputField ref={inputRef} value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder="Enter Item Description" style={{ height: 40, width: "100%" }} />
+                                                </Input>
+                                            </FormControl>
+
+                                            <FormControl style={{ marginBottom: 12 }}>
+                                                <FormControlLabel>
+                                                    <FormControlLabelText>Item Group</FormControlLabelText>
+                                                </FormControlLabel>
+                                                <Select isDisabled={isLoading} selectedValue={editingItemGroup} onValueChange={setEditingItemGroup}>
+                                                    <SelectTrigger variant="outline" size="md">
+                                                        <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
+                                                        <SelectIcon className="mr-3" as={ChevronDownIcon} />
+                                                    </SelectTrigger>
+                                                    <SelectPortal>
+                                                        <SelectBackdrop />
+                                                        <SelectContent>
+                                                            <SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
+                                                            {Object.entries(groupLabels).map(([value, label]) => (
+                                                                <SelectItem key={value} label={label} value={value} />
+                                                            ))}
+                                                        </SelectContent>
+                                                    </SelectPortal>
+                                                </Select>
+                                            </FormControl>
+
+                                            <FormControl style={{ marginBottom: 12 }}>
+                                                <FormControlLabel>
+                                                    <FormControlLabelText>Item Warehouse Location</FormControlLabelText>
+                                                </FormControlLabel>
+                                                <Input isDisabled={isLoading}>
+                                                    <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder="Enter Item Warehouse Location" style={{ height: 40, width: "100%" }} />
+                                                </Input>
+                                            </FormControl>
+
+                                            <FormControl style={{ marginBottom: 12 }}>
+                                                <FormControlLabel>
+                                                    <FormControlLabelText>Item Count</FormControlLabelText>
+                                                </FormControlLabel>
+                                                <Input isDisabled={isLoading}>
+                                                    <InputField ref={inputRef} value={editingItemCount} onChangeText={setEditingItemCount} placeholder="Enter Item Stock Count" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
+                                                </Input>
+                                            </FormControl>
+
+                                            <FormControl style={{ marginBottom: 12 }}>
+                                                <FormControlLabel>
+                                                    <FormControlLabelText>Points to Redeem</FormControlLabelText>
+                                                </FormControlLabel>
+                                                <Input isDisabled={isLoading}>
+                                                    <InputField ref={inputRef} value={editingItemPointsToRedeem} onChangeText={setEditingItemPointsToRedeem} placeholder="Enter Points To Redeem For Item" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
+                                                </Input>
+                                            </FormControl>
+                                        </ModalBody>
+                                        <ModalFooter>
+                                            <Button
+                                                variant="outline"
+                                                action="secondary"
+                                                onPress={handleCancelUnknownItem}
+                                                isDisabled={isLoading}
+                                            >
+                                                <ButtonText>Cancel</ButtonText>
+                                            </Button>
+                                            <Button
+                                                onPress={saveEditedUnknownItem}
+                                                isDisabled={isLoading || !hasChanges}
+                                            >
+                                                <ButtonText>Save</ButtonText>
+                                            </Button>
+                                        </ModalFooter>
+                                    </ModalContent>
+                                </Modal>
+
+                                {/* Delete Confirmation Modal */}
+                                <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} size="md">
+                                    <ModalBackdrop />
+                                    <ModalContent>
+                                        <ModalHeader>
+                                            <Heading size="md">Confirm Deletion</Heading>
+                                            <ModalCloseButton>
+                                                <Icon as={CloseIcon} size="md" />
+                                            </ModalCloseButton>
+                                        </ModalHeader>
+                                        <ModalBody>
+                                            <Text size="sm">Are you sure you want to delete this item? This action cannot be undone.</Text>
+                                        </ModalBody>
+                                        <ModalFooter>
+                                            <Button variant="outline" action="secondary" onPress={() => setShowDeleteModal(false)}>
+                                                <ButtonText>Cancel</ButtonText>
+                                            </Button>
+                                            <Button
+                                                action="negative"
+                                                onPress={() => {
+                                                    if (deleteItemId) handleDelete(deleteItemId);
+                                                    setShowDeleteModal(false);
+                                                }}
+                                            >
+                                                <ButtonText>Delete</ButtonText>
+                                            </Button>
+                                        </ModalFooter>
+                                    </ModalContent>
+                                </Modal>
+
+                                {/* Receive Confirmation Modal */}
+                                <Modal isOpen={showReceiveModal} onClose={() => setShowReceiveModal(false)} size="md">
+                                    <ModalBackdrop />
+                                    <ModalContent>
+                                        <ModalHeader>
+                                            <Heading size="md">Confirm Receive</Heading>
+                                            <ModalCloseButton>
+                                                <Icon as={CloseIcon} size="md" />
+                                            </ModalCloseButton>
+                                        </ModalHeader>
+                                        <ModalBody>
+                                            <Text size="sm">Are you sure you want to receive all selected items?</Text>
+                                        </ModalBody>
+                                        <ModalFooter>
+                                            <Button variant="outline" action="secondary" onPress={() => setShowReceiveModal(false)}>
+                                                <ButtonText>Cancel</ButtonText>
+                                            </Button>
+                                            <Button
+                                                onPress={() => {
+                                                    handleReceive();
+                                                    setShowReceiveModal(false);
+                                                }}
+                                            >
+                                                <ButtonText>Confirm</ButtonText>
+                                            </Button>
+                                        </ModalFooter>
+                                    </ModalContent>
+                                </Modal>
+
+                                {/* Dispatch Confirmation Modal */}
+                                <Modal isOpen={showDispatchModal} onClose={() => setShowDispatchModal(false)} size="md">
+                                    <ModalBackdrop />
+                                    <ModalContent>
+                                        <ModalHeader>
+                                            <Heading size="md">Confirm Dispatch</Heading>
+                                            <ModalCloseButton>
+                                                <Icon as={CloseIcon} size="md" />
+                                            </ModalCloseButton>
+                                        </ModalHeader>
+                                        <ModalBody>
+                                            <Text size="sm">
+                                                Are you sure you want to dispatch the selected items? This will deduct the dispatched quantity from the available stock. Note: Only items with sufficient stock will be dispatched.
+                                            </Text>
+                                        </ModalBody>
+                                        <ModalFooter>
+                                            <Button variant="outline" action="secondary" onPress={() => setShowDispatchModal(false)}>
+                                                <ButtonText>Cancel</ButtonText>
+                                            </Button>
+                                            <Button onPress={handleDispatch}>
+                                                <ButtonText>Confirm</ButtonText>
+                                            </Button>
+                                        </ModalFooter>
+                                    </ModalContent>
+                                </Modal>
+                            </ScrollView>
+                        </VStack>
+                    </HStack>
                     <HStack
                         style={{
                             justifyContent: "space-between",
-                            paddingTop: 12,
-                            borderTopWidth: 1,
-                            borderColor: "gray4",
+                            padding: 12,
+                            backgroundColor: "white",
                             display: (pendingItems.length + pendingUnknownItems.length) > 0 ? "flex" : "none",
                         }}
                     >
@@ -962,37 +1024,51 @@ export default function ScannerScreen() {
                                     <CheckboxIcon as={CheckIcon} color="white" />
                                 </CheckboxIndicator>
                             </Checkbox>
-                            <Text size="sm" onPress={allSelected ? unselectAll : selectAll}>
+                            <Text size="md" style={{ color: "black" }} onPress={allSelected ? unselectAll : selectAll}>
                                 Select All
                             </Text>
                             <Button
-                                variant="outline"
+                                variant="solid"
                                 size="sm"
                                 action="negative"
                                 onPress={handleClearResults}
                                 isDisabled={isLoading}
                                 style={{ marginLeft: 8 }}
                             >
-                                <ButtonText>Clear Results</ButtonText>
+                                <ButtonText>Clear All</ButtonText>
                             </Button>
                         </HStack>
 
-                        <HStack space="sm">
+                        <HStack space="sm" style={{ alignItems: "center" }}>
+                            {selectedInsufficientStock && (
+                                <Text style={{ color: "red", fontSize: 12, fontWeight: "500" }} >
+                                    Not enough stock to dispatch.
+                                </Text>
+                            )}
                             <Button
                                 onPress={() => setShowReceiveModal(true)}
                                 isDisabled={selectedIds.size === 0 || isLoading}
+                                style={{
+                                    backgroundColor: "#1B9CFF",
+                                    opacity: selectedIds.size === 0 || isLoading ? 0.5 : 1,
+                                }}
                             >
                                 <ButtonText>Receive</ButtonText>
                             </Button>
+
                             <Button
                                 onPress={() => setShowDispatchModal(true)}
                                 isDisabled={selectedIds.size === 0 || isLoading || selectedInsufficientStock}
+                                style={{
+                                    backgroundColor: "#1B9CFF",
+                                    opacity: selectedIds.size === 0 || isLoading || selectedInsufficientStock ? 0.5 : 1,
+                                }}
                             >
                                 <ButtonText>Dispatch</ButtonText>
                             </Button>
                         </HStack>
                     </HStack>
-                </VStack>
+                </LinearGradient>
             )}
         </ProtectedRoute>
     );
