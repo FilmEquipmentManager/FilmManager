@@ -80,7 +80,7 @@ export default function HomepageScreen() {
                                     lineHeight: 35,
                                 }}
                             >
-                                {getGreeting()}, bombardino crocodillo!
+                                {getGreeting()}, {userData?.username}!
                             </Text>
                         </Box>
 
