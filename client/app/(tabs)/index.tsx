@@ -61,10 +61,13 @@ export default function HomepageScreen() {
                                     ? 36
                                     : 50,
                                 width: "100%",
-                                alignItems: "center"
+                                alignItems: "center",
+                                height: "5%"
                             }}
                         >
                             <Text
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
                                 style={{
                                     color: "white",
                                     fontSize: isMobileScreen
@@ -76,8 +79,7 @@ export default function HomepageScreen() {
                                         : 50,
                                     fontWeight: "bold",
                                     textAlign: "center",
-                                    padding: 10,
-                                    lineHeight: 35,
+                                    padding: 10
                                 }}
                             >
                                 {getGreeting()}, {userData?.username}!
