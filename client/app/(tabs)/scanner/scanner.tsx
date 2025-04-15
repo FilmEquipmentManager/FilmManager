@@ -8,7 +8,7 @@ import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
 import { LinearGradient } from "expo-linear-gradient";
 import { Spinner } from "@/components/ui/spinner";
-import { useAuth, ProtectedRoute } from "../../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { Button, ButtonText } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import {
@@ -23,12 +23,12 @@ import {
 import {
     Checkbox,
     CheckboxIndicator,
-    CheckboxLabel,
     CheckboxIcon,
   } from "@/components/ui/checkbox"
 import { Icon, CloseIcon, CheckIcon } from "@/components/ui/icon";
 import Constants from "expo-constants";
 import server from "../../../networking";
+import { set } from "firebase/database";
 
 interface ScannedItem {
     id: string;
@@ -44,7 +44,6 @@ interface ScannedItem {
 
 export default function ScannerScreen() {
     const [currentScan, setCurrentScan] = useState("");
-    const [scannedItems, setScannedItems] = useState<ScannedItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingItem, setEditingItem] = useState<ScannedItem | null>(null);
@@ -106,10 +105,6 @@ export default function ScannerScreen() {
             }
         });
 
-        socket.on("barcodes_updated", (barcodes: ScannedItem[]) => {
-            setScannedItems(barcodes);
-        });
-
         return () => {
             socket.disconnect();
         };
@@ -129,6 +124,7 @@ export default function ScannerScreen() {
 
     const handleScannedItems = async () => {
         if (currentScan.trim()) {
+            setIsLoading(true);
             const barcodeToScan = currentScan.trim();
 
             try {
@@ -176,9 +172,11 @@ export default function ScannerScreen() {
 
                 setPendingList(newPendingItems);
                 setCurrentScan("");
+                setIsLoading(false);
             } catch (error) {
                 console.error("Error checking barcode:", error);
                 showToast("Scan failed", "Could not verify barcode with the server.");
+                setIsLoading(false);
             }
         }
     };
@@ -202,12 +200,15 @@ export default function ScannerScreen() {
         setSelectedIds(new Set());
     };
 
-    const handleRemoveAll = () => {
-        setPendingItems((prev) => prev.filter(item => selectedIds.has(item.id)));
-        setPendingUnknownItems((prev) => prev.filter(item => selectedIds.has(item.id)));
+    const handleClearResults = () => {
+        setIsLoading(true);
+        setCurrentScan("");
+        setPendingItems([]);
+        setPendingUnknownItems([]);
         setSelectedIds(new Set());
-        showToast("Removed", "Selected items have been removed.");
-    }
+        showToast("Cleared", "All scanned results have been removed.");
+        setIsLoading(false);
+    };    
 
     const handleRemove = (id: string) => {
         if (pendingItems.some(item => item.id === id)) {
@@ -241,6 +242,7 @@ export default function ScannerScreen() {
         editingItemCount.trim() !== originalItemCount.trim();
 
     const handleReceive = async () => {
+        setIsLoading(true);
         const knownItemsToReceive = pendingItems.filter(item => selectedIds.has(item.id));
         const unknownItemsToReceive = pendingUnknownItems.filter(item => selectedIds.has(item.id));
 
@@ -275,6 +277,8 @@ export default function ScannerScreen() {
             setPendingItems(prev => prev.filter(item => !selectedIds.has(item.id)));
             setPendingUnknownItems(prev => prev.filter(item => !selectedIds.has(item.id)));
             setSelectedIds(new Set());
+            setCurrentScan("");
+            setIsLoading(false);
 
             const totalReceived = knownItemsToReceive.length + unknownItemsToReceive.length;
             showToast("Items Received", `${totalReceived} barcodes saved.`);
@@ -286,7 +290,7 @@ export default function ScannerScreen() {
 
     const saveEditedBarcode = async () => {
         if (!editingItem) return;
-
+        setIsLoading(true);
         const updatedTotalCount = parseInt(editingItemCount) || 0;
     
         const updatedItem = {
@@ -326,9 +330,15 @@ export default function ScannerScreen() {
     
         setEditingItem(null);
         setShowEditModal(false);
+        setIsLoading(false);
+        setEditingBarcode(editingItem?.barcode || "");
+        setEditingItemName(editingItem?.itemName || "");
+        setEditingItemDescription(editingItem?.itemDescription || "");
+        setEditingItemCount(editingItem?.totalCount.toString() || "");
     };    
     
     const handleDelete = async (id: string) => {
+        setIsLoading(true);
         try {
             await server.delete(`/api/barcodes/${id}`);
             setPendingItems((prev) => prev.filter((item) => item.id !== id));
@@ -336,6 +346,7 @@ export default function ScannerScreen() {
             console.error("Error deleting barcode:", error);
             showToast("Delete failed", "Failed to delete barcode. Please try again.");
         }
+        setIsLoading(false);
         setShowEditModal(false);
     }
 
@@ -411,13 +422,13 @@ export default function ScannerScreen() {
                                     </Text>
                                 </VStack>
                                 <HStack style={{ gap: 8 }}>
-                                    <Button onPress={() => handleEdit(item)}>
+                                    <Button onPress={() => handleEdit(item)} isDisabled={isLoading}>
                                         <ButtonText>Edit</ButtonText>
                                     </Button>
-                                    <Button onPress={() => handleRemove(item.id)}>
+                                    <Button onPress={() => handleRemove(item.id)} isDisabled={isLoading}>
                                         <ButtonText>Remove</ButtonText>
                                     </Button>
-                                    <Button onPress={() => handleDelete(item.id)}>
+                                    <Button onPress={() => handleDelete(item.id)} isDisabled={isLoading}>
                                         <ButtonText>Delete</ButtonText>
                                     </Button>
                                 </HStack>
@@ -535,14 +546,15 @@ export default function ScannerScreen() {
                         variant="outline"
                         size="sm"
                         action="negative"
-                        onPress={handleRemoveAll}
+                        onPress={handleClearResults}
+                        isDisabled={isLoading}
                         style={{ marginLeft: 8 }}
                     >
-                        <ButtonText>Remove All</ButtonText>
+                        <ButtonText>Clear Results</ButtonText>
                     </Button>
                 </HStack>
 
-                <Button onPress={handleReceive} isDisabled={selectedIds.size === 0}>
+                <Button onPress={handleReceive} isDisabled={selectedIds.size === 0 || isLoading}>
                     <ButtonText>Receive</ButtonText>
                 </Button>
             </HStack>
