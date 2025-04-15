@@ -8,11 +8,12 @@ import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 import { Input, InputField } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { Avatar, AvatarFallbackText, AvatarImage } from "@/components/ui/avatar";
 import { signOut } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
+import FirebaseErrorDecoder from "@/app/tools/FirebaseErrorDecoder";
 import ProtectedRoute from "@/app/wrappers/ProtectedRoute";
-import { Spinner } from "@/components/ui/spinner";
 
 export default function ProfileScreen() {
     const [isHovered, setIsHovered] = useState(false);
@@ -51,7 +52,7 @@ export default function ProfileScreen() {
             await signOut(auth);
             showToast("Logout Successful", "You have been logged out successfully.");
         } catch (error: any) {
-            showToast("Logout error", error.message);
+            showToast("Uh-oh!", FirebaseErrorDecoder({ error: error }));
         } finally {
             setIsLoggingOut(false);
         }
