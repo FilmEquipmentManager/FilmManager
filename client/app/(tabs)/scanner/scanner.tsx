@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { io } from "socket.io-client";
 import { ScrollView } from "react-native";
 import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
@@ -15,6 +15,7 @@ import { Icon, CloseIcon, CheckIcon, ChevronDownIcon } from "@/components/ui/ico
 import Constants from "expo-constants";
 import server from "../../../networking";
 import ProtectedRoute from "@/app/wrappers/ProtectedRoute";
+import { useFocusEffect } from "expo-router";
 
 interface ScannedItem {
     id: string;
@@ -53,6 +54,7 @@ export default function ScannerScreen() {
     const [originalItemPointsToRedeem, setOriginalItemPointsToRedeem] = useState('');
     const [originalItemGroup, setOriginalItemGroup] = useState('');
     const [isEditingUnknown, setIsEditingUnknown] = useState(false);
+
 
     const groupLabels = { camera: "Camera", lighting: "Lighting", audio: "Audio", lenses: "Lenses", accessories: "Accessories", grip: "Grip Equipment", power: "Power Supply", cables: "Cables", misc: "Miscellaneous", unknown: "Unknown" };
 
@@ -379,8 +381,15 @@ export default function ScannerScreen() {
         setShowEditModal(false);
     }
 
+    useFocusEffect(
+        useCallback(() => {
+            setPendingItems([]);
+            setPendingUnknownItems([]);
+        }, [])
+    );
+
     return (
-        <ProtectedRoute>
+        <ProtectedRoute showAuth={false}>
             {(userData) => (
                 <VStack
                     style={{
@@ -410,88 +419,88 @@ export default function ScannerScreen() {
                         />
                     </Input>
 
-                <ScrollView style={{ flex: 1, width: "100%" }}>
-                    <VStack style={{ gap: 8, paddingBottom: 16 }}>
-                        {Object.entries(groupedItems).length > 0 ? (
-                            Object.entries(groupedItems).map(([group, items]) => (
-                                <VStack key={group} style={{ gap: 8 }}>
-                                    <Text style={{ fontSize: 18, fontWeight: "bold", marginTop: 16 }}>
-                                        {groupLabels[group] || group}
-                                    </Text>
+                    <ScrollView style={{ flex: 1, width: "100%" }}>
+                        <VStack style={{ gap: 8, paddingBottom: 16 }}>
+                            {Object.entries(groupedItems).length > 0 ? (
+                                Object.entries(groupedItems).map(([group, items]) => (
+                                    <VStack key={group} style={{ gap: 8 }}>
+                                        <Text style={{ fontSize: 18, fontWeight: "bold", marginTop: 16 }}>
+                                            {groupLabels[group] || group}
+                                        </Text>
 
-                                    {items.map((item) => (
-                                        <VStack
-                                            key={item.id}
-                                            style={{
-                                                borderBottomWidth: 1,
-                                                borderColor: "$gray3",
-                                                paddingVertical: 8,
-                                                paddingHorizontal: 8,
-                                                backgroundColor: "$backgroundCard",
-                                                borderRadius: 8,
-                                            }}
-                                        >
-                                            <HStack
+                                        {items.map((item) => (
+                                            <VStack
+                                                key={item.id}
                                                 style={{
-                                                    justifyContent: "space-between",
-                                                    alignItems: "center",
-                                                    marginBottom: 4,
+                                                    borderBottomWidth: 1,
+                                                    borderColor: "$gray3",
+                                                    paddingVertical: 8,
+                                                    paddingHorizontal: 8,
+                                                    backgroundColor: "$backgroundCard",
+                                                    borderRadius: 8,
                                                 }}
                                             >
-                                                <Checkbox
-                                                    value="selectItems"
-                                                    size="sm"
-                                                    isChecked={selectedIds.has(item.id)}
-                                                    onChange={() => toggleSelect(item.id)}
-                                                    style={{ marginRight: 8 }}
+                                                <HStack
+                                                    style={{
+                                                        justifyContent: "space-between",
+                                                        alignItems: "center",
+                                                        marginBottom: 4,
+                                                    }}
                                                 >
-                                                    <CheckboxIndicator>
-                                                        <CheckboxIcon as={CheckIcon} color="white" />
-                                                    </CheckboxIndicator>
-                                                </Checkbox>
+                                                    <Checkbox
+                                                        value="selectItems"
+                                                        size="sm"
+                                                        isChecked={selectedIds.has(item.id)}
+                                                        onChange={() => toggleSelect(item.id)}
+                                                        style={{ marginRight: 8 }}
+                                                    >
+                                                        <CheckboxIndicator>
+                                                            <CheckboxIcon as={CheckIcon} color="white" />
+                                                        </CheckboxIndicator>
+                                                    </Checkbox>
 
-                                                <VStack style={{ flex: 1 }}>
-                                                    <Text style={{ fontSize: 16, fontWeight: "bold" }}>
-                                                        {item.barcode}{" "}
-                                                        <Text style={{ color: "gray" }}>x{item.sessionCount}</Text>
-                                                    </Text>
-                                                    <Text style={{ color: "gray" }}>
-                                                        {item.itemName || "Unknown"} - {item.itemDescription || "No description"}
-                                                    </Text>
-                                                    <Text style={{ fontSize: 12, color: "$gray10" }}>
-                                                        Location: {item.location || "Unknown"}
-                                                    </Text>
-                                                    <Text style={{ fontSize: 12, color: "$gray10" }}>
-                                                        Points: {item.pointsToRedeem ?? 0}
-                                                    </Text>
-                                                    <Text style={{ fontSize: 12, color: "$gray10" }}>
-                                                        Updated By: {item.updatedBy}
-                                                    </Text>
-                                                    <Text style={{ fontSize: 12, color: "$gray10" }}>
-                                                        Created: {new Date(item.createdAt).toLocaleString()}
-                                                    </Text>
-                                                </VStack>
+                                                    <VStack style={{ flex: 1 }}>
+                                                        <Text style={{ fontSize: 16, fontWeight: "bold" }}>
+                                                            {item.barcode}{" "}
+                                                            <Text style={{ color: "gray" }}>x{item.sessionCount}</Text>
+                                                        </Text>
+                                                        <Text style={{ color: "gray" }}>
+                                                            {item.itemName || "Unknown"} - {item.itemDescription || "No description"}
+                                                        </Text>
+                                                        <Text style={{ fontSize: 12, color: "gray10" }}>
+                                                            Location: {item.location || "Unknown"}
+                                                        </Text>
+                                                        <Text style={{ fontSize: 12, color: "gray10" }}>
+                                                            In Stock: {item.totalCount ?? 0}
+                                                        </Text>
+                                                        <Text style={{ fontSize: 12, color: "gray10" }}>
+                                                            Points: {item.pointsToRedeem ?? 0}
+                                                        </Text>
+                                                        <Text style={{ fontSize: 12, color: "gray10" }}>
+                                                            Updated By: {item.updatedBy === "You" ? userData.username : item.updatedBy}
+                                                        </Text>
+                                                    </VStack>
 
-                                                <HStack style={{ gap: 4 }}>
-                                                    <Button size="sm" onPress={() => handleEdit(item)} isDisabled={isLoading}>
-                                                        <ButtonText>Edit</ButtonText>
-                                                    </Button>
-                                                    <Button size="sm" onPress={() => handleRemove(item.id)} isDisabled={isLoading}>
-                                                        <ButtonText>Remove</ButtonText>
-                                                    </Button>
-                                                    <Button size="sm" onPress={() => handleDelete(item.id)} isDisabled={isLoading}>
-                                                        <ButtonText>Delete</ButtonText>
-                                                    </Button>
+                                                    <HStack style={{ gap: 4 }}>
+                                                        <Button size="sm" onPress={() => handleEdit(item)} isDisabled={isLoading}>
+                                                            <ButtonText>Edit</ButtonText>
+                                                        </Button>
+                                                        <Button size="sm" onPress={() => handleRemove(item.id)} isDisabled={isLoading}>
+                                                            <ButtonText>Remove</ButtonText>
+                                                        </Button>
+                                                        <Button size="sm" onPress={() => handleDelete(item.id)} isDisabled={isLoading}>
+                                                            <ButtonText>Delete</ButtonText>
+                                                        </Button>
+                                                    </HStack>
                                                 </HStack>
-                                            </HStack>
-                                        </VStack>
-                                    ))}
-                                </VStack>
-                            ))
-                        ) : (
-                            <Text style={{ color: "$gray11" }}>Scan results will appear here</Text>
-                        )}
-                    </VStack>
+                                            </VStack>
+                                        ))}
+                                    </VStack>
+                                ))
+                            ) : (
+                                <Text style={{ color: "$gray11" }}>Scan results will appear here</Text>
+                            )}
+                        </VStack>
 
                         {/* Gluestack Modal for Editing a Barcode */}
                         <Modal
@@ -534,92 +543,92 @@ export default function ScannerScreen() {
                                         />
                                     </Input>
 
-                                <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
-                                    <InputField
-                                        ref={inputRef}
-                                        value={editingItemDescription}
-                                        onChangeText={setEditingItemDescription}
-                                        placeholder="Enter item description"
-                                        style={{ height: 40, width: "100%" }}
-                                    />
-                                </Input>
+                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
+                                        <InputField
+                                            ref={inputRef}
+                                            value={editingItemDescription}
+                                            onChangeText={setEditingItemDescription}
+                                            placeholder="Enter item description"
+                                            style={{ height: 40, width: "100%" }}
+                                        />
+                                    </Input>
 
-                                <Select
-                                    isDisabled={isLoading}
-                                    selectedValue={editingItemGroup}
-                                    onValueChange={setEditingItemGroup}
-                                >
-                                    <SelectTrigger variant="outline" size="md" style={{ marginBottom: 12 }}>
-                                        <SelectInput placeholder="Select item group" />
-                                        <SelectIcon className="mr-3" as={ChevronDownIcon} />
-                                    </SelectTrigger>
-                                    <SelectPortal>
-                                        <SelectBackdrop />
-                                        <SelectContent>
-                                            <SelectDragIndicatorWrapper>
-                                                <SelectDragIndicator />
-                                            </SelectDragIndicatorWrapper>
-                                            <SelectItem label="Camera" value="camera" />
-                                            <SelectItem label="Lighting" value="lighting" />
-                                            <SelectItem label="Audio" value="audio" />
-                                            <SelectItem label="Lenses" value="lenses" />
-                                            <SelectItem label="Accessories" value="accessories" />
-                                            <SelectItem label="Grip Equipment" value="grip" />
-                                            <SelectItem label="Power Supply" value="power" />
-                                            <SelectItem label="Cables" value="cables" />
-                                            <SelectItem label="Miscellaneous" value="misc" />
-                                            <SelectItem label="Unknown" value="unknown" />
-                                        </SelectContent>
-                                    </SelectPortal>
-                                </Select>
+                                    <Select
+                                        isDisabled={isLoading}
+                                        selectedValue={editingItemGroup}
+                                        onValueChange={setEditingItemGroup}
+                                    >
+                                        <SelectTrigger variant="outline" size="md" style={{ marginBottom: 12 }}>
+                                            <SelectInput placeholder="Select item group" />
+                                            <SelectIcon className="mr-3" as={ChevronDownIcon} />
+                                        </SelectTrigger>
+                                        <SelectPortal>
+                                            <SelectBackdrop />
+                                            <SelectContent>
+                                                <SelectDragIndicatorWrapper>
+                                                    <SelectDragIndicator />
+                                                </SelectDragIndicatorWrapper>
+                                                <SelectItem label="Camera" value="camera" />
+                                                <SelectItem label="Lighting" value="lighting" />
+                                                <SelectItem label="Audio" value="audio" />
+                                                <SelectItem label="Lenses" value="lenses" />
+                                                <SelectItem label="Accessories" value="accessories" />
+                                                <SelectItem label="Grip Equipment" value="grip" />
+                                                <SelectItem label="Power Supply" value="power" />
+                                                <SelectItem label="Cables" value="cables" />
+                                                <SelectItem label="Miscellaneous" value="misc" />
+                                                <SelectItem label="Unknown" value="unknown" />
+                                            </SelectContent>
+                                        </SelectPortal>
+                                    </Select>
 
-                                <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
-                                    <InputField
-                                        ref={inputRef}
-                                        value={editingItemLocation}
-                                        onChangeText={setEditingItemLocation}
-                                        placeholder="Enter item location"
-                                        style={{ height: 40, width: "100%" }}
-                                    />
-                                </Input>
+                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
+                                        <InputField
+                                            ref={inputRef}
+                                            value={editingItemLocation}
+                                            onChangeText={setEditingItemLocation}
+                                            placeholder="Enter item location"
+                                            style={{ height: 40, width: "100%" }}
+                                        />
+                                    </Input>
 
-                                <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
-                                    <InputField
-                                        ref={inputRef}
-                                        value={editingItemCount}
-                                        onChangeText={setEditingItemCount}
-                                        placeholder="Enter item count"
-                                        keyboardType="numeric"
-                                        style={{ height: 40, width: "100%" }}
-                                    />
-                                </Input>
+                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
+                                        <InputField
+                                            ref={inputRef}
+                                            value={editingItemCount}
+                                            onChangeText={setEditingItemCount}
+                                            placeholder="Enter item count"
+                                            keyboardType="numeric"
+                                            style={{ height: 40, width: "100%" }}
+                                        />
+                                    </Input>
 
-                                <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
-                                    <InputField
-                                        ref={inputRef}
-                                        value={editingItemPointsToRedeem}
-                                        onChangeText={setEditingItemPointsToRedeem}
-                                        placeholder="Enter points to redeem"
-                                        keyboardType="numeric"
-                                        style={{ height: 40, width: "100%" }}
-                                    />
-                                </Input>
-                            </ModalBody>
-                            <ModalFooter>
-                                <Button
-                                    variant="outline"
-                                    action="secondary"
-                                    onPress={() => setShowEditModal(false)}
-                                >
-                                    <ButtonText>Cancel</ButtonText>
-                                </Button>
-                                <Button onPress={saveEditedBarcode} isDisabled={isLoading || editingBarcode.trim().length === 0 || editingItemName.trim().length === 0 || !hasChanges}>
-                                    <ButtonText>Save</ButtonText>
-                                </Button>
-                            </ModalFooter>
-                        </ModalContent>
-                    </Modal>
-                </ScrollView>
+                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
+                                        <InputField
+                                            ref={inputRef}
+                                            value={editingItemPointsToRedeem}
+                                            onChangeText={setEditingItemPointsToRedeem}
+                                            placeholder="Enter points to redeem"
+                                            keyboardType="numeric"
+                                            style={{ height: 40, width: "100%" }}
+                                        />
+                                    </Input>
+                                </ModalBody>
+                                <ModalFooter>
+                                    <Button
+                                        variant="outline"
+                                        action="secondary"
+                                        onPress={() => setShowEditModal(false)}
+                                    >
+                                        <ButtonText>Cancel</ButtonText>
+                                    </Button>
+                                    <Button onPress={saveEditedBarcode} isDisabled={isLoading || editingBarcode.trim().length === 0 || editingItemName.trim().length === 0 || !hasChanges}>
+                                        <ButtonText>Save</ButtonText>
+                                    </Button>
+                                </ModalFooter>
+                            </ModalContent>
+                        </Modal>
+                    </ScrollView>
 
                     <HStack
                         style={{
