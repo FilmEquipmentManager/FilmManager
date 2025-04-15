@@ -56,6 +56,7 @@ export default function ScannerScreen() {
     const [isEditingUnknown, setIsEditingUnknown] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showReceiveModal, setShowReceiveModal] = useState(false);
+    const [showDispatchModal, setShowDispatchModal] = useState(false);
     const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
 
     const groupLabels = { camera: "Camera", lighting: "Lighting", audio: "Audio", lenses: "Lenses", accessories: "Accessories", grip: "Grip Equipment", power: "Power Supply", cables: "Cables", misc: "Miscellaneous", unknown: "Unknown" };
@@ -298,14 +299,57 @@ export default function ScannerScreen() {
             setPendingItems(prev => prev.filter(item => !selectedIds.has(item.id)));
             setPendingUnknownItems(prev => prev.filter(item => !selectedIds.has(item.id)));
             setSelectedIds(new Set());
-            setCurrentScan("");
-            setIsLoading(false);
 
             const totalReceived = knownItemsToReceive.length + unknownItemsToReceive.length;
             showToast("Items Received", `${totalReceived} barcodes saved.`);
         } catch (error) {
             console.error("Error receiving barcodes:", error);
             showToast("Error", "Failed to receive some items.");
+        } finally {
+            setIsLoading(false);
+            setShowReceiveModal(false);
+            setCurrentScan("");
+        }
+    };
+
+    const handleDispatch = async () => {
+        setIsLoading(true);
+        const dispatchableItems = pendingItems.filter(item =>
+            selectedIds.has(item.id) && item.totalCount >= item.sessionCount
+        );
+
+        if (dispatchableItems.length === 0) {
+            showToast("Dispatch Error", "No selected items have sufficient stock to dispatch.");
+            setIsLoading(false);
+            return;
+        }
+
+        try {
+            const updatePromises = dispatchableItems.map(item =>
+                server.put(`/api/barcodes/${item.id}`, {
+                    barcode: item.barcode,
+                    group: item.group,
+                    itemName: item.itemName,
+                    itemDescription: item.itemDescription,
+                    location: item.location,
+                    pointsToRedeem: item.pointsToRedeem,
+                    count: item.totalCount - item.sessionCount,
+                })
+            );
+
+            await Promise.all(updatePromises);
+
+            setPendingItems(prev => prev.filter(item => !selectedIds.has(item.id)));
+            setPendingUnknownItems(prev => prev.filter(item => !selectedIds.has(item.id)));
+            setSelectedIds(new Set());
+            showToast("Dispatch Successful", `${dispatchableItems.length} items dispatched.`);
+        } catch (error) {
+            console.error("Error dispatching barcodes:", error);
+            showToast("Dispatch Error", "Failed to dispatch items. Please try again.");
+        } finally {
+            setIsLoading(false);
+            setShowDispatchModal(false);
+            setCurrentScan("");
         }
     };
 
@@ -379,6 +423,8 @@ export default function ScannerScreen() {
         setIsLoading(false);
         setShowEditModal(false);
     }
+
+    const selectedInsufficientStock = [...pendingItems, ...pendingUnknownItems].filter(item => selectedIds.has(item.id)).some(item => item.totalCount < 1);
 
     useFocusEffect(
         useCallback(() => {
@@ -685,6 +731,31 @@ export default function ScannerScreen() {
                                 </ModalFooter>
                             </ModalContent>
                         </Modal>
+
+                        <Modal isOpen={showDispatchModal} onClose={() => setShowDispatchModal(false)} size="md">
+                            <ModalBackdrop />
+                            <ModalContent>
+                                <ModalHeader>
+                                    <Heading size="md">Confirm Dispatch</Heading>
+                                    <ModalCloseButton>
+                                        <Icon as={CloseIcon} size="md" />
+                                    </ModalCloseButton>
+                                </ModalHeader>
+                                <ModalBody>
+                                    <Text size="sm">
+                                        Are you sure you want to dispatch the selected items? This will deduct the dispatched quantity from the available stock. Note: Only items with sufficient stock will be dispatched.
+                                    </Text>
+                                </ModalBody>
+                                <ModalFooter>
+                                    <Button variant="outline" action="secondary" onPress={() => setShowDispatchModal(false)}>
+                                        <ButtonText>Cancel</ButtonText>
+                                    </Button>
+                                    <Button onPress={handleDispatch}>
+                                        <ButtonText>Confirm</ButtonText>
+                                    </Button>
+                                </ModalFooter>
+                            </ModalContent>
+                        </Modal>
                     </ScrollView>
 
                     <HStack
@@ -693,7 +764,7 @@ export default function ScannerScreen() {
                             paddingTop: 12,
                             borderTopWidth: 1,
                             borderColor: "gray4",
-                            display: pendingItems.length || pendingUnknownItems.length > 0 ? "flex" : "none",
+                            display: (pendingItems.length + pendingUnknownItems.length) > 0 ? "flex" : "none",
                         }}
                     >
                         <HStack space="sm" style={{ alignItems: "center" }}>
@@ -724,9 +795,20 @@ export default function ScannerScreen() {
                             </Button>
                         </HStack>
 
-                        <Button onPress={() => setShowReceiveModal(true)} isDisabled={selectedIds.size === 0 || isLoading}>
-                            <ButtonText>Receive</ButtonText>
-                        </Button>
+                        <HStack space="sm">
+                            <Button
+                                onPress={() => setShowReceiveModal(true)}
+                                isDisabled={selectedIds.size === 0 || isLoading}
+                            >
+                                <ButtonText>Receive</ButtonText>
+                            </Button>
+                            <Button
+                                onPress={() => setShowDispatchModal(true)}
+                                isDisabled={selectedIds.size === 0 || isLoading || selectedInsufficientStock}
+                            >
+                                <ButtonText>Dispatch</ButtonText>
+                            </Button>
+                        </HStack>
                     </HStack>
                 </VStack>
             )}
