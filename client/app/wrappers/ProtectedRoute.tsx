@@ -1,4 +1,3 @@
-// ProtectedRoute.tsx
 import { useAuth } from "../contexts/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -38,6 +37,12 @@ const AuthForm = ({
     const [password, setPassword] = useState("");
     const [username, setUsername] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = async () => {
+        setIsSubmitting(true);
+        await onSubmit(email, password, username);
+    };
 
     return (
         <Card
@@ -115,12 +120,17 @@ const AuthForm = ({
                 </VStack>
 
                 <Button
-                    onPress={() => onSubmit(email, password, username)}
+                    onPress={handleSubmit}
                     style={{ backgroundColor: "#1B9CFF", borderRadius: 8 }}
+                    disabled={isSubmitting}
                 >
-                    <Text style={{ color: "white", fontWeight: "700" }}>
-                        {isRegister ? "Register" : "Login"}
-                    </Text>
+                    {isSubmitting ? (
+                        <Spinner size="small" color={"white"} />
+                    ) : (
+                        <Text style={{ color: "white", fontWeight: "700" }}>
+                            {isRegister ? "Register" : "Login"}
+                        </Text>
+                    )}
                 </Button>
 
                 <Button variant="link" onPress={switchForm} style={{ marginTop: 10, marginBottom: 10 }}>

@@ -1,4 +1,3 @@
-// profile.tsx
 import { useState } from "react";
 import { useWindowDimensions, ScrollView, Alert } from "react-native";
 import { LinearGradient, LinearGradientProps } from "expo-linear-gradient";
