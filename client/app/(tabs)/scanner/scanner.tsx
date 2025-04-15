@@ -57,9 +57,10 @@ export default function ScannerScreen() {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showReceiveModal, setShowReceiveModal] = useState(false);
     const [showDispatchModal, setShowDispatchModal] = useState(false);
+    const [showUnknownEditModal, setShowUnknownEditModal] = useState(false);
     const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
 
-    const groupLabels = { camera: "Camera", lighting: "Lighting", audio: "Audio", lenses: "Lenses", accessories: "Accessories", grip: "Grip Equipment", power: "Power Supply", cables: "Cables", misc: "Miscellaneous", unknown: "Unknown" };
+    const groupLabels = { camera: "Camera", lighting: "Lighting", audio: "Audio", lenses: "Lenses", accessories: "Accessories", grip: "Grip Equipment", power: "Power Supply", cables: "Cables", misc: "Miscellaneous", others: "Others" };
 
     const inputRef = useRef<any>(null);
 
@@ -133,10 +134,13 @@ export default function ScannerScreen() {
 
                 const matchedItem = existingBarcodes.find(item => item.barcode === barcodeToScan);
                 const isKnown = !!matchedItem;
+
                 const currentPendingList = isKnown ? pendingItems : pendingUnknownItems;
                 const setPendingList = isKnown ? setPendingItems : setPendingUnknownItems;
 
-                const existingPendingItem = currentPendingList.find(item => item.barcode === barcodeToScan);
+                const existingPendingItem = currentPendingList.find(
+                    item => item.barcode === barcodeToScan
+                );
 
                 let newPendingItems: ScannedItem[];
 
@@ -146,6 +150,7 @@ export default function ScannerScreen() {
                             ? { ...item, sessionCount: (item.sessionCount || 0) + 1 }
                             : item
                     );
+                    setPendingList(newPendingItems);
                 } else {
                     const newItem: ScannedItem = matchedItem
                         ? {
@@ -156,22 +161,26 @@ export default function ScannerScreen() {
                         : {
                             id: Date.now().toString(),
                             barcode: barcodeToScan,
-                            group: "Unknown",
-                            itemName: "Item Name",
-                            itemDescription: "Item Description",
+                            group: "others",
+                            itemName: "",
+                            itemDescription: "",
                             createdAt: new Date().toISOString(),
                             updatedAt: new Date().toISOString(),
-                            updatedBy: "You",
+                            updatedBy: "",
                             totalCount: 0,
                             sessionCount: 1,
-                            location: "Unknown Location",
+                            location: "",
                             pointsToRedeem: 0,
                         };
 
-                    newPendingItems = [...currentPendingList, newItem];
+                    if (isKnown) {
+                        newPendingItems = [...currentPendingList, newItem];
+                        setPendingList(newPendingItems);
+                    } else {
+                        handleEditUnknownItem(newItem);
+                    }
                 }
 
-                setPendingList(newPendingItems);
                 setCurrentScan("");
                 setIsLoading(false);
             } catch (error) {
@@ -248,6 +257,19 @@ export default function ScannerScreen() {
         setIsEditingUnknown(isUnknown);
 
         setShowEditModal(true);
+    };
+
+    const handleEditUnknownItem = (item: ScannedItem) => {
+        setEditingItem(item);
+        setEditingBarcode(item.barcode ?? "");
+        setEditingItemName(item.itemName ?? "");
+        setEditingItemDescription(item.itemDescription ?? "");
+        setEditingItemCount(item.totalCount?.toString() ?? "0");
+        setEditingItemLocation(item.location ?? "");
+        setEditingItemPointsToRedeem(item.pointsToRedeem?.toString() ?? "0");
+        setEditingItemGroup(item.group ?? "unknown");
+
+        setShowUnknownEditModal(true);
     };
 
     const hasChanges =
@@ -424,6 +446,37 @@ export default function ScannerScreen() {
         setShowEditModal(false);
     }
 
+    const saveEditedUnknownItem = () => {
+        if (!editingItem) return;
+        setIsLoading(true);
+        const updatedItem: ScannedItem = {
+            ...editingItem,
+            barcode: editingBarcode.trim(),
+            itemName: editingItemName.trim(),
+            itemDescription: editingItemDescription.trim(),
+            location: editingItemLocation.trim(),
+            pointsToRedeem: parseInt(editingItemPointsToRedeem) || 0,
+            totalCount: parseInt(editingItemCount) || editingItem.totalCount,
+            group: editingItemGroup.trim(),
+        };
+
+        setPendingUnknownItems((prev) => {
+            const exists = prev.some(item => item.id === editingItem.id);
+            return exists
+                ? prev.map(item => (item.id === editingItem.id ? updatedItem : item))
+                : [...prev, updatedItem];
+        });
+
+        setEditingItem(null);
+        setShowUnknownEditModal(false);
+        setIsLoading(false);
+    };
+
+    const handleCancelUnknownItem = () => {
+        setEditingItem(null);
+        setShowUnknownEditModal(false);
+    };
+
     const selectedInsufficientStock = [...pendingItems, ...pendingUnknownItems].filter(item => selectedIds.has(item.id)).some(item => item.totalCount < 1);
 
     useFocusEffect(
@@ -522,9 +575,6 @@ export default function ScannerScreen() {
                                                         <Text style={{ fontSize: 12, color: "gray10" }}>
                                                             Points: {item.pointsToRedeem ?? 0}
                                                         </Text>
-                                                        <Text style={{ fontSize: 12, color: "gray10" }}>
-                                                            Updated By: {item.updatedBy === "You" ? userData.username : item.updatedBy}
-                                                        </Text>
                                                     </VStack>
 
                                                     <HStack style={{ gap: 4 }}>
@@ -548,6 +598,7 @@ export default function ScannerScreen() {
                             )}
                         </VStack>
 
+                        {/* Known Items Editing Modal */}
                         <Modal
                             isOpen={showEditModal}
                             onClose={() => setShowEditModal(false)}
@@ -622,7 +673,7 @@ export default function ScannerScreen() {
                                                 <SelectItem label="Power Supply" value="power" />
                                                 <SelectItem label="Cables" value="cables" />
                                                 <SelectItem label="Miscellaneous" value="misc" />
-                                                <SelectItem label="Unknown" value="unknown" />
+                                                <SelectItem label="Others" value="others" />
                                             </SelectContent>
                                         </SelectPortal>
                                     </Select>
@@ -673,6 +724,136 @@ export default function ScannerScreen() {
                                 </ModalFooter>
                             </ModalContent>
                         </Modal>
+
+                        {/* Unknown Items Editing Modal */}
+                        <Modal
+                            isOpen={showUnknownEditModal}
+                            onClose={() => setShowUnknownEditModal(false)}
+                            size="lg"
+                        >
+                            <ModalBackdrop />
+                            <ModalContent>
+                                <ModalHeader>
+                                    <Heading size="md" className="text-typography-950">
+                                        Add New Item
+                                    </Heading>
+                                    <ModalCloseButton>
+                                        <Icon
+                                            as={CloseIcon}
+                                            size="md"
+                                            className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
+                                        />
+                                    </ModalCloseButton>
+                                </ModalHeader>
+                                <ModalBody>
+                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
+                                        <InputField
+                                            ref={inputRef}
+                                            value={editingBarcode}
+                                            onChangeText={setEditingBarcode}
+                                            placeholder="Enter new barcode value"
+                                            style={{ height: 40, width: "100%" }}
+                                        />
+                                    </Input>
+
+                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
+                                        <InputField
+                                            ref={inputRef}
+                                            value={editingItemName}
+                                            onChangeText={setEditingItemName}
+                                            placeholder="Enter item name"
+                                            style={{ height: 40, width: "100%" }}
+                                        />
+                                    </Input>
+
+                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
+                                        <InputField
+                                            ref={inputRef}
+                                            value={editingItemDescription}
+                                            onChangeText={setEditingItemDescription}
+                                            placeholder="Enter item description"
+                                            style={{ height: 40, width: "100%" }}
+                                        />
+                                    </Input>
+
+                                    {/* For unknown items */}
+                                    <Select
+                                        isDisabled={isLoading}
+                                        selectedValue={editingItemGroup}
+                                        onValueChange={setEditingItemGroup}
+                                    >
+                                        <SelectTrigger variant="outline" size="md" style={{ marginBottom: 12 }}>
+                                            <SelectInput placeholder="Select item group" value={groupLabels[editingItemGroup] ?? "Select item group"} />
+                                            <SelectIcon className="mr-3" as={ChevronDownIcon} />
+                                        </SelectTrigger>
+                                        <SelectPortal>
+                                            <SelectBackdrop />
+                                            <SelectContent>
+                                                <SelectDragIndicatorWrapper>
+                                                    <SelectDragIndicator />
+                                                </SelectDragIndicatorWrapper>
+                                                {Object.entries(groupLabels).map(([value, label]) => (
+                                                    <SelectItem key={value} label={label} value={value} />
+                                                ))}
+                                            </SelectContent>
+                                        </SelectPortal>
+                                    </Select>
+
+                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
+                                        <InputField
+                                            ref={inputRef}
+                                            value={editingItemLocation}
+                                            onChangeText={setEditingItemLocation}
+                                            placeholder="Enter item location"
+                                            style={{ height: 40, width: "100%" }}
+                                        />
+                                    </Input>
+
+                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
+                                        <InputField
+                                            ref={inputRef}
+                                            value={editingItemCount}
+                                            onChangeText={setEditingItemCount}
+                                            placeholder="Enter item count"
+                                            keyboardType="numeric"
+                                            style={{ height: 40, width: "100%" }}
+                                        />
+                                    </Input>
+
+                                    <Input isDisabled={isLoading} style={{ marginBottom: 12 }}>
+                                        <InputField
+                                            ref={inputRef}
+                                            value={editingItemPointsToRedeem}
+                                            onChangeText={setEditingItemPointsToRedeem}
+                                            placeholder="Enter points to redeem"
+                                            keyboardType="numeric"
+                                            style={{ height: 40, width: "100%" }}
+                                        />
+                                    </Input>
+                                </ModalBody>
+                                <ModalFooter>
+                                    <Button
+                                        variant="outline"
+                                        action="secondary"
+                                        onPress={handleCancelUnknownItem}
+                                        isDisabled={isLoading}
+                                    >
+                                        <ButtonText>Cancel</ButtonText>
+                                    </Button>
+                                    <Button
+                                        onPress={saveEditedUnknownItem}
+                                        isDisabled={
+                                            isLoading ||
+                                            editingBarcode.trim().length === 0 ||
+                                            editingItemName.trim().length === 0
+                                        }
+                                    >
+                                        <ButtonText>Save</ButtonText>
+                                    </Button>
+                                </ModalFooter>
+                            </ModalContent>
+                        </Modal>
+
                         {/* Delete Confirmation Modal */}
                         <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} size="md">
                             <ModalBackdrop />
@@ -732,6 +913,7 @@ export default function ScannerScreen() {
                             </ModalContent>
                         </Modal>
 
+                        {/* Dispatch Confirmation Modal */}
                         <Modal isOpen={showDispatchModal} onClose={() => setShowDispatchModal(false)} size="md">
                             <ModalBackdrop />
                             <ModalContent>
