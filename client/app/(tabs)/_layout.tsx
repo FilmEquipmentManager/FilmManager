@@ -10,14 +10,11 @@ import { Text } from "@/components/ui/text";
 import { Icon } from "@/components/ui/icon";
 import { Avatar, AvatarFallbackText, AvatarImage } from '@/components/ui/avatar';
 import { LinearGradient } from "expo-linear-gradient";
-import { useAuth } from "../contexts/AuthContext";
 
 export default function TabLayout() {
     const { width } = useWindowDimensions();
     const isLargeScreen = width >= 680;
     const router = useRouter();
-
-    const { user } = useAuth();
 
     const CustomHeader = () => {
         return (
@@ -138,13 +135,6 @@ export default function TabLayout() {
                     title: "Home",
                     tabBarIcon: ({ color }) => <Icon as={HouseIcon as any} color={color} />,
                 }}
-                listeners={{
-                    tabPress: (e) => {
-                      if (!user) {
-                        router.push("/(auth)/login" as any);
-                      }
-                    }
-                }}
             />
             <Tabs.Screen
                 name="profile/profile"
@@ -152,25 +142,11 @@ export default function TabLayout() {
                     title: "Profile",
                     tabBarIcon: ({ color }) => <Icon as={User2 as any} color={color} />,
                 }}
-                listeners={{
-                    tabPress: (e) => {
-                      if (!user) {
-                        router.push("/(auth)/login" as any);
-                      }
-                    }
-                }}
             />
             <Tabs.Screen
                 name="scanner/scanner"
                 options={{
                     href: null,
-                }}
-                listeners={{
-                    tabPress: (e) => {
-                      if (!user) {
-                        router.push("/(auth)/login" as any);
-                      }
-                    }
                 }}
             />
         </Tabs>
