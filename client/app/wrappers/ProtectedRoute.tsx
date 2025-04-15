@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { Input, InputField } from "@/components/ui/input";
 import { Eye, EyeClosed, LogInIcon } from "lucide-react-native";
 import { Platform } from "react-native";
+import FirebaseErrorDecoder from "../tools/FirebaseErrorDecoder";
 import server from "../../networking";
 
 type AuthFormProps = {
@@ -299,12 +300,6 @@ const AuthForm = ({
                         {isRegister ? "Already have an account? Login" : "Don't have an account? Register"}
                     </Text>
                 </Button>
-
-                {error && (
-                    <Text style={{ color: "red", textAlign: "center" }}>
-                        {error}
-                    </Text>
-                )}
             </VStack>
         </Card>
     );
@@ -316,6 +311,26 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
     const { userData, loading } = useAuth();
     const router = useRouter();
     const isWeb = Platform.OS === "web";
+
+    const toast = useToast();
+
+    const showToast = (title: string, description: string) => {
+        const newId = Math.random();
+        toast.show({
+            id: newId.toString(),
+            placement: "top",
+            duration: 3000,
+            render: ({ id }) => {
+                const uniqueToastId = "toast-" + id;
+                return (
+                    <Toast nativeID={uniqueToastId} action="muted" variant="solid">
+                        <ToastTitle>{title}</ToastTitle>
+                        <ToastDescription>{description}</ToastDescription>
+                    </Toast>
+                );
+            },
+        });
+    };
 
     const handleAuth = async (email: string, password: string, username?: string) => {
         try {
@@ -333,6 +348,7 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
             }
         } catch (error: any) {
             setAuthError(error.message);
+            showToast("Uh-oh!", FirebaseErrorDecoder({ error: error.message }));
         }
     };
 
