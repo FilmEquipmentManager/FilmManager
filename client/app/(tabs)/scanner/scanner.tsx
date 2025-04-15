@@ -54,7 +54,9 @@ export default function ScannerScreen() {
     const [originalItemPointsToRedeem, setOriginalItemPointsToRedeem] = useState('');
     const [originalItemGroup, setOriginalItemGroup] = useState('');
     const [isEditingUnknown, setIsEditingUnknown] = useState(false);
-
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showReceiveModal, setShowReceiveModal] = useState(false);
+    const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
 
     const groupLabels = { camera: "Camera", lighting: "Lighting", audio: "Audio", lenses: "Lenses", accessories: "Accessories", grip: "Grip Equipment", power: "Power Supply", cables: "Cables", misc: "Miscellaneous", unknown: "Unknown" };
 
@@ -125,7 +127,6 @@ export default function ScannerScreen() {
             const barcodeToScan = currentScan.trim();
 
             try {
-                // Fetch existing barcodes from DB
                 const response = await server.get("/api/barcodes");
                 const existingBarcodes: ScannedItem[] = response.data.result;
 
@@ -292,10 +293,8 @@ export default function ScannerScreen() {
                 })
             );
 
-            // Execute all requests
             await Promise.all([...updatePromises, ...createPromises]);
 
-            // Remove items from lists
             setPendingItems(prev => prev.filter(item => !selectedIds.has(item.id)));
             setPendingUnknownItems(prev => prev.filter(item => !selectedIds.has(item.id)));
             setSelectedIds(new Set());
@@ -385,6 +384,7 @@ export default function ScannerScreen() {
         useCallback(() => {
             setPendingItems([]);
             setPendingUnknownItems([]);
+            setShowEditModal(false);
         }, [])
     );
 
@@ -488,7 +488,7 @@ export default function ScannerScreen() {
                                                         <Button size="sm" onPress={() => handleRemove(item.id)} isDisabled={isLoading}>
                                                             <ButtonText>Remove</ButtonText>
                                                         </Button>
-                                                        <Button size="sm" onPress={() => handleDelete(item.id)} isDisabled={isLoading}>
+                                                        <Button size="sm" onPress={() => { setDeleteItemId(item.id); setShowDeleteModal(true); }} isDisabled={isLoading}>
                                                             <ButtonText>Delete</ButtonText>
                                                         </Button>
                                                     </HStack>
@@ -502,7 +502,6 @@ export default function ScannerScreen() {
                             )}
                         </VStack>
 
-                        {/* Gluestack Modal for Editing a Barcode */}
                         <Modal
                             isOpen={showEditModal}
                             onClose={() => setShowEditModal(false)}
@@ -559,7 +558,7 @@ export default function ScannerScreen() {
                                         onValueChange={setEditingItemGroup}
                                     >
                                         <SelectTrigger variant="outline" size="md" style={{ marginBottom: 12 }}>
-                                            <SelectInput placeholder="Select item group" />
+                                            <SelectInput value={groupLabels[editingItemGroup] ?? "Select item group"} placeholder="Select Item Group" />
                                             <SelectIcon className="mr-3" as={ChevronDownIcon} />
                                         </SelectTrigger>
                                         <SelectPortal>
@@ -628,6 +627,64 @@ export default function ScannerScreen() {
                                 </ModalFooter>
                             </ModalContent>
                         </Modal>
+                        {/* Delete Confirmation Modal */}
+                        <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} size="md">
+                            <ModalBackdrop />
+                            <ModalContent>
+                                <ModalHeader>
+                                    <Heading size="md">Confirm Deletion</Heading>
+                                    <ModalCloseButton>
+                                        <Icon as={CloseIcon} size="md" />
+                                    </ModalCloseButton>
+                                </ModalHeader>
+                                <ModalBody>
+                                    <Text size="sm">Are you sure you want to delete this item? This action cannot be undone.</Text>
+                                </ModalBody>
+                                <ModalFooter>
+                                    <Button variant="outline" action="secondary" onPress={() => setShowDeleteModal(false)}>
+                                        <ButtonText>Cancel</ButtonText>
+                                    </Button>
+                                    <Button
+                                        action="negative"
+                                        onPress={() => {
+                                            if (deleteItemId) handleDelete(deleteItemId);
+                                            setShowDeleteModal(false);
+                                        }}
+                                    >
+                                        <ButtonText>Delete</ButtonText>
+                                    </Button>
+                                </ModalFooter>
+                            </ModalContent>
+                        </Modal>
+
+                        {/* Receive Confirmation Modal */}
+                        <Modal isOpen={showReceiveModal} onClose={() => setShowReceiveModal(false)} size="md">
+                            <ModalBackdrop />
+                            <ModalContent>
+                                <ModalHeader>
+                                    <Heading size="md">Confirm Receive</Heading>
+                                    <ModalCloseButton>
+                                        <Icon as={CloseIcon} size="md" />
+                                    </ModalCloseButton>
+                                </ModalHeader>
+                                <ModalBody>
+                                    <Text size="sm">Are you sure you want to receive all selected items?</Text>
+                                </ModalBody>
+                                <ModalFooter>
+                                    <Button variant="outline" action="secondary" onPress={() => setShowReceiveModal(false)}>
+                                        <ButtonText>Cancel</ButtonText>
+                                    </Button>
+                                    <Button
+                                        onPress={() => {
+                                            handleReceive();
+                                            setShowReceiveModal(false);
+                                        }}
+                                    >
+                                        <ButtonText>Confirm</ButtonText>
+                                    </Button>
+                                </ModalFooter>
+                            </ModalContent>
+                        </Modal>
                     </ScrollView>
 
                     <HStack
@@ -667,7 +724,7 @@ export default function ScannerScreen() {
                             </Button>
                         </HStack>
 
-                        <Button onPress={handleReceive} isDisabled={selectedIds.size === 0 || isLoading}>
+                        <Button onPress={() => setShowReceiveModal(true)} isDisabled={selectedIds.size === 0 || isLoading}>
                             <ButtonText>Receive</ButtonText>
                         </Button>
                     </HStack>
