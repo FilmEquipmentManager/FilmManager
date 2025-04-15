@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
+import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
 import { Film, LogInIcon } from "lucide-react-native";
 import { auth } from "@/firebase/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -38,14 +39,32 @@ const AuthForm = ({
     const [username, setUsername] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const toast = useToast();
     
-    // Validation states
     const [emailError, setEmailError] = useState("");
     const [passwordError, setPasswordError] = useState("");
     const [usernameError, setUsernameError] = useState("");
     const [attemptedSubmit, setAttemptedSubmit] = useState(false);
 
-    // Validate email format
+    const showToast = (title: string, description: string) => {
+        const newId = Math.random();
+        toast.show({
+            id: newId.toString(),
+            placement: "top",
+            duration: 3000,
+            render: ({ id }) => {
+                const uniqueToastId = "toast-" + id;
+                return (
+                    <Toast nativeID={uniqueToastId} action="muted" variant="solid">
+                        <ToastTitle>{title}</ToastTitle>
+                        <ToastDescription>{description}</ToastDescription>
+                    </Toast>
+                );
+            },
+        });
+    };
+
     const validateEmail = (email: string) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!email) {
@@ -60,27 +79,38 @@ const AuthForm = ({
         }
     };
 
-    // Validate password
     const validatePassword = (password: string) => {
+        const errors = [];
+    
         if (!password) {
-            setPasswordError("Password is required");
-            return false;
-        } else if (password.length < 12) {
-            setPasswordError("Password must be at least 12 characters");
+            errors.push("Password is required");
+        } else {
+            if (password.length < 12) {
+                errors.push("Must be at least 12 characters");
+            }
+            if (!/[A-Z]/.test(password)) {
+                errors.push("Must include an uppercase letter");
+            }
+            if (!/[0-9]/.test(password)) {
+                errors.push("Must include a number");
+            }
+            if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+                errors.push("Must include a special character");
+            }
+        }
+    
+        if (errors.length > 0) {
+            setPasswordError(errors.join(", "));
             return false;
         } else {
             setPasswordError("");
             return true;
         }
-    };
+    };    
 
-    // Validate username
     const validateUsername = (username: string) => {
         if (isRegister && !username) {
             setUsernameError("Username is required");
-            return false;
-        } else if (isRegister && username.length < 3) {
-            setUsernameError("Username must be at least 3 characters");
             return false;
         } else {
             setUsernameError("");
@@ -88,7 +118,6 @@ const AuthForm = ({
         }
     };
 
-    // Clear validation errors when switching between login/register forms
     useEffect(() => {
         setEmailError("");
         setPasswordError("");
@@ -107,11 +136,10 @@ const AuthForm = ({
     const handleSubmit = async () => {
         setAttemptedSubmit(true);
         
-        // Run all validations
         const isValid = validateForm();
         
         if (!isValid) {
-            // Don't proceed if validation fails
+            showToast("Uh-oh!", "Please check your inputs again.");
             return;
         }
         
@@ -119,7 +147,7 @@ const AuthForm = ({
             setIsSubmitting(true);
             await onSubmit(email, password, username);
         } catch (err) {
-            // Error handling is done in the parent component
+            setIsSubmitting(false);
         } finally {
             setIsSubmitting(false);
         }
