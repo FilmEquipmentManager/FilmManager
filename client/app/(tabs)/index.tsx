@@ -80,7 +80,7 @@ export default function HomepageScreen() {
                                         : 40,
                                     fontWeight: "bold",
                                     textAlign: "center",
-                                    padding: 8
+                                    padding: isMobileScreen ? 50 : 8,
                                 }}
                             >
                                 {getGreeting()}, {userData?.username}!

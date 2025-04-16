@@ -524,744 +524,1122 @@ export default function ScannerScreen() {
                     style={{ flex: 1 }}
                 >
                     <HStack style={{ flex: 1, padding: 16, gap: 16 }}>
-                        <VStack
-                            style={{
-                                flex: 1,
-                                justifyContent: "center",
-                                alignItems: "center",
-                                backgroundColor: "transparent",
-                                padding: 24
-                            }}
-                        >
-                            <VStack
-                                style={{
-                                    width: "100%",
-                                    maxWidth: 500,
-                                    backgroundColor: "white",
-                                    borderRadius: 16,
-                                    padding: 32,
-                                    gap: 24,
-                                    shadowColor: "#000",
-                                    shadowOffset: { width: 0, height: 4 },
-                                    shadowOpacity: 0.1,
-                                    shadowRadius: 8,
-                                    elevation: 4
-                                }}
-                            >
-                                {/* Title Section */}
-                                <VStack style={{ gap: 8, alignItems: "center" }}>
-                                    <ScanIcon size={32} color="#3b82f6" />
-                                    <Text style={{ fontSize: 20, fontWeight: "700", color: "#1e293b" }}>
-                                        Scan Area
-                                    </Text>
-                                </VStack>
-
-                                {/* Input Field */}
-                                <VStack style={{ gap: 12 }}>
-                                    <Input isDisabled={isLoading} variant="outline">
-                                        <InputField
-                                            ref={inputRef}
-                                            placeholder={isFocused ? "" : "Scan barcode here..."}
-                                            value={currentScan}
-                                            onChangeText={(text) => {
-                                                setCurrentScan(text);
-                                                if (text.endsWith("\n")) {
-                                                    setCurrentScan(text.trim());
-                                                    handleScannedItems();
-                                                }
-                                            }}
-                                            onSubmitEditing={handleScannedItems}
-                                            returnKeyType="done"
-                                            onFocus={() => setIsFocused(true)}
-                                            onBlur={() => setIsFocused(false)}
-                                            style={{
-                                                height: 48,
-                                                fontSize: 16,
-                                                textAlign: "center",
-                                                borderRadius: 8,
-                                                backgroundColor: "#f8fafc"
-                                            }}
-                                        />
-                                    </Input>
-
-                                    {/* Barcode Type Notice */}
-                                    <HStack style={{ gap: 8, alignItems: "center", justifyContent: "center" }}>
-                                        <AlertTriangleIcon size={16} color="#64748b" />
-                                        <Text style={{ fontSize: 12, color: "#64748b", textAlign: "center", fontWeight: "500" }}>
-                                            We only accept 1D barcodes
-                                        </Text>
-                                    </HStack>
-                                </VStack>
-
-                                {/* Scanned Result Display */}
-                                {scannedCode && (
+                        {isMobileScreen ? (
+                            <VStack style={{ flex: 1, gap: isMobileScreen ? 0 : 24 }}>
+                                <VStack
+                                    style={{
+                                        flex: 1,
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        backgroundColor: "transparent",
+                                        padding: isMobileScreen ? 10 : 24
+                                    }}
+                                >
                                     <VStack
                                         style={{
-                                            backgroundColor: "#f0fdf4",
-                                            borderRadius: 8,
-                                            padding: 16,
-                                            gap: 8,
-                                            alignItems: "center"
+                                            width: "100%",
+                                            maxWidth: 500,
+                                            backgroundColor: "white",
+                                            borderRadius: 16,
+                                            padding: isMobileScreen ? 10 : 32,
+                                            gap: isMobileScreen ? 10 : 24,
+                                            shadowColor: "#000",
+                                            shadowOffset: { width: 0, height: 4 },
+                                            shadowOpacity: 0.1,
+                                            shadowRadius: 8,
+                                            elevation: 4
                                         }}
                                     >
-                                        <HStack style={{ gap: 8, alignItems: "center" }}>
-                                            <CheckCircleIcon size={20} color="#16a34a" />
-                                            <Text style={{ fontSize: 14, fontWeight: "500", color: "#166534" }}>
-                                                Last Scanned:
+                                        {/* Title Section */}
+                                        <VStack style={{ gap: 8, alignItems: "center" }}>
+                                            <ScanIcon size={isMobileScreen ? 40 : 32 } color="#3b82f6" />
+                                            <Text style={{ fontSize: 20, fontWeight: "700", color: "#1e293b" }}>
+                                                Scan Area
                                             </Text>
-                                        </HStack>
-                                        <Text
-                                            style={{
-                                                fontSize: 18,
-                                                fontWeight: "600",
-                                                color: "#166534",
-                                                letterSpacing: 2
-                                            }}
-                                        >
-                                            {scannedCode}
-                                        </Text>
-                                    </VStack>
-                                )}
-                            </VStack>
-                        </VStack>
+                                        </VStack>
 
-                        <VStack
-                            style={{
-                                flex: 1,
-                                justifyContent: "center",
-                                alignItems: "center",
-                                backgroundColor: "transparent",
-                                padding: 24
-                            }}
-                        >
-                            <VStack style={{ width: "100%" }}>
-                                <ScrollView style={{ flex: 1, width: "100%" }}>
-                                    <VStack style={{ gap: 16, paddingBottom: 16 }}>
-                                        {Object.entries(groupedItems).length > 0 ? (
-                                            Object.entries(groupedItems).map(([group, items]) => (
-                                                <VStack key={group} style={{
-                                                    gap: 12, backgroundColor: "white", padding: 16, borderRadius: 24,
-                                                    shadowColor: "#4f46e5", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1,
-                                                    shadowRadius: 12, elevation: 8, marginVertical: 8
-                                                }}>
-                                                    {/* Group Header */}
-                                                    <HStack style={{
-                                                        alignItems: "center", gap: 10, padding: 12,
-                                                        backgroundColor: "#eef2ff", borderRadius: 16, marginBottom: 8
-                                                    }}>
-                                                        <Box style={{ position: 'relative', flexDirection: 'row', alignItems: 'center' }}>
-                                                            <Checkbox
-                                                                value={`select-group-${group}`}
-                                                                size="md"
-                                                                isChecked={areAllGroupItemsSelected(items)}
-                                                                onChange={() => toggleSelectGroup(group)}
-                                                                style={{
-                                                                    display: currentMode === "info" ? "none" : "flex",
-                                                                }}
-                                                            >
-                                                                <CheckboxIndicator style={{
-                                                                    backgroundColor: areAllGroupItemsSelected(items) ? "#1B9CFF" : "white",
-                                                                    borderColor: "#1B9CFF",
-                                                                    borderRadius: 6
-                                                                }}>
-                                                                    <CheckboxIcon as={CheckIcon} color="white" />
-                                                                </CheckboxIndicator>
-                                                            </Checkbox>
-                                                        </Box>
-                                                        <Text style={{
-                                                            fontSize: 20, fontWeight: "900", color: "#4f46e5",
-                                                            letterSpacing: -0.5, textTransform: "uppercase"
-                                                        }}>
-                                                            {groupLabels[group] || group}
-                                                        </Text>
-                                                    </HStack>
+                                        {/* Input Field */}
+                                        <VStack style={{ gap: 12 }}>
+                                            <Input isDisabled={isLoading} variant="outline">
+                                                <InputField
+                                                    ref={inputRef}
+                                                    placeholder={isFocused ? "" : "Scan barcode here..."}
+                                                    value={currentScan}
+                                                    onChangeText={(text) => {
+                                                        setCurrentScan(text);
+                                                        if (text.endsWith("\n")) {
+                                                            setCurrentScan(text.trim());
+                                                            handleScannedItems();
+                                                        }
+                                                    }}
+                                                    onSubmitEditing={handleScannedItems}
+                                                    returnKeyType="done"
+                                                    onFocus={() => setIsFocused(true)}
+                                                    onBlur={() => setIsFocused(false)}
+                                                    style={{
+                                                        height: 48,
+                                                        fontSize: 16,
+                                                        textAlign: "center",
+                                                        borderRadius: 8,
+                                                        backgroundColor: "#f8fafc"
+                                                    }}
+                                                />
+                                            </Input>
 
-                                                    {items.map((item) => (
-                                                        <VStack
-                                                            key={item.id}
-                                                            style={{
-                                                                backgroundColor: "#ffffff",
-                                                                borderRadius: 20,
-                                                                padding: 16,
-                                                                marginVertical: 4,
-                                                                shadowColor: "#000",
-                                                                shadowOffset: { width: 0, height: 2 },
-                                                                shadowOpacity: 0.05,
-                                                                shadowRadius: 6,
-                                                                elevation: 2,
-                                                            }}
-                                                        >
-                                                            <HStack style={{ justifyContent: "space-between", alignItems: "center" }}>
-                                                                {/* Selection & Main Info */}
-                                                                <HStack style={{ flex: 1, gap: 12, alignItems: "center" }}>
-                                                                    <Box style={{ position: 'relative' }}>
-                                                                        <Checkbox
-                                                                            value="selectItems"
-                                                                            size="md"
-                                                                            isChecked={selectedIds.has(item.id)}
-                                                                            onChange={() => toggleSelect(item.id)}
-                                                                            style={{
-                                                                                display: currentMode === "info" ? "none" : "flex",
-                                                                            }}
-                                                                        >
-                                                                            <CheckboxIndicator style={{
-                                                                                backgroundColor: selectedIds.has(item.id) ? "#1B9CFF" : "white",
-                                                                                borderColor: "#1B9CFF",
-                                                                                borderRadius: 6
-                                                                            }}>
-                                                                                <CheckboxIcon as={CheckIcon} color="white" />
-                                                                            </CheckboxIndicator>
-                                                                        </Checkbox>
-                                                                    </Box>
+                                            {/* Barcode Type Notice */}
+                                            <HStack style={{ gap: 8, alignItems: "center", justifyContent: "center" }}>
+                                                <AlertTriangleIcon size={isMobileScreen ? 12 : 16} color="#64748b" />
+                                                <Text style={{ fontSize: 12, color: "#64748b", textAlign: "center", fontWeight: "500" }}>
+                                                    We only accept 1D barcodes
+                                                </Text>
+                                            </HStack>
+                                        </VStack>
 
-                                                                    {/* Item Details */}
-                                                                    <VStack style={{ flex: 1, gap: 6 }}>
-                                                                        <HStack style={{ alignItems: "baseline", gap: 8 }}>
-                                                                            <Text style={{
-                                                                                fontSize: 18, fontWeight: "800", color: "#1e293b",
-                                                                                textShadowColor: "rgba(79, 70, 229, 0.1)",
-                                                                                textShadowOffset: { width: 1, height: 1 },
-                                                                                textShadowRadius: 2
-                                                                            }}>
-                                                                                {item.barcode}
-                                                                            </Text>
-                                                                            <Box style={{
-                                                                                backgroundColor: "#f1f5f9",
-                                                                                width: 30,
-                                                                                padding: 2,
-                                                                                borderRadius: 2,
-                                                                                justifyContent: "center",
-                                                                                alignContent: "center",
-                                                                            }}>
-                                                                                <Text style={{ fontSize: 16, fontWeight: "700", color: "#64748b", textAlign: "center" }}>
-                                                                                    X{item.sessionCount}
-                                                                                </Text>
-                                                                            </Box>
-                                                                        </HStack>
-
-                                                                        <Text style={{
-                                                                            fontSize: 16,
-                                                                            fontWeight: "600",
-                                                                            color: "#334155",
-                                                                            fontStyle: item.itemName ? "normal" : "italic"
-                                                                        }}>
-                                                                            {item.itemName || "Unnamed Product"}
-                                                                        </Text>
-
-                                                                        <Text style={{
-                                                                            fontSize: 16,
-                                                                            fontWeight: "600",
-                                                                            color: "#334155",
-                                                                            fontStyle: item.itemName ? "normal" : "italic"
-                                                                        }}>
-                                                                            {item.itemDescription || "No Description"}
-                                                                        </Text>
-
-                                                                        <HStack style={{ gap: 8, flexWrap: "wrap" }}>
-                                                                            <HStack style={{
-                                                                                backgroundColor: "#f8fafc",
-                                                                                padding: 6,
-                                                                                borderRadius: 8,
-                                                                                alignItems: "center",
-                                                                                gap: 4
-                                                                            }}>
-                                                                                <WarehouseIcon size={14} color="#94a3b8" />
-                                                                                <Text style={{ fontSize: 14, color: "#64748b", fontWeight: "500" }}>
-                                                                                    {item.location || "Unknown Location"}
-                                                                                </Text>
-                                                                            </HStack>
-
-                                                                            <HStack style={{
-                                                                                backgroundColor: item.totalCount <= 10 ? "#fef2f2" : item.totalCount <= 100 ? "#fefce8" : "#f0fdf4",
-                                                                                padding: 6,
-                                                                                borderRadius: 8,
-                                                                                alignItems: "center",
-                                                                                gap: 8
-                                                                            }}>
-                                                                                <Box style={{ width: 8, height: 8, backgroundColor: item.totalCount <= 10 ? "#fca5a5" : item.totalCount <= 100 ? "#fde68a" : "#86efac", borderRadius: 4, marginLeft: 4 }} />
-                                                                                <Text style={{
-                                                                                    fontSize: 14,
-                                                                                    color: item.totalCount <= 10 ? "#991b1b" : item.totalCount <= 100 ? "#92400e" : "#166534",
-                                                                                    fontWeight: "600"
-                                                                                }}>
-                                                                                    Stock: {item.totalCount}
-                                                                                </Text>
-                                                                            </HStack>
-                                                                        </HStack>
-                                                                    </VStack>
-                                                                </HStack>
-
-                                                                {/* Action Buttons */}
-                                                                <HStack style={{ gap: 8, alignItems: "center" }}>
-                                                                    <Button
-                                                                        size="md"
-                                                                        action="secondary"
-                                                                        onPress={() => handleEdit(item)}
-                                                                        isDisabled={isLoading}
-                                                                        style={{
-                                                                            padding: 8,
-                                                                            borderRadius: 12,
-                                                                            backgroundColor: "transparent"
-                                                                        }}
-                                                                    >
-                                                                        <PencilIcon size={20} color="#4f46e5" />
-                                                                    </Button>
-
-                                                                    <Button
-                                                                        size="md"
-                                                                        action="secondary"
-                                                                        onPress={() => handleRemove(item.id)}
-                                                                        isDisabled={isLoading}
-                                                                        style={{
-                                                                            padding: 8,
-                                                                            borderRadius: 12,
-                                                                            backgroundColor: "transparent"
-                                                                        }}
-                                                                    >
-                                                                        <MinusCircleIcon size={20} color="#dc2626" />
-                                                                    </Button>
-                                                                </HStack>
-                                                            </HStack>
-
-                                                            {/* Points Display*/}
-                                                            <HStack style={{
-                                                                marginTop: 12,
-                                                                padding: 10,
-                                                                borderRadius: 12,
-                                                                backgroundColor: "rgba(255, 215, 0, 0.1)",
-                                                                borderWidth: 1,
-                                                                borderColor: "rgba(255, 215, 0, 0.3)",
-                                                                alignItems: "center",
-                                                                gap: 8
-                                                            }}>
-                                                                <SparklesIcon size={16} color="#eab308" />
-                                                                <Text style={{
-                                                                    fontSize: 16,
-                                                                    fontWeight: "700",
-                                                                    color: "#eab308",
-                                                                    textShadowColor: "rgba(234, 179, 8, 0.2)",
-                                                                    textShadowOffset: { width: 0, height: 0 },
-                                                                    textShadowRadius: 4
-                                                                }}>
-                                                                    Required Points: {item.pointsToRedeem}
-                                                                </Text>
-                                                            </HStack>
-                                                        </VStack>
-                                                    ))}
-                                                </VStack>
-                                            ))
-                                        ) : (
+                                        {/* Scanned Result Display */}
+                                        {scannedCode && (
                                             <VStack
                                                 style={{
-                                                    margin: "auto",
-                                                    width: "100%",
-                                                    maxWidth: 500,
-                                                    backgroundColor: "#f8fafc",
-                                                    borderRadius: 16,
-                                                    padding: 32,
-                                                    gap: 16,
-                                                    alignItems: "center",
-                                                    justifyContent: "center",
-                                                    shadowColor: "#000",
-                                                    shadowOffset: { width: 0, height: 4 },
-                                                    shadowOpacity: 0.1,
-                                                    shadowRadius: 8,
-                                                    elevation: 4
+                                                    backgroundColor: "#f0fdf4",
+                                                    borderRadius: 8,
+                                                    padding: isMobileScreen ? 6 : 16,
+                                                    gap: 8,
+                                                    alignItems: "center"
                                                 }}
                                             >
-                                                <HStack style={{ gap: 8, alignItems: "center" }}>
-                                                    <ScanIcon size={24} color="#3b82f6" />
-                                                    <Text
-                                                        style={{
-                                                            fontSize: 16,
-                                                            fontWeight: "600",
-                                                            color: "black",
-                                                            textAlign: "center",
-                                                            letterSpacing: 1
-                                                        }}
-                                                    >
-                                                        Scan results will appear here!
+                                                <HStack style={{ gap: 8, alignItems: "center", justifyContent: "center", }}>
+                                                    <CheckCircleIcon size={isMobileScreen ? 14 : 20} color="#16a34a" />
+                                                    <Text style={{ fontSize: 14, fontWeight: "500", color: "#166534"}}>
+                                                        Last Scanned:
                                                     </Text>
                                                 </HStack>
+                                                <Text
+                                                    style={{
+                                                        fontSize: isMobileScreen ? 20 : 18,
+                                                        fontWeight: "600",
+                                                        color: "#166534",
+                                                        letterSpacing: 2
+                                                    }}
+                                                >
+                                                    {scannedCode}
+                                                </Text>
                                             </VStack>
                                         )}
                                     </VStack>
+                                </VStack>
 
-                                    {/* Known Items Editing Modal */}
-                                    <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} size="lg">
-                                        <ModalBackdrop />
-                                        <ModalContent>
-                                            <ModalHeader>
-                                                <Heading size="md" className="text-typography-950">Edit Items</Heading>
-                                                <ModalCloseButton style={{ backgroundColor: "transparent" }}>
-                                                    <Icon
-                                                        as={CloseIcon}
-                                                        size="md"
-                                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
-                                                    />
-                                                </ModalCloseButton>
-                                            </ModalHeader>
-                                            <ModalBody>
-                                                <FormControl style={{ marginBottom: 12 }}>
-                                                    <FormControlLabel>
-                                                        <FormControlLabelText>Barcode</FormControlLabelText>
-                                                    </FormControlLabel>
-                                                    <Input isDisabled={isLoading}>
-                                                        <InputField ref={inputRef} value={editingBarcode} onChangeText={setEditingBarcode} placeholder="Enter Item's Barcode" style={{ height: 40, width: "100%" }} />
-                                                    </Input>
-                                                </FormControl>
+                                <VStack
+                                    style={{
+                                        flex: 1,
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        backgroundColor: "transparent",
+                                        padding: isMobileScreen ? 10 : 24
+                                    }}
+                                >
+                                    <VStack style={{ flex: 1, width: "100%" }}>
+                                        <ScrollView style={{ flex: 1, width: "100%" }}>
+                                            <VStack style={{ gap: 16, paddingBottom: 16 }}>
+                                                {Object.entries(groupedItems).length > 0 ? (
+                                                    Object.entries(groupedItems).map(([group, items]) => (
+                                                        <VStack key={group} style={{
+                                                            gap: 12, backgroundColor: "white", padding: 16, borderRadius: 24,
+                                                            shadowColor: "#4f46e5", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1,
+                                                            shadowRadius: 12, elevation: 8, marginVertical: 8, flex: 1
+                                                        }}>
+                                                            {/* Group Header */}
+                                                            <HStack style={{
+                                                                alignItems: "center", gap: 10, padding: 12,
+                                                                backgroundColor: "#eef2ff", borderRadius: 16, marginBottom: 8, flex: 1
+                                                            }}>
+                                                                <Box style={{ position: 'relative', flexDirection: 'row', alignItems: 'center' }}>
+                                                                    <Checkbox
+                                                                        value={`select-group-${group}`}
+                                                                        size="md"
+                                                                        isChecked={areAllGroupItemsSelected(items)}
+                                                                        onChange={() => toggleSelectGroup(group)}
+                                                                        style={{
+                                                                            display: currentMode === "info" ? "none" : "flex",
+                                                                        }}
+                                                                    >
+                                                                        <CheckboxIndicator style={{
+                                                                            backgroundColor: areAllGroupItemsSelected(items) ? "#1B9CFF" : "white",
+                                                                            borderColor: "#1B9CFF",
+                                                                            borderRadius: 6
+                                                                        }}>
+                                                                            <CheckboxIcon as={CheckIcon} color="white" />
+                                                                        </CheckboxIndicator>
+                                                                    </Checkbox>
+                                                                </Box>
+                                                                <Text style={{
+                                                                    fontSize: 20, fontWeight: "900", color: "#4f46e5",
+                                                                    letterSpacing: -0.5, textTransform: "uppercase"
+                                                                }}>
+                                                                    {groupLabels[group] || group}
+                                                                </Text>
+                                                            </HStack>
 
-                                                <FormControl style={{ marginBottom: 12 }}>
-                                                    <FormControlLabel>
-                                                        <FormControlLabelText>Item Name</FormControlLabelText>
-                                                    </FormControlLabel>
-                                                    <Input isDisabled={isLoading}>
-                                                        <InputField ref={inputRef} value={editingItemName} onChangeText={setEditingItemName} placeholder="Enter Item Name" style={{ height: 40, width: "100%" }} />
-                                                    </Input>
-                                                </FormControl>
+                                                            {items.map((item) => (
+                                                                <VStack
+                                                                    key={item.id}
+                                                                    style={{
+                                                                        backgroundColor: "#ffffff",
+                                                                        borderRadius: 20,
+                                                                        padding: 16,
+                                                                        marginVertical: 4,
+                                                                        shadowColor: "#000",
+                                                                        shadowOffset: { width: 0, height: 2 },
+                                                                        shadowOpacity: 0.05,
+                                                                        shadowRadius: 6,
+                                                                        elevation: 2,
+                                                                    }}
+                                                                >
+                                                                    <HStack style={{ justifyContent: "space-between", alignItems: "center" }}>
+                                                                        {/* Selection & Main Info */}
+                                                                        <HStack style={{ flex: 1, gap: 12, alignItems: "center" }}>
+                                                                            <Box style={{ position: 'relative' }}>
+                                                                                <Checkbox
+                                                                                    value="selectItems"
+                                                                                    size="md"
+                                                                                    isChecked={selectedIds.has(item.id)}
+                                                                                    onChange={() => toggleSelect(item.id)}
+                                                                                    style={{
+                                                                                        display: currentMode === "info" ? "none" : "flex",
+                                                                                    }}
+                                                                                >
+                                                                                    <CheckboxIndicator style={{
+                                                                                        backgroundColor: selectedIds.has(item.id) ? "#1B9CFF" : "white",
+                                                                                        borderColor: "#1B9CFF",
+                                                                                        borderRadius: 6
+                                                                                    }}>
+                                                                                        <CheckboxIcon as={CheckIcon} color="white" />
+                                                                                    </CheckboxIndicator>
+                                                                                </Checkbox>
+                                                                            </Box>
 
-                                                <FormControl style={{ marginBottom: 12 }}>
-                                                    <FormControlLabel>
-                                                        <FormControlLabelText>Item Description</FormControlLabelText>
-                                                    </FormControlLabel>
-                                                    <Input isDisabled={isLoading}>
-                                                        <InputField ref={inputRef} value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder="Enter Item Description" style={{ height: 40, width: "100%" }} />
-                                                    </Input>
-                                                </FormControl>
+                                                                            {/* Item Details */}
+                                                                            <VStack style={{ flex: 1, gap: 6 }}>
+                                                                                <HStack style={{ alignItems: "center", gap: 8}}>
+                                                                                    <Text style={{
+                                                                                        fontSize: isMobileScreen ? 20 : 18 , fontWeight: "800", color: "#1e293b",
+                                                                                        textShadowColor: "rgba(79, 70, 229, 0.1)",
+                                                                                        textShadowOffset: { width: 1, height: 1 },
+                                                                                        textShadowRadius: 2
+                                                                                    }}>
+                                                                                        {item.barcode}
+                                                                                    </Text>
+                                                                                    <Box style={{
+                                                                                        backgroundColor: "#f1f5f9",
+                                                                                        width: 30,
+                                                                                        padding: 2,
+                                                                                        borderRadius: 2,
+                                                                                        justifyContent: "center",
+                                                                                        alignContent: "center",
+                                                                                    }} >
+                                                                                        <Text
+                                                                                            style={{ fontSize: 16, fontWeight: "700", color: "#64748b", textAlign: "center" }}
+                                                                                        >
+                                                                                            X{item.sessionCount}
+                                                                                        </Text>
+                                                                                    </Box>
+                                                                                </HStack>
 
-                                                <FormControl style={{ marginBottom: 12 }}>
-                                                    <FormControlLabel>
-                                                        <FormControlLabelText>Item Group</FormControlLabelText>
-                                                    </FormControlLabel>
-                                                    <Select isDisabled={isLoading} selectedValue={editingItemGroup} onValueChange={setEditingItemGroup}>
-                                                        <SelectTrigger variant="outline" size="md">
-                                                            <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
-                                                            <SelectIcon className="mr-3" as={ChevronDownIcon} />
-                                                        </SelectTrigger>
-                                                        <SelectPortal>
-                                                            <SelectBackdrop />
-                                                            <SelectContent >
-                                                                <SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
-                                                                {Object.entries(groupLabels).map(([value, label]) => (
-                                                                    <SelectItem key={value} label={label} value={value} />
-                                                                ))}
-                                                            </SelectContent>
-                                                        </SelectPortal>
-                                                    </Select>
-                                                </FormControl>
+                                                                                <Text isTruncated={true} style={{
+                                                                                    fontSize: isMobileScreen ? 20 : 18,
+                                                                                    fontWeight: "600",
+                                                                                    color: "#334155",
+                                                                                    fontStyle: item.itemName ? "normal" : "italic"
+                                                                                }}>
+                                                                                    {item.itemName || "Unnamed Product"}
+                                                                                </Text>
 
-                                                <FormControl style={{ marginBottom: 12 }}>
-                                                    <FormControlLabel>
-                                                        <FormControlLabelText>Location</FormControlLabelText>
-                                                    </FormControlLabel>
-                                                    <Input isDisabled={isLoading}>
-                                                        <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder="Enter Item Warehouse Location" style={{ height: 40, width: "100%" }} />
-                                                    </Input>
-                                                </FormControl>
+                                                                                <Text isTruncated={true} style={{
+                                                                                    fontSize: isMobileScreen ? 12 : 14,
+                                                                                    fontWeight: "600",
+                                                                                    color: "#334155",
+                                                                                    fontStyle: item.itemName ? "normal" : "italic"
+                                                                                }}>
+                                                                                    {item.itemDescription || "No Description"}
+                                                                                </Text>
 
-                                                <FormControl style={{ marginBottom: 12 }}>
-                                                    <FormControlLabel>
-                                                        <FormControlLabelText>Item Count</FormControlLabelText>
-                                                    </FormControlLabel>
-                                                    <Input isDisabled={isLoading}>
-                                                        <InputField ref={inputRef} value={editingItemCount} onChangeText={setEditingItemCount} placeholder="Enter Item Stock Count" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
-                                                    </Input>
-                                                </FormControl>
+                                                                                <HStack style={{ gap: 8, flexWrap: "wrap" }}>
+                                                                                    <HStack style={{
+                                                                                        backgroundColor: "#f8fafc",
+                                                                                        padding: 6,
+                                                                                        borderRadius: 8,
+                                                                                        alignItems: "center",
+                                                                                        gap: 4
+                                                                                    }}>
+                                                                                        <WarehouseIcon size={14} color="#94a3b8" />
+                                                                                        <Text style={{ fontSize: 14, color: "#64748b", fontWeight: "500" }}>
+                                                                                            {item.location || "Unknown Location"}
+                                                                                        </Text>
+                                                                                    </HStack>
 
-                                                <FormControl style={{ marginBottom: 12 }}>
-                                                    <FormControlLabel>
-                                                        <FormControlLabelText>Points to Redeem</FormControlLabelText>
-                                                    </FormControlLabel>
-                                                    <Input isDisabled={isLoading}>
-                                                        <InputField ref={inputRef} value={editingItemPointsToRedeem} onChangeText={setEditingItemPointsToRedeem} placeholder="Enter Points To Redeem For Item" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
-                                                    </Input>
-                                                </FormControl>
-                                            </ModalBody>
-                                            <ModalFooter>
-                                                <Button variant="solid" action="negative" onPress={() => setShowEditModal(false)}>
-                                                    <ButtonText>Cancel</ButtonText>
-                                                </Button>
-                                                <Button variant="solid" action="primary" style={{ backgroundColor: "#1B9CFF" }} onPress={saveEditedBarcode} isDisabled={isLoading || !hasChanges}>
-                                                    <ButtonText>Save</ButtonText>
-                                                </Button>
-                                            </ModalFooter>
-                                        </ModalContent>
-                                    </Modal>
+                                                                                    <HStack style={{
+                                                                                        backgroundColor: item.totalCount <= 10 ? "#fef2f2" : item.totalCount <= 100 ? "#fefce8" : "#f0fdf4",
+                                                                                        padding: 6,
+                                                                                        borderRadius: 8,
+                                                                                        alignItems: "center",
+                                                                                        gap: 8
+                                                                                    }}>
+                                                                                        <Box style={{ width: 8, height: 8, backgroundColor: item.totalCount <= 10 ? "#fca5a5" : item.totalCount <= 100 ? "#fde68a" : "#86efac", borderRadius: 4, marginLeft: 4 }} />
+                                                                                        <Text style={{
+                                                                                            fontSize: 14,
+                                                                                            color: item.totalCount <= 10 ? "#991b1b" : item.totalCount <= 100 ? "#92400e" : "#166534",
+                                                                                            fontWeight: "600"
+                                                                                        }}>
+                                                                                            Stock: {item.totalCount}
+                                                                                        </Text>
+                                                                                    </HStack>
+                                                                                </HStack>
+                                                                            </VStack>
+                                                                        </HStack>
 
+                                                                        {/* Action Buttons */}
+                                                                        <HStack style={{ gap: 8, alignItems: "center" }}>
+                                                                            <Button
+                                                                                size="md"
+                                                                                action="secondary"
+                                                                                onPress={() => handleEdit(item)}
+                                                                                isDisabled={isLoading}
+                                                                                style={{
+                                                                                    padding: 8,
+                                                                                    borderRadius: 12,
+                                                                                    backgroundColor: "transparent"
+                                                                                }}
+                                                                            >
+                                                                                <PencilIcon size={20} color="#4f46e5" />
+                                                                            </Button>
 
-                                    {/* Unknown Items Editing Modal */}
-                                    <Modal
-                                        isOpen={showUnknownEditModal}
-                                        onClose={() => setShowUnknownEditModal(false)}
-                                        size="lg"
+                                                                            <Button
+                                                                                size="md"
+                                                                                action="secondary"
+                                                                                onPress={() => handleRemove(item.id)}
+                                                                                isDisabled={isLoading}
+                                                                                style={{
+                                                                                    padding: 8,
+                                                                                    borderRadius: 12,
+                                                                                    backgroundColor: "transparent"
+                                                                                }}
+                                                                            >
+                                                                                <MinusCircleIcon size={20} color="#dc2626" />
+                                                                            </Button>
+                                                                        </HStack>
+                                                                    </HStack>
+
+                                                                    {/* Points Display*/}
+                                                                    <HStack style={{
+                                                                        marginTop: 12,
+                                                                        padding: 10,
+                                                                        borderRadius: 12,
+                                                                        backgroundColor: "rgba(255, 215, 0, 0.1)",
+                                                                        borderWidth: 1,
+                                                                        borderColor: "rgba(255, 215, 0, 0.3)",
+                                                                        alignItems: "center",
+                                                                        gap: 8
+                                                                    }}>
+                                                                        <SparklesIcon size={16} color="#eab308" />
+                                                                        <Text style={{
+                                                                            fontSize: 16,
+                                                                            fontWeight: "700",
+                                                                            color: "#eab308",
+                                                                            textShadowColor: "rgba(234, 179, 8, 0.2)",
+                                                                            textShadowOffset: { width: 0, height: 0 },
+                                                                            textShadowRadius: 4
+                                                                        }}>
+                                                                            Required Points: {item.pointsToRedeem}
+                                                                        </Text>
+                                                                    </HStack>
+                                                                </VStack>
+                                                            ))}
+                                                        </VStack>
+                                                    ))
+                                                ) : (
+                                                    <VStack
+                                                        style={{
+                                                            margin: "auto",
+                                                            width: "100%",
+                                                            maxWidth: 500,
+                                                            backgroundColor: "#f8fafc",
+                                                            borderRadius: 16,
+                                                            padding: 32,
+                                                            gap: 16,
+                                                            alignItems: "center",
+                                                            justifyContent: "center",
+                                                            shadowColor: "#000",
+                                                            shadowOffset: { width: 0, height: 4 },
+                                                            shadowOpacity: 0.1,
+                                                            shadowRadius: 8,
+                                                            elevation: 4
+                                                        }}
+                                                    >
+                                                        <HStack style={{ gap: 8, alignItems: "center" }}>
+                                                            <ScanIcon size={24} color="#3b82f6" />
+                                                            <Text
+                                                                style={{
+                                                                    fontSize: 16,
+                                                                    fontWeight: "600",
+                                                                    color: "black",
+                                                                    textAlign: "center",
+                                                                    letterSpacing: 1
+                                                                }}
+                                                            >
+                                                                Scan results will appear here!
+                                                            </Text>
+                                                        </HStack>
+                                                    </VStack>
+                                                )}
+                                            </VStack>
+                                        </ScrollView>
+                                    </VStack>
+                                </VStack>
+                            </VStack>
+                        ) : (
+                            <>
+                                <VStack
+                                    style={{
+                                        flex: 1,
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        backgroundColor: "transparent",
+                                        padding: 24
+                                    }}
+                                >
+                                    <VStack
+                                        style={{
+                                            width: "100%",
+                                            maxWidth: 500,
+                                            backgroundColor: "white",
+                                            borderRadius: 16,
+                                            padding: 32,
+                                            gap: 24,
+                                            shadowColor: "#000",
+                                            shadowOffset: { width: 0, height: 4 },
+                                            shadowOpacity: 0.1,
+                                            shadowRadius: 8,
+                                            elevation: 4
+                                        }}
                                     >
-                                        <ModalBackdrop />
-                                        <ModalContent>
-                                            <ModalHeader>
-                                                <Heading size="md" className="text-typography-950">
-                                                    Add New Item
-                                                </Heading>
-                                                <ModalCloseButton style={{ backgroundColor: "transparent" }}>
-                                                    <Icon
-                                                        as={CloseIcon}
-                                                        size="md"
-                                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
-                                                    />
-                                                </ModalCloseButton>
-                                            </ModalHeader>
-                                            <ModalBody>
-                                                <FormControl style={{ marginBottom: 12 }}>
-                                                    <FormControlLabel>
-                                                        <FormControlLabelText>Barcode</FormControlLabelText>
-                                                    </FormControlLabel>
-                                                    <Input isDisabled={isLoading}>
-                                                        <InputField ref={inputRef} value={editingBarcode} onChangeText={setEditingBarcode} placeholder="Enter Item's Barcode" style={{ height: 40, width: "100%" }} />
-                                                    </Input>
-                                                </FormControl>
+                                        {/* Title Section */}
+                                        <VStack style={{ gap: 8, alignItems: "center" }}>
+                                            <ScanIcon size={32} color="#3b82f6" />
+                                            <Text style={{ fontSize: 20, fontWeight: "700", color: "#1e293b" }}>
+                                                Scan Area
+                                            </Text>
+                                        </VStack>
 
-                                                <FormControl style={{ marginBottom: 12 }}>
-                                                    <FormControlLabel>
-                                                        <FormControlLabelText>Item Name</FormControlLabelText>
-                                                    </FormControlLabel>
-                                                    <Input isDisabled={isLoading}>
-                                                        <InputField ref={inputRef} value={editingItemName} onChangeText={setEditingItemName} placeholder="Enter Item Name" style={{ height: 40, width: "100%" }} />
-                                                    </Input>
-                                                </FormControl>
+                                        {/* Input Field */}
+                                        <VStack style={{ gap: 12 }}>
+                                            <Input isDisabled={isLoading} variant="outline">
+                                                <InputField
+                                                    ref={inputRef}
+                                                    placeholder={isFocused ? "" : "Scan barcode here..."}
+                                                    value={currentScan}
+                                                    onChangeText={(text) => {
+                                                        setCurrentScan(text);
+                                                        if (text.endsWith("\n")) {
+                                                            setCurrentScan(text.trim());
+                                                            handleScannedItems();
+                                                        }
+                                                    }}
+                                                    onSubmitEditing={handleScannedItems}
+                                                    returnKeyType="done"
+                                                    onFocus={() => setIsFocused(true)}
+                                                    onBlur={() => setIsFocused(false)}
+                                                    style={{
+                                                        height: 48,
+                                                        fontSize: 16,
+                                                        textAlign: "center",
+                                                        borderRadius: 8,
+                                                        backgroundColor: "#f8fafc"
+                                                    }}
+                                                />
+                                            </Input>
 
-                                                <FormControl style={{ marginBottom: 12 }}>
-                                                    <FormControlLabel>
-                                                        <FormControlLabelText>Item Description</FormControlLabelText>
-                                                    </FormControlLabel>
-                                                    <Input isDisabled={isLoading}>
-                                                        <InputField ref={inputRef} value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder="Enter Item Description" style={{ height: 40, width: "100%" }} />
-                                                    </Input>
-                                                </FormControl>
+                                            {/* Barcode Type Notice */}
+                                            <HStack style={{ gap: 8, alignItems: "center", justifyContent: "center" }}>
+                                                <AlertTriangleIcon size={16} color="#64748b" />
+                                                <Text style={{ fontSize: 12, color: "#64748b", textAlign: "center", fontWeight: "500" }}>
+                                                    We only accept 1D barcodes
+                                                </Text>
+                                            </HStack>
+                                        </VStack>
 
-                                                <FormControl style={{ marginBottom: 12 }}>
-                                                    <FormControlLabel>
-                                                        <FormControlLabelText>Item Group</FormControlLabelText>
-                                                    </FormControlLabel>
-                                                    <Select isDisabled={isLoading} selectedValue={editingItemGroup} onValueChange={setEditingItemGroup}>
-                                                        <SelectTrigger variant="outline" size="md">
-                                                            <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
-                                                            <SelectIcon className="mr-3" as={ChevronDownIcon} />
-                                                        </SelectTrigger>
-                                                        <SelectPortal>
-                                                            <SelectBackdrop />
-                                                            <SelectContent>
-                                                                <SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
-                                                                {Object.entries(groupLabels).map(([value, label]) => (
-                                                                    <SelectItem key={value} label={label} value={value} />
-                                                                ))}
-                                                            </SelectContent>
-                                                        </SelectPortal>
-                                                    </Select>
-                                                </FormControl>
-
-                                                <FormControl style={{ marginBottom: 12 }}>
-                                                    <FormControlLabel>
-                                                        <FormControlLabelText>Item Warehouse Location</FormControlLabelText>
-                                                    </FormControlLabel>
-                                                    <Input isDisabled={isLoading}>
-                                                        <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder="Enter Item Warehouse Location" style={{ height: 40, width: "100%" }} />
-                                                    </Input>
-                                                </FormControl>
-
-                                                <FormControl style={{ marginBottom: 12 }}>
-                                                    <FormControlLabel>
-                                                        <FormControlLabelText>Item Count</FormControlLabelText>
-                                                    </FormControlLabel>
-                                                    <Input isDisabled={isLoading}>
-                                                        <InputField ref={inputRef} value={editingItemCount} onChangeText={setEditingItemCount} placeholder="Enter Item Stock Count" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
-                                                    </Input>
-                                                </FormControl>
-
-                                                <FormControl style={{ marginBottom: 12 }}>
-                                                    <FormControlLabel>
-                                                        <FormControlLabelText>Points to Redeem</FormControlLabelText>
-                                                    </FormControlLabel>
-                                                    <Input isDisabled={isLoading}>
-                                                        <InputField ref={inputRef} value={editingItemPointsToRedeem} onChangeText={setEditingItemPointsToRedeem} placeholder="Enter Points To Redeem For Item" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
-                                                    </Input>
-                                                </FormControl>
-                                            </ModalBody>
-                                            <ModalFooter>
-                                                <Button
-                                                    variant="solid"
-                                                    action="negative"
-                                                    onPress={handleCancelUnknownItem}
-                                                    isDisabled={isLoading}
-                                                >
-                                                    <ButtonText>Cancel</ButtonText>
-                                                </Button>
-                                                <Button
-                                                    variant="solid"
-                                                    action="primary"
-                                                    style={{ backgroundColor: "#1B9CFF" }}
-                                                    onPress={saveEditedUnknownItem}
-                                                    isDisabled={isLoading || !hasChanges}
-                                                >
-                                                    <ButtonText>Save</ButtonText>
-                                                </Button>
-                                            </ModalFooter>
-                                        </ModalContent>
-                                    </Modal>
-
-                                    {/* Receive Confirmation Modal */}
-                                    <Modal isOpen={showReceiveModal} onClose={() => setShowReceiveModal(false)} size="md">
-                                        <ModalBackdrop />
-                                        <ModalContent>
-                                            <ModalHeader>
-                                                <Heading size="md">Confirm Receive</Heading>
-                                                <ModalCloseButton style={{ backgroundColor: "transparent" }}>
-                                                    <Icon
-                                                        as={CloseIcon}
-                                                        size="md"
-                                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
-                                                    />
-                                                </ModalCloseButton>
-                                            </ModalHeader>
-                                            <ModalBody>
-                                                <Text size="sm">Are you sure you want to receive all selected items?</Text>
-                                            </ModalBody>
-                                            <ModalFooter>
-                                                <Button variant="solid" action="negative" onPress={() => setShowReceiveModal(false)}>
-                                                    <ButtonText>Cancel</ButtonText>
-                                                </Button>
-                                                <Button
-                                                    variant="solid"
-                                                    action="primary"
-                                                    style={{ backgroundColor: "#1B9CFF" }}
-                                                    onPress={() => {
-                                                        handleReceive();
-                                                        setShowReceiveModal(false);
+                                        {/* Scanned Result Display */}
+                                        {scannedCode && (
+                                            <VStack
+                                                style={{
+                                                    backgroundColor: "#f0fdf4",
+                                                    borderRadius: 8,
+                                                    padding: 16,
+                                                    gap: 8,
+                                                    alignItems: "center"
+                                                }}
+                                            >
+                                                <HStack style={{ gap: 8, alignItems: "center" }}>
+                                                    <CheckCircleIcon size={20} color="#16a34a" />
+                                                    <Text style={{ fontSize: 14, fontWeight: "500", color: "#166534" }}>
+                                                        Last Scanned:
+                                                    </Text>
+                                                </HStack>
+                                                <Text
+                                                    style={{
+                                                        fontSize: 18,
+                                                        fontWeight: "600",
+                                                        color: "#166534",
+                                                        letterSpacing: 2
                                                     }}
                                                 >
-                                                    <ButtonText>Confirm</ButtonText>
-                                                </Button>
-                                            </ModalFooter>
-                                        </ModalContent>
-                                    </Modal>
-
-                                    {/* Dispatch Confirmation Modal */}
-                                    <Modal isOpen={showDispatchModal} onClose={() => setShowDispatchModal(false)} size="md">
-                                        <ModalBackdrop />
-                                        <ModalContent>
-                                            <ModalHeader>
-                                                <Heading size="md">Confirm Dispatch</Heading>
-                                                <ModalCloseButton style={{ backgroundColor: "transparent" }}>
-                                                    <Icon
-                                                        as={CloseIcon}
-                                                        size="md"
-                                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
-                                                    />
-                                                </ModalCloseButton>
-                                            </ModalHeader>
-                                            <ModalBody>
-                                                <Text size="sm">
-                                                    Are you sure you want to dispatch the selected items? This will deduct the dispatched quantity from the available stock. Note: Only items with sufficient stock will be dispatched.
+                                                    {scannedCode}
                                                 </Text>
-                                            </ModalBody>
-                                            <ModalFooter style={{ gap: 12 }}>
-                                                <Button
-                                                    variant="solid"
-                                                    action="negative"
-                                                    onPress={() => setShowDispatchModal(false)}
-                                                >
-                                                    <ButtonText style={{ color: "white" }}>Cancel</ButtonText>
-                                                </Button>
+                                            </VStack>
+                                        )}
+                                    </VStack>
+                                </VStack>
 
-                                                <Button
-                                                    onPress={handleDispatch}
-                                                    variant="solid"
-                                                    action="primary"
-                                                    style={{ backgroundColor: "#1B9CFF" }}
-                                                >
-                                                    <ButtonText style={{ color: "white" }}>Confirm</ButtonText>
-                                                </Button>
-                                            </ModalFooter>
-                                        </ModalContent>
-                                    </Modal>
-                                </ScrollView>
-                            </VStack>
-                        </VStack>
+                                <VStack
+                                    style={{
+                                        flex: 1,
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        backgroundColor: "transparent",
+                                        padding: isMobileScreen ? 10 : 24
+                                    }}
+                                >
+                                    <VStack style={{ flex: 1, width: "100%" }}>
+                                        <ScrollView style={{ flex: 1, width: "100%" }}>
+                                            <VStack style={{ gap: 16, paddingBottom: 16 }}>
+                                                {Object.entries(groupedItems).length > 0 ? (
+                                                    Object.entries(groupedItems).map(([group, items]) => (
+                                                        <VStack key={group} style={{
+                                                            gap: 12, backgroundColor: "white", padding: 16, borderRadius: 24,
+                                                            shadowColor: "#4f46e5", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1,
+                                                            shadowRadius: 12, elevation: 8, marginVertical: 8, flex: 1
+                                                        }}>
+                                                            {/* Group Header */}
+                                                            <HStack style={{
+                                                                alignItems: "center", gap: 10, padding: 12,
+                                                                backgroundColor: "#eef2ff", borderRadius: 16, marginBottom: 8, flex: 1
+                                                            }}>
+                                                                <Box style={{ position: 'relative', flexDirection: 'row', alignItems: 'center' }}>
+                                                                    <Checkbox
+                                                                        value={`select-group-${group}`}
+                                                                        size="md"
+                                                                        isChecked={areAllGroupItemsSelected(items)}
+                                                                        onChange={() => toggleSelectGroup(group)}
+                                                                        style={{
+                                                                            display: currentMode === "info" ? "none" : "flex",
+                                                                        }}
+                                                                    >
+                                                                        <CheckboxIndicator style={{
+                                                                            backgroundColor: areAllGroupItemsSelected(items) ? "#1B9CFF" : "white",
+                                                                            borderColor: "#1B9CFF",
+                                                                            borderRadius: 6
+                                                                        }}>
+                                                                            <CheckboxIcon as={CheckIcon} color="white" />
+                                                                        </CheckboxIndicator>
+                                                                    </Checkbox>
+                                                                </Box>
+                                                                <Text style={{
+                                                                    fontSize: 20, fontWeight: "900", color: "#4f46e5",
+                                                                    letterSpacing: -0.5, textTransform: "uppercase"
+                                                                }}>
+                                                                    {groupLabels[group] || group}
+                                                                </Text>
+                                                            </HStack>
+
+                                                            {items.map((item) => (
+                                                                <VStack
+                                                                    key={item.id}
+                                                                    style={{
+                                                                        backgroundColor: "#ffffff",
+                                                                        borderRadius: 20,
+                                                                        padding: 16,
+                                                                        marginVertical: 4,
+                                                                        shadowColor: "#000",
+                                                                        shadowOffset: { width: 0, height: 2 },
+                                                                        shadowOpacity: 0.05,
+                                                                        shadowRadius: 6,
+                                                                        elevation: 2,
+                                                                    }}
+                                                                >
+                                                                    <HStack style={{ justifyContent: "space-between", alignItems: "center" }}>
+                                                                        {/* Selection & Main Info */}
+                                                                        <HStack style={{ flex: 1, gap: 12, alignItems: "center" }}>
+                                                                            <Box style={{ position: 'relative' }}>
+                                                                                <Checkbox
+                                                                                    value="selectItems"
+                                                                                    size="md"
+                                                                                    isChecked={selectedIds.has(item.id)}
+                                                                                    onChange={() => toggleSelect(item.id)}
+                                                                                    style={{
+                                                                                        display: currentMode === "info" ? "none" : "flex",
+                                                                                    }}
+                                                                                >
+                                                                                    <CheckboxIndicator style={{
+                                                                                        backgroundColor: selectedIds.has(item.id) ? "#1B9CFF" : "white",
+                                                                                        borderColor: "#1B9CFF",
+                                                                                        borderRadius: 6
+                                                                                    }}>
+                                                                                        <CheckboxIcon as={CheckIcon} color="white" />
+                                                                                    </CheckboxIndicator>
+                                                                                </Checkbox>
+                                                                            </Box>
+
+                                                                            {/* Item Details */}
+                                                                            <VStack style={{ flex: 1, gap: 6 }}>
+                                                                                <HStack style={{ alignItems: "center", gap: 8}}>
+                                                                                    <Text style={{
+                                                                                        fontSize: isMobileScreen ? 20 : 18 , fontWeight: "800", color: "#1e293b",
+                                                                                        textShadowColor: "rgba(79, 70, 229, 0.1)",
+                                                                                        textShadowOffset: { width: 1, height: 1 },
+                                                                                        textShadowRadius: 2
+                                                                                    }}>
+                                                                                        {item.barcode}
+                                                                                    </Text>
+                                                                                    <Box style={{
+                                                                                        backgroundColor: "#f1f5f9",
+                                                                                        width: 30,
+                                                                                        padding: 2,
+                                                                                        borderRadius: 2,
+                                                                                        justifyContent: "center",
+                                                                                        alignContent: "center",
+                                                                                    }} >
+                                                                                        <Text
+                                                                                            style={{ fontSize: 16, fontWeight: "700", color: "#64748b", textAlign: "center" }}
+                                                                                        >
+                                                                                            X{item.sessionCount}
+                                                                                        </Text>
+                                                                                    </Box>
+                                                                                </HStack>
+
+                                                                                <Text isTruncated={true} style={{
+                                                                                    fontSize: isMobileScreen ? 20 : 18,
+                                                                                    fontWeight: "600",
+                                                                                    color: "#334155",
+                                                                                    fontStyle: item.itemName ? "normal" : "italic"
+                                                                                }}>
+                                                                                    {item.itemName || "Unnamed Product"}
+                                                                                </Text>
+
+                                                                                <Text isTruncated={true} style={{
+                                                                                    fontSize: isMobileScreen ? 12 : 14,
+                                                                                    fontWeight: "600",
+                                                                                    color: "#334155",
+                                                                                    fontStyle: item.itemName ? "normal" : "italic"
+                                                                                }}>
+                                                                                    {item.itemDescription || "No Description"}
+                                                                                </Text>
+
+                                                                                <HStack style={{ gap: 8, flexWrap: "wrap" }}>
+                                                                                    <HStack style={{
+                                                                                        backgroundColor: "#f8fafc",
+                                                                                        padding: 6,
+                                                                                        borderRadius: 8,
+                                                                                        alignItems: "center",
+                                                                                        gap: 4
+                                                                                    }}>
+                                                                                        <WarehouseIcon size={14} color="#94a3b8" />
+                                                                                        <Text style={{ fontSize: 14, color: "#64748b", fontWeight: "500" }}>
+                                                                                            {item.location || "Unknown Location"}
+                                                                                        </Text>
+                                                                                    </HStack>
+
+                                                                                    <HStack style={{
+                                                                                        backgroundColor: item.totalCount <= 10 ? "#fef2f2" : item.totalCount <= 100 ? "#fefce8" : "#f0fdf4",
+                                                                                        padding: 6,
+                                                                                        borderRadius: 8,
+                                                                                        alignItems: "center",
+                                                                                        gap: 8
+                                                                                    }}>
+                                                                                        <Box style={{ width: 8, height: 8, backgroundColor: item.totalCount <= 10 ? "#fca5a5" : item.totalCount <= 100 ? "#fde68a" : "#86efac", borderRadius: 4, marginLeft: 4 }} />
+                                                                                        <Text style={{
+                                                                                            fontSize: 14,
+                                                                                            color: item.totalCount <= 10 ? "#991b1b" : item.totalCount <= 100 ? "#92400e" : "#166534",
+                                                                                            fontWeight: "600"
+                                                                                        }}>
+                                                                                            Stock: {item.totalCount}
+                                                                                        </Text>
+                                                                                    </HStack>
+                                                                                </HStack>
+                                                                            </VStack>
+                                                                        </HStack>
+
+                                                                        {/* Action Buttons */}
+                                                                        <HStack style={{ gap: 8, alignItems: "center" }}>
+                                                                            <Button
+                                                                                size="md"
+                                                                                action="secondary"
+                                                                                onPress={() => handleEdit(item)}
+                                                                                isDisabled={isLoading}
+                                                                                style={{
+                                                                                    padding: 8,
+                                                                                    borderRadius: 12,
+                                                                                    backgroundColor: "transparent"
+                                                                                }}
+                                                                            >
+                                                                                <PencilIcon size={20} color="#4f46e5" />
+                                                                            </Button>
+
+                                                                            <Button
+                                                                                size="md"
+                                                                                action="secondary"
+                                                                                onPress={() => handleRemove(item.id)}
+                                                                                isDisabled={isLoading}
+                                                                                style={{
+                                                                                    padding: 8,
+                                                                                    borderRadius: 12,
+                                                                                    backgroundColor: "transparent"
+                                                                                }}
+                                                                            >
+                                                                                <MinusCircleIcon size={20} color="#dc2626" />
+                                                                            </Button>
+                                                                        </HStack>
+                                                                    </HStack>
+
+                                                                    {/* Points Display*/}
+                                                                    <HStack style={{
+                                                                        marginTop: 12,
+                                                                        padding: 10,
+                                                                        borderRadius: 12,
+                                                                        backgroundColor: "rgba(255, 215, 0, 0.1)",
+                                                                        borderWidth: 1,
+                                                                        borderColor: "rgba(255, 215, 0, 0.3)",
+                                                                        alignItems: "center",
+                                                                        gap: 8
+                                                                    }}>
+                                                                        <SparklesIcon size={16} color="#eab308" />
+                                                                        <Text style={{
+                                                                            fontSize: 16,
+                                                                            fontWeight: "700",
+                                                                            color: "#eab308",
+                                                                            textShadowColor: "rgba(234, 179, 8, 0.2)",
+                                                                            textShadowOffset: { width: 0, height: 0 },
+                                                                            textShadowRadius: 4
+                                                                        }}>
+                                                                            Required Points: {item.pointsToRedeem}
+                                                                        </Text>
+                                                                    </HStack>
+                                                                </VStack>
+                                                            ))}
+                                                        </VStack>
+                                                    ))
+                                                ) : (
+                                                    <VStack
+                                                        style={{
+                                                            margin: "auto",
+                                                            width: "100%",
+                                                            maxWidth: 500,
+                                                            backgroundColor: "#f8fafc",
+                                                            borderRadius: 16,
+                                                            padding: 32,
+                                                            gap: 16,
+                                                            alignItems: "center",
+                                                            justifyContent: "center",
+                                                            shadowColor: "#000",
+                                                            shadowOffset: { width: 0, height: 4 },
+                                                            shadowOpacity: 0.1,
+                                                            shadowRadius: 8,
+                                                            elevation: 4
+                                                        }}
+                                                    >
+                                                        <HStack style={{ gap: 8, alignItems: "center" }}>
+                                                            <ScanIcon size={24} color="#3b82f6" />
+                                                            <Text
+                                                                style={{
+                                                                    fontSize: 16,
+                                                                    fontWeight: "600",
+                                                                    color: "black",
+                                                                    textAlign: "center",
+                                                                    letterSpacing: 1
+                                                                }}
+                                                            >
+                                                                Scan results will appear here!
+                                                            </Text>
+                                                        </HStack>
+                                                    </VStack>
+                                                )}
+                                            </VStack>
+                                        </ScrollView>
+                                    </VStack>
+                                </VStack>
+                            </>
+                        )}
                     </HStack>
                     <HStack
                         style={{
                             justifyContent: currentMode === "info" ? "center" : "space-between",
                             paddingTop: 12,
                             paddingBottom: 12,
-                            paddingLeft: 20,
-                            paddingRight: 20,
+                            paddingLeft: isMobileScreen ? 10 : 20,
+                            paddingRight: isMobileScreen ? 10 : 20,
                             backgroundColor: "white",
                             display: (pendingItems.length + pendingUnknownItems.length) > 0 ? "flex" : "none",
                         }}
                     >
-                        <HStack space="sm" style={{ alignItems: "center" }}>
+                        <HStack space={isMobileScreen ? "xs" : "sm"} style={{ alignItems: "center", width: "auto" }}>
                             <Checkbox
                                 value="selectAll"
-                                size="sm"
+                                size={isMobileScreen ? "sm" : "md"}
                                 isChecked={allSelected}
                                 onChange={(isChecked) => {
                                     isChecked ? selectAll() : unselectAll();
                                 }}
                                 style={{
-                                    display: currentMode !== "info" ? "flex" : "none" 
+                                    display: currentMode !== "info" ? "flex" : "none"
                                 }}
                             >
                                 <CheckboxIndicator style={{ backgroundColor: allSelected ? "#1B9CFF" : "white", borderColor: "#1B9CFF" }}>
                                     <CheckboxIcon as={CheckIcon} color="white" />
                                 </CheckboxIndicator>
                             </Checkbox>
-                            <Text size="md" style={{ color: "black", display: currentMode !== "info" ? "flex" : "none" }} >
+                            <Text size={ isMobileScreen ? "xs" : "md"} style={{ color: "black", display: currentMode !== "info" ? "flex" : "none" }} >
                                 {allSelected ? "Unselect All" : "Select All"}
                             </Text>
                             <Button
                                 variant="solid"
-                                size="sm"
                                 action="negative"
+                                size={isMobileScreen ? "xs" : "md"}
                                 onPress={handleClearResults}
                                 isDisabled={isLoading}
                                 style={{ marginLeft: 8 }}
                             >
-                                <MinusCircleIcon size={16} color="white" />
-                                <ButtonText>Clear All</ButtonText>
+                                <MinusCircleIcon size={16} color="white" style={{ display: isMobileScreen ? "none" : "flex"}} />
+                                <ButtonText size={isMobileScreen ? "xs" : "md"}>Clear All</ButtonText>
                             </Button>
                         </HStack>
 
-                        <HStack space="xl" style={{ alignItems: "center" }}>
+                        <HStack space={isMobileScreen && currentMode === "dispatch" ? "xs" : "xl"} style={{ alignItems: "center", width: "auto" }}>
                             {selectedInsufficientStock && currentMode == "dispatch" && (
-                                <Text style={{ color: "red", fontSize: 12, fontWeight: "500" }} >
+                                <Text style={{ color: "red", fontWeight: "500" }} size={ isMobileScreen ? "xs" : "md"} >
                                     Not enough stock to dispatch.
                                 </Text>
                             )}
                             <Button
                                 onPress={() => setShowReceiveModal(true)}
                                 isDisabled={selectedIds.size === 0 || isLoading}
+                                size={isMobileScreen ? "xs" : "md"}
                                 style={{
                                     display: currentMode === "receive" ? "flex" : "none",
                                     backgroundColor: "#1B9CFF",
                                     opacity: selectedIds.size === 0 || isLoading ? 0.5 : 1,
                                 }}
                             >
-                                <ArrowDownCircle size={16} color="white" />
-                                <ButtonText>Receive</ButtonText>
+                                <ArrowDownCircle size={16} color="white" style={{ display: isMobileScreen ? "none" : "flex"}} />
+                                <ButtonText size={isMobileScreen ? "xs" : "md"}>Receive</ButtonText>
                             </Button>
 
                             <Button
                                 onPress={() => setShowDispatchModal(true)}
                                 isDisabled={selectedIds.size === 0 || isLoading || selectedInsufficientStock}
+                                size={isMobileScreen ? "xs" : "md"}
                                 style={{
                                     display: currentMode === "dispatch" ? "flex" : "none",
                                     backgroundColor: "#1B9CFF",
                                     opacity: selectedIds.size === 0 || isLoading || selectedInsufficientStock ? 0.5 : 1,
                                 }}
                             >
-                                <ArrowUpCircle size={16} color="white" />
-                                <ButtonText>Dispatch</ButtonText>
+                                <ArrowUpCircle size={16} color="white" style={{ display: isMobileScreen ? "none" : "flex"}} />
+                                <ButtonText size={isMobileScreen ? "xs" : "md"}>Dispatch</ButtonText>
                             </Button>
                         </HStack>
                     </HStack>
+
+                    {/* Known Items Editing Modal */}
+                    <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} size="lg">
+                        <ModalBackdrop />
+                        <ModalContent>
+                            <ModalHeader>
+                                <Heading size="md" className="text-typography-950">Edit Items</Heading>
+                                <ModalCloseButton style={{ backgroundColor: "transparent" }}>
+                                    <Icon
+                                        as={CloseIcon}
+                                        size="md"
+                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
+                                    />
+                                </ModalCloseButton>
+                            </ModalHeader>
+                            <ModalBody>
+                                <FormControl style={{ marginBottom: 12 }}>
+                                    <FormControlLabel>
+                                        <FormControlLabelText>Barcode</FormControlLabelText>
+                                    </FormControlLabel>
+                                    <Input isDisabled={isLoading}>
+                                        <InputField ref={inputRef} value={editingBarcode} onChangeText={setEditingBarcode} placeholder="Enter Item's Barcode" style={{ height: 40, width: "100%" }} />
+                                    </Input>
+                                </FormControl>
+
+                                <FormControl style={{ marginBottom: 12 }}>
+                                    <FormControlLabel>
+                                        <FormControlLabelText>Item Name</FormControlLabelText>
+                                    </FormControlLabel>
+                                    <Input isDisabled={isLoading}>
+                                        <InputField ref={inputRef} value={editingItemName} onChangeText={setEditingItemName} placeholder="Enter Item Name" style={{ height: 40, width: "100%" }} />
+                                    </Input>
+                                </FormControl>
+
+                                <FormControl style={{ marginBottom: 12 }}>
+                                    <FormControlLabel>
+                                        <FormControlLabelText>Item Description</FormControlLabelText>
+                                    </FormControlLabel>
+                                    <Input isDisabled={isLoading}>
+                                        <InputField ref={inputRef} value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder="Enter Item Description" style={{ height: 40, width: "100%" }} />
+                                    </Input>
+                                </FormControl>
+
+                                <FormControl style={{ marginBottom: 12 }}>
+                                    <FormControlLabel>
+                                        <FormControlLabelText>Item Group</FormControlLabelText>
+                                    </FormControlLabel>
+                                    <Select isDisabled={isLoading} selectedValue={editingItemGroup} onValueChange={setEditingItemGroup}>
+                                        <SelectTrigger variant="outline" size="md">
+                                            <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
+                                            <SelectIcon className="mr-3" as={ChevronDownIcon} />
+                                        </SelectTrigger>
+                                        <SelectPortal>
+                                            <SelectBackdrop />
+                                            <SelectContent >
+                                                <SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
+                                                {Object.entries(groupLabels).map(([value, label]) => (
+                                                    <SelectItem key={value} label={label} value={value} />
+                                                ))}
+                                            </SelectContent>
+                                        </SelectPortal>
+                                    </Select>
+                                </FormControl>
+
+                                <FormControl style={{ marginBottom: 12 }}>
+                                    <FormControlLabel>
+                                        <FormControlLabelText>Location</FormControlLabelText>
+                                    </FormControlLabel>
+                                    <Input isDisabled={isLoading}>
+                                        <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder="Enter Item Warehouse Location" style={{ height: 40, width: "100%" }} />
+                                    </Input>
+                                </FormControl>
+
+                                <FormControl style={{ marginBottom: 12 }}>
+                                    <FormControlLabel>
+                                        <FormControlLabelText>Item Count</FormControlLabelText>
+                                    </FormControlLabel>
+                                    <Input isDisabled={isLoading}>
+                                        <InputField ref={inputRef} value={editingItemCount} onChangeText={setEditingItemCount} placeholder="Enter Item Stock Count" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
+                                    </Input>
+                                </FormControl>
+
+                                <FormControl>
+                                    <FormControlLabel>
+                                        <FormControlLabelText>Points to Redeem</FormControlLabelText>
+                                    </FormControlLabel>
+                                    <Input isDisabled={isLoading}>
+                                        <InputField ref={inputRef} value={editingItemPointsToRedeem} onChangeText={setEditingItemPointsToRedeem} placeholder="Enter Points To Redeem For Item" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
+                                    </Input>
+                                </FormControl>
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button variant="solid" action="negative" onPress={() => setShowEditModal(false)}>
+                                    <ButtonText>Cancel</ButtonText>
+                                </Button>
+                                <Button variant="solid" action="primary" style={{ backgroundColor: "#1B9CFF" }} onPress={saveEditedBarcode} isDisabled={isLoading || !hasChanges}>
+                                    <ButtonText>Save</ButtonText>
+                                </Button>
+                            </ModalFooter>
+                        </ModalContent>
+                    </Modal>
+
+
+                    {/* Unknown Items Editing Modal */}
+                    <Modal
+                        isOpen={showUnknownEditModal}
+                        onClose={() => setShowUnknownEditModal(false)}
+                        size="lg"
+                    >
+                        <ModalBackdrop />
+                        <ModalContent>
+                            <ModalHeader>
+                                <Heading size="md" className="text-typography-950">
+                                    Add New Item
+                                </Heading>
+                                <ModalCloseButton style={{ backgroundColor: "transparent" }}>
+                                    <Icon
+                                        as={CloseIcon}
+                                        size="md"
+                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
+                                    />
+                                </ModalCloseButton>
+                            </ModalHeader>
+                            <ModalBody>
+                                <FormControl style={{ marginBottom: 12 }}>
+                                    <FormControlLabel>
+                                        <FormControlLabelText>Barcode</FormControlLabelText>
+                                    </FormControlLabel>
+                                    <Input isDisabled={isLoading}>
+                                        <InputField ref={inputRef} value={editingBarcode} onChangeText={setEditingBarcode} placeholder="Enter Item's Barcode" style={{ height: 40, width: "100%" }} />
+                                    </Input>
+                                </FormControl>
+
+                                <FormControl style={{ marginBottom: 12 }}>
+                                    <FormControlLabel>
+                                        <FormControlLabelText>Item Name</FormControlLabelText>
+                                    </FormControlLabel>
+                                    <Input isDisabled={isLoading}>
+                                        <InputField ref={inputRef} value={editingItemName} onChangeText={setEditingItemName} placeholder="Enter Item Name" style={{ height: 40, width: "100%" }} />
+                                    </Input>
+                                </FormControl>
+
+                                <FormControl style={{ marginBottom: 12 }}>
+                                    <FormControlLabel>
+                                        <FormControlLabelText>Item Description</FormControlLabelText>
+                                    </FormControlLabel>
+                                    <Input isDisabled={isLoading}>
+                                        <InputField ref={inputRef} value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder="Enter Item Description" style={{ height: 40, width: "100%" }} />
+                                    </Input>
+                                </FormControl>
+
+                                <FormControl style={{ marginBottom: 12 }}>
+                                    <FormControlLabel>
+                                        <FormControlLabelText>Item Group</FormControlLabelText>
+                                    </FormControlLabel>
+                                    <Select isDisabled={isLoading} selectedValue={editingItemGroup} onValueChange={setEditingItemGroup}>
+                                        <SelectTrigger variant="outline" size="md">
+                                            <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
+                                            <SelectIcon className="mr-3" as={ChevronDownIcon} />
+                                        </SelectTrigger>
+                                        <SelectPortal>
+                                            <SelectBackdrop />
+                                            <SelectContent>
+                                                <SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
+                                                {Object.entries(groupLabels).map(([value, label]) => (
+                                                    <SelectItem key={value} label={label} value={value} />
+                                                ))}
+                                            </SelectContent>
+                                        </SelectPortal>
+                                    </Select>
+                                </FormControl>
+
+                                <FormControl style={{ marginBottom: 12 }}>
+                                    <FormControlLabel>
+                                        <FormControlLabelText>Item Warehouse Location</FormControlLabelText>
+                                    </FormControlLabel>
+                                    <Input isDisabled={isLoading}>
+                                        <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder="Enter Item Warehouse Location" style={{ height: 40, width: "100%" }} />
+                                    </Input>
+                                </FormControl>
+
+                                <FormControl style={{ marginBottom: 12 }}>
+                                    <FormControlLabel>
+                                        <FormControlLabelText>Item Count</FormControlLabelText>
+                                    </FormControlLabel>
+                                    <Input isDisabled={isLoading}>
+                                        <InputField ref={inputRef} value={editingItemCount} onChangeText={setEditingItemCount} placeholder="Enter Item Stock Count" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
+                                    </Input>
+                                </FormControl>
+
+                                <FormControl>
+                                    <FormControlLabel>
+                                        <FormControlLabelText>Points to Redeem</FormControlLabelText>
+                                    </FormControlLabel>
+                                    <Input isDisabled={isLoading}>
+                                        <InputField ref={inputRef} value={editingItemPointsToRedeem} onChangeText={setEditingItemPointsToRedeem} placeholder="Enter Points To Redeem For Item" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
+                                    </Input>
+                                </FormControl>
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button
+                                    variant="solid"
+                                    action="negative"
+                                    onPress={handleCancelUnknownItem}
+                                    isDisabled={isLoading}
+                                >
+                                    <ButtonText>Cancel</ButtonText>
+                                </Button>
+                                <Button
+                                    variant="solid"
+                                    action="primary"
+                                    style={{ backgroundColor: "#1B9CFF" }}
+                                    onPress={saveEditedUnknownItem}
+                                    isDisabled={isLoading || !hasChanges}
+                                >
+                                    <ButtonText>Save</ButtonText>
+                                </Button>
+                            </ModalFooter>
+                        </ModalContent>
+                    </Modal>
+
+                    {/* Receive Confirmation Modal */}
+                    <Modal isOpen={showReceiveModal} onClose={() => setShowReceiveModal(false)} size="md">
+                        <ModalBackdrop />
+                        <ModalContent>
+                            <ModalHeader>
+                                <Heading size="md">Confirm Receive</Heading>
+                                <ModalCloseButton style={{ backgroundColor: "transparent" }}>
+                                    <Icon
+                                        as={CloseIcon}
+                                        size="md"
+                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
+                                    />
+                                </ModalCloseButton>
+                            </ModalHeader>
+                            <ModalBody>
+                                <Text size="sm">Are you sure you want to receive all selected items?</Text>
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button variant="solid" action="negative" onPress={() => setShowReceiveModal(false)}>
+                                    <ButtonText>Cancel</ButtonText>
+                                </Button>
+                                <Button
+                                    variant="solid"
+                                    action="primary"
+                                    style={{ backgroundColor: "#1B9CFF" }}
+                                    onPress={() => {
+                                        handleReceive();
+                                        setShowReceiveModal(false);
+                                    }}
+                                >
+                                    <ButtonText>Confirm</ButtonText>
+                                </Button>
+                            </ModalFooter>
+                        </ModalContent>
+                    </Modal>
+
+                    {/* Dispatch Confirmation Modal */}
+                    <Modal isOpen={showDispatchModal} onClose={() => setShowDispatchModal(false)} size="md">
+                        <ModalBackdrop />
+                        <ModalContent>
+                            <ModalHeader>
+                                <Heading size="md">Confirm Dispatch</Heading>
+                                <ModalCloseButton style={{ backgroundColor: "transparent" }}>
+                                    <Icon
+                                        as={CloseIcon}
+                                        size="md"
+                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
+                                    />
+                                </ModalCloseButton>
+                            </ModalHeader>
+                            <ModalBody>
+                                <Text size="sm">
+                                    Are you sure you want to dispatch the selected items? This will deduct the dispatched quantity from the available stock. Note: Only items with sufficient stock will be dispatched.
+                                </Text>
+                            </ModalBody>
+                            <ModalFooter style={{ gap: 12 }}>
+                                <Button
+                                    variant="solid"
+                                    action="negative"
+                                    onPress={() => setShowDispatchModal(false)}
+                                >
+                                    <ButtonText style={{ color: "white" }}>Cancel</ButtonText>
+                                </Button>
+
+                                <Button
+                                    onPress={handleDispatch}
+                                    variant="solid"
+                                    action="primary"
+                                    style={{ backgroundColor: "#1B9CFF" }}
+                                >
+                                    <ButtonText style={{ color: "white" }}>Confirm</ButtonText>
+                                </Button>
+                            </ModalFooter>
+                        </ModalContent>
+                    </Modal>
                 </LinearGradient>
             )}
         </ProtectedRoute>
