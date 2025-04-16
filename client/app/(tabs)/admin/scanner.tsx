@@ -11,14 +11,13 @@ import { Heading } from "@/components/ui/heading";
 import { Modal, ModalBackdrop, ModalContent, ModalCloseButton, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { Checkbox, CheckboxIndicator, CheckboxIcon } from "@/components/ui/checkbox"
 import { Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem } from '@/components/ui/select';
-import { FormControl, FormControlError, FormControlErrorText, FormControlErrorIcon, FormControlLabel, FormControlLabelText, FormControlHelper, FormControlHelperText } from "@/components/ui/form-control"
+import { FormControl, FormControlLabel, FormControlLabelText } from "@/components/ui/form-control"
 import { Icon, CloseIcon, CheckIcon, ChevronDownIcon } from "@/components/ui/icon";
 import Constants from "expo-constants";
 import server from "../../../networking";
 import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
-import { useFocusEffect } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { AlertTriangleIcon, CheckCircleIcon, MapPinIcon, MinusCircleIcon, PencilIcon, ScanIcon, SparklesIcon, Trash2Icon } from "lucide-react-native";
+import { AlertTriangleIcon, ArrowDownCircle, ArrowUpCircle, CheckCircleIcon, MinusCircleIcon, PencilIcon, ScanIcon, SparklesIcon, Trash2Icon, WarehouseIcon } from "lucide-react-native";
 import { Box } from "@/components/ui/box";
 
 interface ScannedItem {
@@ -214,11 +213,11 @@ export default function ScannerScreen() {
     const areAllGroupItemsSelected = (groupItems: ScannedItem[]) => {
         return groupItems.every(item => selectedIds.has(item.id));
     };
-    
+
     const toggleSelectGroup = (group: string) => {
         const groupItems = groupedItems[group];
         const allSelected = areAllGroupItemsSelected(groupItems);
-        
+
         setSelectedIds(prev => {
             const newSet = new Set(prev);
             if (allSelected) {
@@ -228,7 +227,7 @@ export default function ScannerScreen() {
             }
             return newSet;
         });
-    };    
+    };
 
     const allPendingItems = [...pendingItems, ...pendingUnknownItems];
 
@@ -516,16 +515,16 @@ export default function ScannerScreen() {
 
     const selectedInsufficientStock = [...pendingItems, ...pendingUnknownItems].filter(item => selectedIds.has(item.id)).some(item => item.totalCount < 1);
 
-    useFocusEffect(
-        useCallback(() => {
-            setPendingItems([]);
-            setPendingUnknownItems([]);
-            setShowEditModal(false);
-            setCurrentScan("");
-            setScannedCode("");
-            setIsFocused(false);
-        }, [])
-    );
+    // useFocusEffect(
+    //     useCallback(() => {
+    //         setPendingItems([]);
+    //         setPendingUnknownItems([]);
+    //         setShowEditModal(false);
+    //         setCurrentScan("");
+    //         setScannedCode("");
+    //         setIsFocused(false);
+    //     }, [])
+    // );
 
     return (
         <ProtectedRoute showAuth={false} allowedRoles={["Admin"]}>
@@ -652,12 +651,16 @@ export default function ScannerScreen() {
                                     <VStack style={{ gap: 16, paddingBottom: 16 }}>
                                         {Object.entries(groupedItems).length > 0 ? (
                                             Object.entries(groupedItems).map(([group, items]) => (
-                                                <VStack key={group} style={{ gap: 12, backgroundColor: "white", padding: 16, borderRadius: 24, 
-                                                    shadowColor: "#4f46e5", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, 
-                                                    shadowRadius: 12, elevation: 8, marginVertical: 8 }}>
+                                                <VStack key={group} style={{
+                                                    gap: 12, backgroundColor: "white", padding: 16, borderRadius: 24,
+                                                    shadowColor: "#4f46e5", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1,
+                                                    shadowRadius: 12, elevation: 8, marginVertical: 8
+                                                }}>
                                                     {/* Group Header */}
-                                                    <HStack style={{ alignItems: "center", gap: 10, padding: 12, 
-                                                        backgroundColor: "#eef2ff", borderRadius: 16, marginBottom: 8 }}>
+                                                    <HStack style={{
+                                                        alignItems: "center", gap: 10, padding: 12,
+                                                        backgroundColor: "#eef2ff", borderRadius: 16, marginBottom: 8
+                                                    }}>
                                                         <Box style={{ position: 'relative', flexDirection: 'row', alignItems: 'center' }}>
                                                             <Checkbox
                                                                 value={`select-group-${group}`}
@@ -665,7 +668,7 @@ export default function ScannerScreen() {
                                                                 isChecked={areAllGroupItemsSelected(items)}
                                                                 onChange={() => toggleSelectGroup(group)}
                                                             >
-                                                                <CheckboxIndicator style={{ 
+                                                                <CheckboxIndicator style={{
                                                                     backgroundColor: areAllGroupItemsSelected(items) ? "#1B9CFF" : "white",
                                                                     borderColor: "#1B9CFF",
                                                                     borderRadius: 6
@@ -674,12 +677,14 @@ export default function ScannerScreen() {
                                                                 </CheckboxIndicator>
                                                             </Checkbox>
                                                         </Box>
-                                                        <Text style={{ fontSize: 20, fontWeight: "900", color: "#4f46e5", 
-                                                            letterSpacing: -0.5, textTransform: "uppercase" }}>
+                                                        <Text style={{
+                                                            fontSize: 20, fontWeight: "900", color: "#4f46e5",
+                                                            letterSpacing: -0.5, textTransform: "uppercase"
+                                                        }}>
                                                             {groupLabels[group] || group}
                                                         </Text>
                                                     </HStack>
-                                                
+
                                                     {items.map((item) => (
                                                         <VStack
                                                             key={item.id}
@@ -705,7 +710,7 @@ export default function ScannerScreen() {
                                                                             isChecked={selectedIds.has(item.id)}
                                                                             onChange={() => toggleSelect(item.id)}
                                                                         >
-                                                                            <CheckboxIndicator style={{ 
+                                                                            <CheckboxIndicator style={{
                                                                                 backgroundColor: selectedIds.has(item.id) ? "#1B9CFF" : "white",
                                                                                 borderColor: "#1B9CFF",
                                                                                 borderRadius: 6
@@ -714,71 +719,76 @@ export default function ScannerScreen() {
                                                                             </CheckboxIndicator>
                                                                         </Checkbox>
                                                                     </Box>
-                                                
-                                                                    {/* Item Details with Holographic Effect */}
+
+                                                                    {/* Item Details */}
                                                                     <VStack style={{ flex: 1, gap: 6 }}>
                                                                         <HStack style={{ alignItems: "baseline", gap: 8 }}>
-                                                                            <Text style={{ fontSize: 18, fontWeight: "800", color: "#1e293b",
-                                                                                textShadowColor: "rgba(79, 70, 229, 0.1)", 
+                                                                            <Text style={{
+                                                                                fontSize: 18, fontWeight: "800", color: "#1e293b",
+                                                                                textShadowColor: "rgba(79, 70, 229, 0.1)",
                                                                                 textShadowOffset: { width: 1, height: 1 },
-                                                                                textShadowRadius: 2 }}>
+                                                                                textShadowRadius: 2
+                                                                            }}>
                                                                                 {item.barcode}
                                                                             </Text>
-                                                                            <Box style={{ 
+                                                                            <Box style={{
                                                                                 backgroundColor: "#f1f5f9",
-                                                                                padding: 4,
-                                                                                borderRadius: 2
+                                                                                width: 30,
+                                                                                padding: 2,
+                                                                                borderRadius: 2,
+                                                                                justifyContent: "center",
+                                                                                alignContent: "center",
                                                                             }}>
-                                                                                <Text style={{ fontSize: 14, fontWeight: "700", color: "#64748b" }}>
-                                                                                    x{item.sessionCount}
+                                                                                <Text style={{ fontSize: 16, fontWeight: "700", color: "#64748b", textAlign: "center" }}>
+                                                                                    X{item.sessionCount}
                                                                                 </Text>
                                                                             </Box>
                                                                         </HStack>
-                                                
-                                                                        <Text style={{ 
-                                                                            fontSize: 16, 
-                                                                            fontWeight: "600", 
+
+                                                                        <Text style={{
+                                                                            fontSize: 16,
+                                                                            fontWeight: "600",
                                                                             color: "#334155",
-                                                                            fontStyle: item.itemName ? "normal" : "italic" 
+                                                                            fontStyle: item.itemName ? "normal" : "italic"
                                                                         }}>
                                                                             {item.itemName || "Unnamed Product"}
                                                                         </Text>
 
-                                                                        <Text style={{ 
-                                                                            fontSize: 16, 
-                                                                            fontWeight: "600", 
+                                                                        <Text style={{
+                                                                            fontSize: 16,
+                                                                            fontWeight: "600",
                                                                             color: "#334155",
-                                                                            fontStyle: item.itemName ? "normal" : "italic" 
+                                                                            fontStyle: item.itemName ? "normal" : "italic"
                                                                         }}>
                                                                             {item.itemDescription || "No Description"}
                                                                         </Text>
-                                                
+
                                                                         <HStack style={{ gap: 8, flexWrap: "wrap" }}>
-                                                                            <HStack style={{ 
+                                                                            <HStack style={{
                                                                                 backgroundColor: "#f8fafc",
                                                                                 padding: 6,
                                                                                 borderRadius: 8,
                                                                                 alignItems: "center",
                                                                                 gap: 4
                                                                             }}>
-                                                                                <MapPinIcon size={14} color="#94a3b8" />
-                                                                                <Text style={{ fontSize: 12, color: "#64748b", fontWeight: "500" }}>
+                                                                                <WarehouseIcon size={14} color="#94a3b8" />
+                                                                                <Text style={{ fontSize: 14, color: "#64748b", fontWeight: "500" }}>
                                                                                     {item.location || "Unknown Location"}
                                                                                 </Text>
                                                                             </HStack>
-                                                
-                                                                            <HStack style={{ 
-                                                                                backgroundColor: item.totalCount > 10 ? "#f0fdf4" : "#fef2f2",
+
+                                                                            <HStack style={{
+                                                                                backgroundColor: item.totalCount <= 10 ? "#fef2f2" : item.totalCount <= 100 ? "#fefce8" : "#f0fdf4",
                                                                                 padding: 6,
                                                                                 borderRadius: 8,
                                                                                 alignItems: "center",
-                                                                                gap: 4
+                                                                                gap: 8
                                                                             }}>
-                                                                                <Box style={{ width: 8, height: 8, backgroundColor: item.totalCount <= 10 ? "#fca5a5"  : item.totalCount <= 100 ? "#fde68a" : "#86efac", borderRadius: 4 }} />
-                                                                                <Text style={{ 
-                                                                                    fontSize: 12, 
-                                                                                    color: item.totalCount > 10 ? "#166534" : "#991b1b",
-                                                                                    fontWeight: "600" 
+                                                                                <Box style={{ width: 8, height: 8, backgroundColor: item.totalCount <= 10 ? "#fca5a5" : item.totalCount <= 100 ? "#fde68a" : "#86efac", borderRadius: 4, marginLeft: 4 }} />
+                                                                                <Text style={{
+                                                                                    fontSize: 14,
+                                                                                    color: item.totalCount <= 10 ? "#991b1b" : item.totalCount <= 100 ? "#92400e" : "#166534",
+                                                                                    fontWeight: "600"
                                                                                 }}>
                                                                                     Stock: {item.totalCount}
                                                                                 </Text>
@@ -786,10 +796,10 @@ export default function ScannerScreen() {
                                                                         </HStack>
                                                                     </VStack>
                                                                 </HStack>
-                                                
-                                                                {/* Action Buttons with Floating Effect */}
+
+                                                                {/* Action Buttons */}
                                                                 <HStack style={{ gap: 8, alignItems: "center" }}>
-                                                                    <Button 
+                                                                    <Button
                                                                         size="md"
                                                                         action="secondary"
                                                                         onPress={() => handleEdit(item)}
@@ -802,8 +812,8 @@ export default function ScannerScreen() {
                                                                     >
                                                                         <PencilIcon size={20} color="#4f46e5" />
                                                                     </Button>
-                                                
-                                                                    <Button 
+
+                                                                    <Button
                                                                         size="md"
                                                                         action="secondary"
                                                                         onPress={() => handleRemove(item.id)}
@@ -816,8 +826,8 @@ export default function ScannerScreen() {
                                                                     >
                                                                         <MinusCircleIcon size={20} color="#dc2626" />
                                                                     </Button>
-                                                
-                                                                    <Button 
+
+                                                                    <Button
                                                                         size="md"
                                                                         action="secondary"
                                                                         onPress={() => { setDeleteItemId(item.id); setShowDeleteModal(true); }}
@@ -832,32 +842,30 @@ export default function ScannerScreen() {
                                                                     </Button>
                                                                 </HStack>
                                                             </HStack>
-                                                
-                                                            {/* Points Display with Glowing Effect */}
-                                                            {item.pointsToRedeem > 0 && (
-                                                                <HStack style={{ 
-                                                                    marginTop: 12,
-                                                                    padding: 10,
-                                                                    borderRadius: 12,
-                                                                    backgroundColor: "rgba(255, 215, 0, 0.1)",
-                                                                    borderWidth: 1,
-                                                                    borderColor: "rgba(255, 215, 0, 0.3)",
-                                                                    alignItems: "center",
-                                                                    gap: 8
+
+                                                            {/* Points Display*/}
+                                                            <HStack style={{
+                                                                marginTop: 12,
+                                                                padding: 10,
+                                                                borderRadius: 12,
+                                                                backgroundColor: "rgba(255, 215, 0, 0.1)",
+                                                                borderWidth: 1,
+                                                                borderColor: "rgba(255, 215, 0, 0.3)",
+                                                                alignItems: "center",
+                                                                gap: 8
+                                                            }}>
+                                                                <SparklesIcon size={16} color="#eab308" />
+                                                                <Text style={{
+                                                                    fontSize: 16,
+                                                                    fontWeight: "700",
+                                                                    color: "#eab308",
+                                                                    textShadowColor: "rgba(234, 179, 8, 0.2)",
+                                                                    textShadowOffset: { width: 0, height: 0 },
+                                                                    textShadowRadius: 4
                                                                 }}>
-                                                                    <SparklesIcon size={16} color="#eab308" />
-                                                                    <Text style={{ 
-                                                                        fontSize: 14, 
-                                                                        fontWeight: "800", 
-                                                                        color: "#eab308",
-                                                                        textShadowColor: "rgba(234, 179, 8, 0.2)",
-                                                                        textShadowOffset: { width: 0, height: 0 },
-                                                                        textShadowRadius: 4
-                                                                    }}>
-                                                                        Required Points: {item.pointsToRedeem} 
-                                                                    </Text>
-                                                                </HStack>
-                                                            )}
+                                                                    Required Points: {item.pointsToRedeem}
+                                                                </Text>
+                                                            </HStack>
                                                         </VStack>
                                                     ))}
                                                 </VStack>
@@ -905,8 +913,12 @@ export default function ScannerScreen() {
                                         <ModalContent>
                                             <ModalHeader>
                                                 <Heading size="md" className="text-typography-950">Edit Items</Heading>
-                                                <ModalCloseButton>
-                                                    <Icon as={CloseIcon} size="md" className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900" />
+                                                <ModalCloseButton style={{ backgroundColor: "transparent" }}>
+                                                    <Icon
+                                                        as={CloseIcon}
+                                                        size="md"
+                                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
+                                                    />
                                                 </ModalCloseButton>
                                             </ModalHeader>
                                             <ModalBody>
@@ -986,8 +998,10 @@ export default function ScannerScreen() {
                                                 </FormControl>
                                             </ModalBody>
                                             <ModalFooter>
-                                                <Button variant="outline" action="secondary" onPress={() => setShowEditModal(false)}>Cancel</Button>
-                                                <Button onPress={saveEditedBarcode} isDisabled={isLoading || !hasChanges}>
+                                                <Button variant="solid" action="negative" onPress={() => setShowEditModal(false)}>
+                                                    <ButtonText>Cancel</ButtonText>
+                                                </Button>
+                                                <Button variant="solid" action="primary" style={{ backgroundColor: "#1B9CFF" }} onPress={saveEditedBarcode} isDisabled={isLoading || !hasChanges}>
                                                     <ButtonText>Save</ButtonText>
                                                 </Button>
                                             </ModalFooter>
@@ -1007,7 +1021,7 @@ export default function ScannerScreen() {
                                                 <Heading size="md" className="text-typography-950">
                                                     Add New Item
                                                 </Heading>
-                                                <ModalCloseButton>
+                                                <ModalCloseButton style={{ backgroundColor: "transparent" }}>
                                                     <Icon
                                                         as={CloseIcon}
                                                         size="md"
@@ -1093,14 +1107,17 @@ export default function ScannerScreen() {
                                             </ModalBody>
                                             <ModalFooter>
                                                 <Button
-                                                    variant="outline"
-                                                    action="secondary"
+                                                    variant="solid"
+                                                    action="negative"
                                                     onPress={handleCancelUnknownItem}
                                                     isDisabled={isLoading}
                                                 >
                                                     <ButtonText>Cancel</ButtonText>
                                                 </Button>
                                                 <Button
+                                                    variant="solid"
+                                                    action="primary"
+                                                    style={{ backgroundColor: "#1B9CFF" }}
                                                     onPress={saveEditedUnknownItem}
                                                     isDisabled={isLoading || !hasChanges}
                                                 >
@@ -1116,18 +1133,23 @@ export default function ScannerScreen() {
                                         <ModalContent>
                                             <ModalHeader>
                                                 <Heading size="md">Confirm Deletion</Heading>
-                                                <ModalCloseButton>
-                                                    <Icon as={CloseIcon} size="md" />
+                                                <ModalCloseButton style={{ backgroundColor: "transparent" }}>
+                                                    <Icon
+                                                        as={CloseIcon}
+                                                        size="md"
+                                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
+                                                    />
                                                 </ModalCloseButton>
                                             </ModalHeader>
                                             <ModalBody>
                                                 <Text size="sm">Are you sure you want to delete this item? This action cannot be undone.</Text>
                                             </ModalBody>
                                             <ModalFooter>
-                                                <Button variant="outline" action="secondary" onPress={() => setShowDeleteModal(false)}>
+                                                <Button variant="solid" action="primary" style={{ backgroundColor: "#1B9CFF" }} onPress={() => setShowDeleteModal(false)}>
                                                     <ButtonText>Cancel</ButtonText>
                                                 </Button>
                                                 <Button
+                                                    variant="solid"
                                                     action="negative"
                                                     onPress={() => {
                                                         if (deleteItemId) handleDelete(deleteItemId);
@@ -1146,18 +1168,25 @@ export default function ScannerScreen() {
                                         <ModalContent>
                                             <ModalHeader>
                                                 <Heading size="md">Confirm Receive</Heading>
-                                                <ModalCloseButton>
-                                                    <Icon as={CloseIcon} size="md" />
+                                                <ModalCloseButton style={{ backgroundColor: "transparent" }}>
+                                                    <Icon
+                                                        as={CloseIcon}
+                                                        size="md"
+                                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
+                                                    />
                                                 </ModalCloseButton>
                                             </ModalHeader>
                                             <ModalBody>
                                                 <Text size="sm">Are you sure you want to receive all selected items?</Text>
                                             </ModalBody>
                                             <ModalFooter>
-                                                <Button variant="outline" action="secondary" onPress={() => setShowReceiveModal(false)}>
+                                                <Button variant="solid" action="negative" onPress={() => setShowReceiveModal(false)}>
                                                     <ButtonText>Cancel</ButtonText>
                                                 </Button>
                                                 <Button
+                                                    variant="solid"
+                                                    action="primary"
+                                                    style={{ backgroundColor: "#1B9CFF" }}
                                                     onPress={() => {
                                                         handleReceive();
                                                         setShowReceiveModal(false);
@@ -1175,8 +1204,12 @@ export default function ScannerScreen() {
                                         <ModalContent>
                                             <ModalHeader>
                                                 <Heading size="md">Confirm Dispatch</Heading>
-                                                <ModalCloseButton>
-                                                    <Icon as={CloseIcon} size="md" />
+                                                <ModalCloseButton style={{ backgroundColor: "transparent" }}>
+                                                    <Icon
+                                                        as={CloseIcon}
+                                                        size="md"
+                                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
+                                                    />
                                                 </ModalCloseButton>
                                             </ModalHeader>
                                             <ModalBody>
@@ -1184,12 +1217,22 @@ export default function ScannerScreen() {
                                                     Are you sure you want to dispatch the selected items? This will deduct the dispatched quantity from the available stock. Note: Only items with sufficient stock will be dispatched.
                                                 </Text>
                                             </ModalBody>
-                                            <ModalFooter>
-                                                <Button variant="outline" action="secondary" onPress={() => setShowDispatchModal(false)}>
-                                                    <ButtonText>Cancel</ButtonText>
+                                            <ModalFooter style={{ gap: 12 }}>
+                                                <Button
+                                                    variant="solid"
+                                                    action="negative"
+                                                    onPress={() => setShowDispatchModal(false)}
+                                                >
+                                                    <ButtonText style={{ color: "white" }}>Cancel</ButtonText>
                                                 </Button>
-                                                <Button onPress={handleDispatch}>
-                                                    <ButtonText>Confirm</ButtonText>
+
+                                                <Button
+                                                    onPress={handleDispatch}
+                                                    variant="solid"
+                                                    action="primary"
+                                                    style={{ backgroundColor: "#1B9CFF" }}
+                                                >
+                                                    <ButtonText style={{ color: "white" }}>Confirm</ButtonText>
                                                 </Button>
                                             </ModalFooter>
                                         </ModalContent>
@@ -1233,6 +1276,7 @@ export default function ScannerScreen() {
                                 isDisabled={isLoading}
                                 style={{ marginLeft: 8 }}
                             >
+                                <MinusCircleIcon size={16} color="white" />
                                 <ButtonText>Clear All</ButtonText>
                             </Button>
                         </HStack>
@@ -1251,6 +1295,7 @@ export default function ScannerScreen() {
                                     opacity: selectedIds.size === 0 || isLoading ? 0.5 : 1,
                                 }}
                             >
+                                <ArrowDownCircle size={16} color="white" />
                                 <ButtonText>Receive</ButtonText>
                             </Button>
 
@@ -1262,6 +1307,7 @@ export default function ScannerScreen() {
                                     opacity: selectedIds.size === 0 || isLoading || selectedInsufficientStock ? 0.5 : 1,
                                 }}
                             >
+                                <ArrowUpCircle size={16} color="white" />
                                 <ButtonText>Dispatch</ButtonText>
                             </Button>
                         </HStack>
