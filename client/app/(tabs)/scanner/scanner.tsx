@@ -18,7 +18,8 @@ import server from "../../../networking";
 import ProtectedRoute from "@/app/wrappers/ProtectedRoute";
 import { useFocusEffect } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { AlertTriangleIcon, CheckCircleIcon, ScanIcon } from "lucide-react-native";
+import { AlertTriangleIcon, CheckCircleIcon, MapPinIcon, MinusCircleIcon, PencilIcon, ScanIcon, SparklesIcon, Trash2Icon } from "lucide-react-native";
+import { Box } from "@/components/ui/box";
 
 interface ScannedItem {
     id: string;
@@ -209,6 +210,25 @@ export default function ScannerScreen() {
             return newSet;
         });
     }
+
+    const areAllGroupItemsSelected = (groupItems: ScannedItem[]) => {
+        return groupItems.every(item => selectedIds.has(item.id));
+    };
+    
+    const toggleSelectGroup = (group: string) => {
+        const groupItems = groupedItems[group];
+        const allSelected = areAllGroupItemsSelected(groupItems);
+        
+        setSelectedIds(prev => {
+            const newSet = new Set(prev);
+            if (allSelected) {
+                groupItems.forEach(item => newSet.delete(item.id));
+            } else {
+                groupItems.forEach(item => newSet.add(item.id));
+            }
+            return newSet;
+        });
+    };    
 
     const allPendingItems = [...pendingItems, ...pendingUnknownItems];
 
@@ -621,386 +641,561 @@ export default function ScannerScreen() {
                         <VStack
                             style={{
                                 flex: 1,
-                                padding: 16,
-                                gap: 16,
+                                justifyContent: "center",
+                                alignItems: "center",
+                                backgroundColor: "transparent",
+                                padding: 24
                             }}
                         >
-                            <ScrollView style={{ flex: 1, width: "100%" }}>
-                                <VStack style={{ gap: 8, paddingBottom: 16 }}>
-                                    {Object.entries(groupedItems).length > 0 ? (
-                                        Object.entries(groupedItems).map(([group, items]) => (
-                                            <VStack key={group} style={{ gap: 8 }}>
-                                                <Text style={{ fontSize: 18, fontWeight: "bold", marginTop: 16 }}>
-                                                    {groupLabels[group] || group}
-                                                </Text>
-
-                                                {items.map((item) => (
-                                                    <VStack
-                                                        key={item.id}
-                                                        style={{
-                                                            borderBottomWidth: 1,
-                                                            borderColor: "$gray3",
-                                                            paddingVertical: 8,
-                                                            paddingHorizontal: 8,
-                                                            backgroundColor: "$backgroundCard",
-                                                            borderRadius: 8,
-                                                        }}
-                                                    >
-                                                        <HStack
-                                                            style={{
-                                                                justifyContent: "space-between",
-                                                                alignItems: "center",
-                                                                marginBottom: 4,
-                                                            }}
-                                                        >
+                            <VStack style={{ width: "100%" }}>
+                                <ScrollView style={{ flex: 1, width: "100%" }}>
+                                    <VStack style={{ gap: 16, paddingBottom: 16 }}>
+                                        {Object.entries(groupedItems).length > 0 ? (
+                                            Object.entries(groupedItems).map(([group, items]) => (
+                                                <VStack key={group} style={{ gap: 12, backgroundColor: "white", padding: 16, borderRadius: 24, 
+                                                    shadowColor: "#4f46e5", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, 
+                                                    shadowRadius: 12, elevation: 8, marginVertical: 8 }}>
+                                                    {/* Group Header */}
+                                                    <HStack style={{ alignItems: "center", gap: 10, padding: 12, 
+                                                        backgroundColor: "#eef2ff", borderRadius: 16, marginBottom: 8 }}>
+                                                        <Box style={{ position: 'relative', flexDirection: 'row', alignItems: 'center' }}>
                                                             <Checkbox
-                                                                value="selectItems"
-                                                                size="sm"
-                                                                isChecked={selectedIds.has(item.id)}
-                                                                onChange={() => toggleSelect(item.id)}
-                                                                style={{ marginRight: 8 }}
+                                                                value={`select-group-${group}`}
+                                                                size="md"
+                                                                isChecked={areAllGroupItemsSelected(items)}
+                                                                onChange={() => toggleSelectGroup(group)}
                                                             >
-                                                                <CheckboxIndicator>
+                                                                <CheckboxIndicator style={{ 
+                                                                    backgroundColor: areAllGroupItemsSelected(items) ? "#1B9CFF" : "white",
+                                                                    borderColor: "#1B9CFF",
+                                                                    borderRadius: 6
+                                                                }}>
                                                                     <CheckboxIcon as={CheckIcon} color="white" />
                                                                 </CheckboxIndicator>
                                                             </Checkbox>
+                                                        </Box>
+                                                        <Text style={{ fontSize: 20, fontWeight: "900", color: "#4f46e5", 
+                                                            letterSpacing: -0.5, textTransform: "uppercase" }}>
+                                                            {groupLabels[group] || group}
+                                                        </Text>
+                                                    </HStack>
+                                                
+                                                    {items.map((item) => (
+                                                        <VStack
+                                                            key={item.id}
+                                                            style={{
+                                                                backgroundColor: "#ffffff",
+                                                                borderRadius: 20,
+                                                                padding: 16,
+                                                                marginVertical: 4,
+                                                                shadowColor: "#000",
+                                                                shadowOffset: { width: 0, height: 2 },
+                                                                shadowOpacity: 0.05,
+                                                                shadowRadius: 6,
+                                                                elevation: 2,
+                                                            }}
+                                                        >
+                                                            <HStack style={{ justifyContent: "space-between", alignItems: "center" }}>
+                                                                {/* Selection & Main Info */}
+                                                                <HStack style={{ flex: 1, gap: 12, alignItems: "center" }}>
+                                                                    <Box style={{ position: 'relative' }}>
+                                                                        <Checkbox
+                                                                            value="selectItems"
+                                                                            size="md"
+                                                                            isChecked={selectedIds.has(item.id)}
+                                                                            onChange={() => toggleSelect(item.id)}
+                                                                        >
+                                                                            <CheckboxIndicator style={{ 
+                                                                                backgroundColor: selectedIds.has(item.id) ? "#1B9CFF" : "white",
+                                                                                borderColor: "#1B9CFF",
+                                                                                borderRadius: 6
+                                                                            }}>
+                                                                                <CheckboxIcon as={CheckIcon} color="white" />
+                                                                            </CheckboxIndicator>
+                                                                        </Checkbox>
+                                                                    </Box>
+                                                
+                                                                    {/* Item Details with Holographic Effect */}
+                                                                    <VStack style={{ flex: 1, gap: 6 }}>
+                                                                        <HStack style={{ alignItems: "baseline", gap: 8 }}>
+                                                                            <Text style={{ fontSize: 18, fontWeight: "800", color: "#1e293b",
+                                                                                textShadowColor: "rgba(79, 70, 229, 0.1)", 
+                                                                                textShadowOffset: { width: 1, height: 1 },
+                                                                                textShadowRadius: 2 }}>
+                                                                                {item.barcode}
+                                                                            </Text>
+                                                                            <Box style={{ 
+                                                                                backgroundColor: "#f1f5f9",
+                                                                                padding: 4,
+                                                                                borderRadius: 2
+                                                                            }}>
+                                                                                <Text style={{ fontSize: 14, fontWeight: "700", color: "#64748b" }}>
+                                                                                    x{item.sessionCount}
+                                                                                </Text>
+                                                                            </Box>
+                                                                        </HStack>
+                                                
+                                                                        <Text style={{ 
+                                                                            fontSize: 16, 
+                                                                            fontWeight: "600", 
+                                                                            color: "#334155",
+                                                                            fontStyle: item.itemName ? "normal" : "italic" 
+                                                                        }}>
+                                                                            {item.itemName || "Unnamed Product"}
+                                                                        </Text>
 
-                                                            <VStack style={{ flex: 1 }}>
-                                                                <Text style={{ fontSize: 16, fontWeight: "bold" }}>
-                                                                    {item.barcode}{" "}
-                                                                    <Text style={{ color: "gray" }}>x{item.sessionCount}</Text>
-                                                                </Text>
-                                                                <Text style={{ color: "gray" }}>
-                                                                    {item.itemName || "Unknown"} - {item.itemDescription || "No description"}
-                                                                </Text>
-                                                                <Text style={{ fontSize: 12, color: "gray10" }}>
-                                                                    Warehouse Location: {item.location || "Unknown"}
-                                                                </Text>
-                                                                <Text style={{ fontSize: 12, color: "gray10" }}>
-                                                                    In Stock: {item.totalCount ?? 0}
-                                                                </Text>
-                                                                <Text style={{ fontSize: 12, color: "gray10" }}>
-                                                                    Points: {item.pointsToRedeem ?? 0}
-                                                                </Text>
-                                                            </VStack>
-
-                                                            <HStack style={{ gap: 4 }}>
-                                                                <Button size="sm" onPress={() => handleEdit(item)} isDisabled={isLoading}>
-                                                                    <ButtonText>Edit</ButtonText>
-                                                                </Button>
-                                                                <Button size="sm" onPress={() => handleRemove(item.id)} isDisabled={isLoading}>
-                                                                    <ButtonText>Remove</ButtonText>
-                                                                </Button>
-                                                                <Button size="sm" onPress={() => { setDeleteItemId(item.id); setShowDeleteModal(true); }} isDisabled={isLoading}>
-                                                                    <ButtonText>Delete</ButtonText>
-                                                                </Button>
+                                                                        <Text style={{ 
+                                                                            fontSize: 16, 
+                                                                            fontWeight: "600", 
+                                                                            color: "#334155",
+                                                                            fontStyle: item.itemName ? "normal" : "italic" 
+                                                                        }}>
+                                                                            {item.itemDescription || "No Description"}
+                                                                        </Text>
+                                                
+                                                                        <HStack style={{ gap: 8, flexWrap: "wrap" }}>
+                                                                            <HStack style={{ 
+                                                                                backgroundColor: "#f8fafc",
+                                                                                padding: 6,
+                                                                                borderRadius: 8,
+                                                                                alignItems: "center",
+                                                                                gap: 4
+                                                                            }}>
+                                                                                <MapPinIcon size={14} color="#94a3b8" />
+                                                                                <Text style={{ fontSize: 12, color: "#64748b", fontWeight: "500" }}>
+                                                                                    {item.location || "Unknown Location"}
+                                                                                </Text>
+                                                                            </HStack>
+                                                
+                                                                            <HStack style={{ 
+                                                                                backgroundColor: item.totalCount > 10 ? "#f0fdf4" : "#fef2f2",
+                                                                                padding: 6,
+                                                                                borderRadius: 8,
+                                                                                alignItems: "center",
+                                                                                gap: 4
+                                                                            }}>
+                                                                                <Box style={{ width: 8, height: 8, backgroundColor: item.totalCount <= 10 ? "#fca5a5"  : item.totalCount <= 100 ? "#fde68a" : "#86efac", borderRadius: 4 }} />
+                                                                                <Text style={{ 
+                                                                                    fontSize: 12, 
+                                                                                    color: item.totalCount > 10 ? "#166534" : "#991b1b",
+                                                                                    fontWeight: "600" 
+                                                                                }}>
+                                                                                    Stock: {item.totalCount}
+                                                                                </Text>
+                                                                            </HStack>
+                                                                        </HStack>
+                                                                    </VStack>
+                                                                </HStack>
+                                                
+                                                                {/* Action Buttons with Floating Effect */}
+                                                                <HStack style={{ gap: 8, alignItems: "center" }}>
+                                                                    <Button 
+                                                                        size="md"
+                                                                        action="secondary"
+                                                                        onPress={() => handleEdit(item)}
+                                                                        isDisabled={isLoading}
+                                                                        style={{
+                                                                            padding: 8,
+                                                                            borderRadius: 12,
+                                                                            backgroundColor: "transparent"
+                                                                        }}
+                                                                    >
+                                                                        <PencilIcon size={20} color="#4f46e5" />
+                                                                    </Button>
+                                                
+                                                                    <Button 
+                                                                        size="md"
+                                                                        action="secondary"
+                                                                        onPress={() => handleRemove(item.id)}
+                                                                        isDisabled={isLoading}
+                                                                        style={{
+                                                                            padding: 8,
+                                                                            borderRadius: 12,
+                                                                            backgroundColor: "transparent"
+                                                                        }}
+                                                                    >
+                                                                        <MinusCircleIcon size={20} color="#dc2626" />
+                                                                    </Button>
+                                                
+                                                                    <Button 
+                                                                        size="md"
+                                                                        action="secondary"
+                                                                        onPress={() => { setDeleteItemId(item.id); setShowDeleteModal(true); }}
+                                                                        isDisabled={isLoading}
+                                                                        style={{
+                                                                            padding: 8,
+                                                                            borderRadius: 12,
+                                                                            backgroundColor: "transparent"
+                                                                        }}
+                                                                    >
+                                                                        <Trash2Icon size={20} color="#dc2626" />
+                                                                    </Button>
+                                                                </HStack>
                                                             </HStack>
-                                                        </HStack>
-                                                    </VStack>
-                                                ))}
+                                                
+                                                            {/* Points Display with Glowing Effect */}
+                                                            {item.pointsToRedeem > 0 && (
+                                                                <HStack style={{ 
+                                                                    marginTop: 12,
+                                                                    padding: 10,
+                                                                    borderRadius: 12,
+                                                                    backgroundColor: "rgba(255, 215, 0, 0.1)",
+                                                                    borderWidth: 1,
+                                                                    borderColor: "rgba(255, 215, 0, 0.3)",
+                                                                    alignItems: "center",
+                                                                    gap: 8
+                                                                }}>
+                                                                    <SparklesIcon size={16} color="#eab308" />
+                                                                    <Text style={{ 
+                                                                        fontSize: 14, 
+                                                                        fontWeight: "800", 
+                                                                        color: "#eab308",
+                                                                        textShadowColor: "rgba(234, 179, 8, 0.2)",
+                                                                        textShadowOffset: { width: 0, height: 0 },
+                                                                        textShadowRadius: 4
+                                                                    }}>
+                                                                        Required Points: {item.pointsToRedeem} 
+                                                                    </Text>
+                                                                </HStack>
+                                                            )}
+                                                        </VStack>
+                                                    ))}
+                                                </VStack>
+                                            ))
+                                        ) : (
+                                            <VStack
+                                                style={{
+                                                    margin: "auto",
+                                                    width: "100%",
+                                                    maxWidth: 500,
+                                                    backgroundColor: "#f8fafc",
+                                                    borderRadius: 16,
+                                                    padding: 32,
+                                                    gap: 16,
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    shadowColor: "#000",
+                                                    shadowOffset: { width: 0, height: 4 },
+                                                    shadowOpacity: 0.1,
+                                                    shadowRadius: 8,
+                                                    elevation: 4
+                                                }}
+                                            >
+                                                <HStack style={{ gap: 8, alignItems: "center" }}>
+                                                    <ScanIcon size={24} color="#3b82f6" />
+                                                    <Text
+                                                        style={{
+                                                            fontSize: 16,
+                                                            fontWeight: "600",
+                                                            color: "black",
+                                                            textAlign: "center",
+                                                            letterSpacing: 1
+                                                        }}
+                                                    >
+                                                        Scan results will appear here!
+                                                    </Text>
+                                                </HStack>
                                             </VStack>
-                                        ))
-                                    ) : (
-                                        <Text style={{ color: "$gray11" }}>Scan results will appear here</Text>
-                                    )}
-                                </VStack>
+                                        )}
+                                    </VStack>
 
-                                {/* Known Items Editing Modal */}
-                                <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} size="lg">
-                                    <ModalBackdrop />
-                                    <ModalContent>
-                                        <ModalHeader>
-                                            <Heading size="md" className="text-typography-950">Edit Items</Heading>
-                                            <ModalCloseButton>
-                                                <Icon as={CloseIcon} size="md" className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900" />
-                                            </ModalCloseButton>
-                                        </ModalHeader>
-                                        <ModalBody>
-                                            <FormControl style={{ marginBottom: 12 }}>
-                                                <FormControlLabel>
-                                                    <FormControlLabelText>Barcode</FormControlLabelText>
-                                                </FormControlLabel>
-                                                <Input isDisabled={isLoading}>
-                                                    <InputField ref={inputRef} value={editingBarcode} onChangeText={setEditingBarcode} placeholder="Enter Item's Barcode" style={{ height: 40, width: "100%" }} />
-                                                </Input>
-                                            </FormControl>
+                                    {/* Known Items Editing Modal */}
+                                    <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} size="lg">
+                                        <ModalBackdrop />
+                                        <ModalContent>
+                                            <ModalHeader>
+                                                <Heading size="md" className="text-typography-950">Edit Items</Heading>
+                                                <ModalCloseButton>
+                                                    <Icon as={CloseIcon} size="md" className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900" />
+                                                </ModalCloseButton>
+                                            </ModalHeader>
+                                            <ModalBody>
+                                                <FormControl style={{ marginBottom: 12 }}>
+                                                    <FormControlLabel>
+                                                        <FormControlLabelText>Barcode</FormControlLabelText>
+                                                    </FormControlLabel>
+                                                    <Input isDisabled={isLoading}>
+                                                        <InputField ref={inputRef} value={editingBarcode} onChangeText={setEditingBarcode} placeholder="Enter Item's Barcode" style={{ height: 40, width: "100%" }} />
+                                                    </Input>
+                                                </FormControl>
 
-                                            <FormControl style={{ marginBottom: 12 }}>
-                                                <FormControlLabel>
-                                                    <FormControlLabelText>Item Name</FormControlLabelText>
-                                                </FormControlLabel>
-                                                <Input isDisabled={isLoading}>
-                                                    <InputField ref={inputRef} value={editingItemName} onChangeText={setEditingItemName} placeholder="Enter Item Name" style={{ height: 40, width: "100%" }} />
-                                                </Input>
-                                            </FormControl>
+                                                <FormControl style={{ marginBottom: 12 }}>
+                                                    <FormControlLabel>
+                                                        <FormControlLabelText>Item Name</FormControlLabelText>
+                                                    </FormControlLabel>
+                                                    <Input isDisabled={isLoading}>
+                                                        <InputField ref={inputRef} value={editingItemName} onChangeText={setEditingItemName} placeholder="Enter Item Name" style={{ height: 40, width: "100%" }} />
+                                                    </Input>
+                                                </FormControl>
 
-                                            <FormControl style={{ marginBottom: 12 }}>
-                                                <FormControlLabel>
-                                                    <FormControlLabelText>Item Description</FormControlLabelText>
-                                                </FormControlLabel>
-                                                <Input isDisabled={isLoading}>
-                                                    <InputField ref={inputRef} value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder="Enter Item Description" style={{ height: 40, width: "100%" }} />
-                                                </Input>
-                                            </FormControl>
+                                                <FormControl style={{ marginBottom: 12 }}>
+                                                    <FormControlLabel>
+                                                        <FormControlLabelText>Item Description</FormControlLabelText>
+                                                    </FormControlLabel>
+                                                    <Input isDisabled={isLoading}>
+                                                        <InputField ref={inputRef} value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder="Enter Item Description" style={{ height: 40, width: "100%" }} />
+                                                    </Input>
+                                                </FormControl>
 
-                                            <FormControl style={{ marginBottom: 12 }}>
-                                                <FormControlLabel>
-                                                    <FormControlLabelText>Item Group</FormControlLabelText>
-                                                </FormControlLabel>
-                                                <Select isDisabled={isLoading} selectedValue={editingItemGroup} onValueChange={setEditingItemGroup}>
-                                                    <SelectTrigger variant="outline" size="md">
-                                                        <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
-                                                        <SelectIcon className="mr-3" as={ChevronDownIcon} />
-                                                    </SelectTrigger>
-                                                    <SelectPortal>
-                                                        <SelectBackdrop />
-                                                        <SelectContent >
-                                                            <SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
-                                                            {Object.entries(groupLabels).map(([value, label]) => (
-                                                                <SelectItem key={value} label={label} value={value} />
-                                                            ))}
-                                                        </SelectContent>
-                                                    </SelectPortal>
-                                                </Select>
-                                            </FormControl>
+                                                <FormControl style={{ marginBottom: 12 }}>
+                                                    <FormControlLabel>
+                                                        <FormControlLabelText>Item Group</FormControlLabelText>
+                                                    </FormControlLabel>
+                                                    <Select isDisabled={isLoading} selectedValue={editingItemGroup} onValueChange={setEditingItemGroup}>
+                                                        <SelectTrigger variant="outline" size="md">
+                                                            <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
+                                                            <SelectIcon className="mr-3" as={ChevronDownIcon} />
+                                                        </SelectTrigger>
+                                                        <SelectPortal>
+                                                            <SelectBackdrop />
+                                                            <SelectContent >
+                                                                <SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
+                                                                {Object.entries(groupLabels).map(([value, label]) => (
+                                                                    <SelectItem key={value} label={label} value={value} />
+                                                                ))}
+                                                            </SelectContent>
+                                                        </SelectPortal>
+                                                    </Select>
+                                                </FormControl>
 
-                                            <FormControl style={{ marginBottom: 12 }}>
-                                                <FormControlLabel>
-                                                    <FormControlLabelText>Location</FormControlLabelText>
-                                                </FormControlLabel>
-                                                <Input isDisabled={isLoading}>
-                                                    <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder="Enter Item Warehouse Location" style={{ height: 40, width: "100%" }} />
-                                                </Input>
-                                            </FormControl>
+                                                <FormControl style={{ marginBottom: 12 }}>
+                                                    <FormControlLabel>
+                                                        <FormControlLabelText>Location</FormControlLabelText>
+                                                    </FormControlLabel>
+                                                    <Input isDisabled={isLoading}>
+                                                        <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder="Enter Item Warehouse Location" style={{ height: 40, width: "100%" }} />
+                                                    </Input>
+                                                </FormControl>
 
-                                            <FormControl style={{ marginBottom: 12 }}>
-                                                <FormControlLabel>
-                                                    <FormControlLabelText>Item Count</FormControlLabelText>
-                                                </FormControlLabel>
-                                                <Input isDisabled={isLoading}>
-                                                    <InputField ref={inputRef} value={editingItemCount} onChangeText={setEditingItemCount} placeholder="Enter Item Stock Count" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
-                                                </Input>
-                                            </FormControl>
+                                                <FormControl style={{ marginBottom: 12 }}>
+                                                    <FormControlLabel>
+                                                        <FormControlLabelText>Item Count</FormControlLabelText>
+                                                    </FormControlLabel>
+                                                    <Input isDisabled={isLoading}>
+                                                        <InputField ref={inputRef} value={editingItemCount} onChangeText={setEditingItemCount} placeholder="Enter Item Stock Count" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
+                                                    </Input>
+                                                </FormControl>
 
-                                            <FormControl style={{ marginBottom: 12 }}>
-                                                <FormControlLabel>
-                                                    <FormControlLabelText>Points to Redeem</FormControlLabelText>
-                                                </FormControlLabel>
-                                                <Input isDisabled={isLoading}>
-                                                    <InputField ref={inputRef} value={editingItemPointsToRedeem} onChangeText={setEditingItemPointsToRedeem} placeholder="Enter Points To Redeem For Item" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
-                                                </Input>
-                                            </FormControl>
-                                        </ModalBody>
-                                        <ModalFooter>
-                                            <Button variant="outline" action="secondary" onPress={() => setShowEditModal(false)}>Cancel</Button>
-                                            <Button onPress={saveEditedBarcode} isDisabled={isLoading || !hasChanges}>
-                                                <ButtonText>Save</ButtonText>
-                                            </Button>
-                                        </ModalFooter>
-                                    </ModalContent>
-                                </Modal>
+                                                <FormControl style={{ marginBottom: 12 }}>
+                                                    <FormControlLabel>
+                                                        <FormControlLabelText>Points to Redeem</FormControlLabelText>
+                                                    </FormControlLabel>
+                                                    <Input isDisabled={isLoading}>
+                                                        <InputField ref={inputRef} value={editingItemPointsToRedeem} onChangeText={setEditingItemPointsToRedeem} placeholder="Enter Points To Redeem For Item" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
+                                                    </Input>
+                                                </FormControl>
+                                            </ModalBody>
+                                            <ModalFooter>
+                                                <Button variant="outline" action="secondary" onPress={() => setShowEditModal(false)}>Cancel</Button>
+                                                <Button onPress={saveEditedBarcode} isDisabled={isLoading || !hasChanges}>
+                                                    <ButtonText>Save</ButtonText>
+                                                </Button>
+                                            </ModalFooter>
+                                        </ModalContent>
+                                    </Modal>
 
 
-                                {/* Unknown Items Editing Modal */}
-                                <Modal
-                                    isOpen={showUnknownEditModal}
-                                    onClose={() => setShowUnknownEditModal(false)}
-                                    size="lg"
-                                >
-                                    <ModalBackdrop />
-                                    <ModalContent>
-                                        <ModalHeader>
-                                            <Heading size="md" className="text-typography-950">
-                                                Add New Item
-                                            </Heading>
-                                            <ModalCloseButton>
-                                                <Icon
-                                                    as={CloseIcon}
-                                                    size="md"
-                                                    className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
-                                                />
-                                            </ModalCloseButton>
-                                        </ModalHeader>
-                                        <ModalBody>
-                                            <FormControl style={{ marginBottom: 12 }}>
-                                                <FormControlLabel>
-                                                    <FormControlLabelText>Barcode</FormControlLabelText>
-                                                </FormControlLabel>
-                                                <Input isDisabled={isLoading}>
-                                                    <InputField ref={inputRef} value={editingBarcode} onChangeText={setEditingBarcode} placeholder="Enter Item's Barcode" style={{ height: 40, width: "100%" }} />
-                                                </Input>
-                                            </FormControl>
+                                    {/* Unknown Items Editing Modal */}
+                                    <Modal
+                                        isOpen={showUnknownEditModal}
+                                        onClose={() => setShowUnknownEditModal(false)}
+                                        size="lg"
+                                    >
+                                        <ModalBackdrop />
+                                        <ModalContent>
+                                            <ModalHeader>
+                                                <Heading size="md" className="text-typography-950">
+                                                    Add New Item
+                                                </Heading>
+                                                <ModalCloseButton>
+                                                    <Icon
+                                                        as={CloseIcon}
+                                                        size="md"
+                                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
+                                                    />
+                                                </ModalCloseButton>
+                                            </ModalHeader>
+                                            <ModalBody>
+                                                <FormControl style={{ marginBottom: 12 }}>
+                                                    <FormControlLabel>
+                                                        <FormControlLabelText>Barcode</FormControlLabelText>
+                                                    </FormControlLabel>
+                                                    <Input isDisabled={isLoading}>
+                                                        <InputField ref={inputRef} value={editingBarcode} onChangeText={setEditingBarcode} placeholder="Enter Item's Barcode" style={{ height: 40, width: "100%" }} />
+                                                    </Input>
+                                                </FormControl>
 
-                                            <FormControl style={{ marginBottom: 12 }}>
-                                                <FormControlLabel>
-                                                    <FormControlLabelText>Item Name</FormControlLabelText>
-                                                </FormControlLabel>
-                                                <Input isDisabled={isLoading}>
-                                                    <InputField ref={inputRef} value={editingItemName} onChangeText={setEditingItemName} placeholder="Enter Item Name" style={{ height: 40, width: "100%" }} />
-                                                </Input>
-                                            </FormControl>
+                                                <FormControl style={{ marginBottom: 12 }}>
+                                                    <FormControlLabel>
+                                                        <FormControlLabelText>Item Name</FormControlLabelText>
+                                                    </FormControlLabel>
+                                                    <Input isDisabled={isLoading}>
+                                                        <InputField ref={inputRef} value={editingItemName} onChangeText={setEditingItemName} placeholder="Enter Item Name" style={{ height: 40, width: "100%" }} />
+                                                    </Input>
+                                                </FormControl>
 
-                                            <FormControl style={{ marginBottom: 12 }}>
-                                                <FormControlLabel>
-                                                    <FormControlLabelText>Item Description</FormControlLabelText>
-                                                </FormControlLabel>
-                                                <Input isDisabled={isLoading}>
-                                                    <InputField ref={inputRef} value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder="Enter Item Description" style={{ height: 40, width: "100%" }} />
-                                                </Input>
-                                            </FormControl>
+                                                <FormControl style={{ marginBottom: 12 }}>
+                                                    <FormControlLabel>
+                                                        <FormControlLabelText>Item Description</FormControlLabelText>
+                                                    </FormControlLabel>
+                                                    <Input isDisabled={isLoading}>
+                                                        <InputField ref={inputRef} value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder="Enter Item Description" style={{ height: 40, width: "100%" }} />
+                                                    </Input>
+                                                </FormControl>
 
-                                            <FormControl style={{ marginBottom: 12 }}>
-                                                <FormControlLabel>
-                                                    <FormControlLabelText>Item Group</FormControlLabelText>
-                                                </FormControlLabel>
-                                                <Select isDisabled={isLoading} selectedValue={editingItemGroup} onValueChange={setEditingItemGroup}>
-                                                    <SelectTrigger variant="outline" size="md">
-                                                        <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
-                                                        <SelectIcon className="mr-3" as={ChevronDownIcon} />
-                                                    </SelectTrigger>
-                                                    <SelectPortal>
-                                                        <SelectBackdrop />
-                                                        <SelectContent>
-                                                            <SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
-                                                            {Object.entries(groupLabels).map(([value, label]) => (
-                                                                <SelectItem key={value} label={label} value={value} />
-                                                            ))}
-                                                        </SelectContent>
-                                                    </SelectPortal>
-                                                </Select>
-                                            </FormControl>
+                                                <FormControl style={{ marginBottom: 12 }}>
+                                                    <FormControlLabel>
+                                                        <FormControlLabelText>Item Group</FormControlLabelText>
+                                                    </FormControlLabel>
+                                                    <Select isDisabled={isLoading} selectedValue={editingItemGroup} onValueChange={setEditingItemGroup}>
+                                                        <SelectTrigger variant="outline" size="md">
+                                                            <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
+                                                            <SelectIcon className="mr-3" as={ChevronDownIcon} />
+                                                        </SelectTrigger>
+                                                        <SelectPortal>
+                                                            <SelectBackdrop />
+                                                            <SelectContent>
+                                                                <SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
+                                                                {Object.entries(groupLabels).map(([value, label]) => (
+                                                                    <SelectItem key={value} label={label} value={value} />
+                                                                ))}
+                                                            </SelectContent>
+                                                        </SelectPortal>
+                                                    </Select>
+                                                </FormControl>
 
-                                            <FormControl style={{ marginBottom: 12 }}>
-                                                <FormControlLabel>
-                                                    <FormControlLabelText>Item Warehouse Location</FormControlLabelText>
-                                                </FormControlLabel>
-                                                <Input isDisabled={isLoading}>
-                                                    <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder="Enter Item Warehouse Location" style={{ height: 40, width: "100%" }} />
-                                                </Input>
-                                            </FormControl>
+                                                <FormControl style={{ marginBottom: 12 }}>
+                                                    <FormControlLabel>
+                                                        <FormControlLabelText>Item Warehouse Location</FormControlLabelText>
+                                                    </FormControlLabel>
+                                                    <Input isDisabled={isLoading}>
+                                                        <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder="Enter Item Warehouse Location" style={{ height: 40, width: "100%" }} />
+                                                    </Input>
+                                                </FormControl>
 
-                                            <FormControl style={{ marginBottom: 12 }}>
-                                                <FormControlLabel>
-                                                    <FormControlLabelText>Item Count</FormControlLabelText>
-                                                </FormControlLabel>
-                                                <Input isDisabled={isLoading}>
-                                                    <InputField ref={inputRef} value={editingItemCount} onChangeText={setEditingItemCount} placeholder="Enter Item Stock Count" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
-                                                </Input>
-                                            </FormControl>
+                                                <FormControl style={{ marginBottom: 12 }}>
+                                                    <FormControlLabel>
+                                                        <FormControlLabelText>Item Count</FormControlLabelText>
+                                                    </FormControlLabel>
+                                                    <Input isDisabled={isLoading}>
+                                                        <InputField ref={inputRef} value={editingItemCount} onChangeText={setEditingItemCount} placeholder="Enter Item Stock Count" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
+                                                    </Input>
+                                                </FormControl>
 
-                                            <FormControl style={{ marginBottom: 12 }}>
-                                                <FormControlLabel>
-                                                    <FormControlLabelText>Points to Redeem</FormControlLabelText>
-                                                </FormControlLabel>
-                                                <Input isDisabled={isLoading}>
-                                                    <InputField ref={inputRef} value={editingItemPointsToRedeem} onChangeText={setEditingItemPointsToRedeem} placeholder="Enter Points To Redeem For Item" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
-                                                </Input>
-                                            </FormControl>
-                                        </ModalBody>
-                                        <ModalFooter>
-                                            <Button
-                                                variant="outline"
-                                                action="secondary"
-                                                onPress={handleCancelUnknownItem}
-                                                isDisabled={isLoading}
-                                            >
-                                                <ButtonText>Cancel</ButtonText>
-                                            </Button>
-                                            <Button
-                                                onPress={saveEditedUnknownItem}
-                                                isDisabled={isLoading || !hasChanges}
-                                            >
-                                                <ButtonText>Save</ButtonText>
-                                            </Button>
-                                        </ModalFooter>
-                                    </ModalContent>
-                                </Modal>
+                                                <FormControl style={{ marginBottom: 12 }}>
+                                                    <FormControlLabel>
+                                                        <FormControlLabelText>Points to Redeem</FormControlLabelText>
+                                                    </FormControlLabel>
+                                                    <Input isDisabled={isLoading}>
+                                                        <InputField ref={inputRef} value={editingItemPointsToRedeem} onChangeText={setEditingItemPointsToRedeem} placeholder="Enter Points To Redeem For Item" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
+                                                    </Input>
+                                                </FormControl>
+                                            </ModalBody>
+                                            <ModalFooter>
+                                                <Button
+                                                    variant="outline"
+                                                    action="secondary"
+                                                    onPress={handleCancelUnknownItem}
+                                                    isDisabled={isLoading}
+                                                >
+                                                    <ButtonText>Cancel</ButtonText>
+                                                </Button>
+                                                <Button
+                                                    onPress={saveEditedUnknownItem}
+                                                    isDisabled={isLoading || !hasChanges}
+                                                >
+                                                    <ButtonText>Save</ButtonText>
+                                                </Button>
+                                            </ModalFooter>
+                                        </ModalContent>
+                                    </Modal>
 
-                                {/* Delete Confirmation Modal */}
-                                <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} size="md">
-                                    <ModalBackdrop />
-                                    <ModalContent>
-                                        <ModalHeader>
-                                            <Heading size="md">Confirm Deletion</Heading>
-                                            <ModalCloseButton>
-                                                <Icon as={CloseIcon} size="md" />
-                                            </ModalCloseButton>
-                                        </ModalHeader>
-                                        <ModalBody>
-                                            <Text size="sm">Are you sure you want to delete this item? This action cannot be undone.</Text>
-                                        </ModalBody>
-                                        <ModalFooter>
-                                            <Button variant="outline" action="secondary" onPress={() => setShowDeleteModal(false)}>
-                                                <ButtonText>Cancel</ButtonText>
-                                            </Button>
-                                            <Button
-                                                action="negative"
-                                                onPress={() => {
-                                                    if (deleteItemId) handleDelete(deleteItemId);
-                                                    setShowDeleteModal(false);
-                                                }}
-                                            >
-                                                <ButtonText>Delete</ButtonText>
-                                            </Button>
-                                        </ModalFooter>
-                                    </ModalContent>
-                                </Modal>
+                                    {/* Delete Confirmation Modal */}
+                                    <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} size="md">
+                                        <ModalBackdrop />
+                                        <ModalContent>
+                                            <ModalHeader>
+                                                <Heading size="md">Confirm Deletion</Heading>
+                                                <ModalCloseButton>
+                                                    <Icon as={CloseIcon} size="md" />
+                                                </ModalCloseButton>
+                                            </ModalHeader>
+                                            <ModalBody>
+                                                <Text size="sm">Are you sure you want to delete this item? This action cannot be undone.</Text>
+                                            </ModalBody>
+                                            <ModalFooter>
+                                                <Button variant="outline" action="secondary" onPress={() => setShowDeleteModal(false)}>
+                                                    <ButtonText>Cancel</ButtonText>
+                                                </Button>
+                                                <Button
+                                                    action="negative"
+                                                    onPress={() => {
+                                                        if (deleteItemId) handleDelete(deleteItemId);
+                                                        setShowDeleteModal(false);
+                                                    }}
+                                                >
+                                                    <ButtonText>Delete</ButtonText>
+                                                </Button>
+                                            </ModalFooter>
+                                        </ModalContent>
+                                    </Modal>
 
-                                {/* Receive Confirmation Modal */}
-                                <Modal isOpen={showReceiveModal} onClose={() => setShowReceiveModal(false)} size="md">
-                                    <ModalBackdrop />
-                                    <ModalContent>
-                                        <ModalHeader>
-                                            <Heading size="md">Confirm Receive</Heading>
-                                            <ModalCloseButton>
-                                                <Icon as={CloseIcon} size="md" />
-                                            </ModalCloseButton>
-                                        </ModalHeader>
-                                        <ModalBody>
-                                            <Text size="sm">Are you sure you want to receive all selected items?</Text>
-                                        </ModalBody>
-                                        <ModalFooter>
-                                            <Button variant="outline" action="secondary" onPress={() => setShowReceiveModal(false)}>
-                                                <ButtonText>Cancel</ButtonText>
-                                            </Button>
-                                            <Button
-                                                onPress={() => {
-                                                    handleReceive();
-                                                    setShowReceiveModal(false);
-                                                }}
-                                            >
-                                                <ButtonText>Confirm</ButtonText>
-                                            </Button>
-                                        </ModalFooter>
-                                    </ModalContent>
-                                </Modal>
+                                    {/* Receive Confirmation Modal */}
+                                    <Modal isOpen={showReceiveModal} onClose={() => setShowReceiveModal(false)} size="md">
+                                        <ModalBackdrop />
+                                        <ModalContent>
+                                            <ModalHeader>
+                                                <Heading size="md">Confirm Receive</Heading>
+                                                <ModalCloseButton>
+                                                    <Icon as={CloseIcon} size="md" />
+                                                </ModalCloseButton>
+                                            </ModalHeader>
+                                            <ModalBody>
+                                                <Text size="sm">Are you sure you want to receive all selected items?</Text>
+                                            </ModalBody>
+                                            <ModalFooter>
+                                                <Button variant="outline" action="secondary" onPress={() => setShowReceiveModal(false)}>
+                                                    <ButtonText>Cancel</ButtonText>
+                                                </Button>
+                                                <Button
+                                                    onPress={() => {
+                                                        handleReceive();
+                                                        setShowReceiveModal(false);
+                                                    }}
+                                                >
+                                                    <ButtonText>Confirm</ButtonText>
+                                                </Button>
+                                            </ModalFooter>
+                                        </ModalContent>
+                                    </Modal>
 
-                                {/* Dispatch Confirmation Modal */}
-                                <Modal isOpen={showDispatchModal} onClose={() => setShowDispatchModal(false)} size="md">
-                                    <ModalBackdrop />
-                                    <ModalContent>
-                                        <ModalHeader>
-                                            <Heading size="md">Confirm Dispatch</Heading>
-                                            <ModalCloseButton>
-                                                <Icon as={CloseIcon} size="md" />
-                                            </ModalCloseButton>
-                                        </ModalHeader>
-                                        <ModalBody>
-                                            <Text size="sm">
-                                                Are you sure you want to dispatch the selected items? This will deduct the dispatched quantity from the available stock. Note: Only items with sufficient stock will be dispatched.
-                                            </Text>
-                                        </ModalBody>
-                                        <ModalFooter>
-                                            <Button variant="outline" action="secondary" onPress={() => setShowDispatchModal(false)}>
-                                                <ButtonText>Cancel</ButtonText>
-                                            </Button>
-                                            <Button onPress={handleDispatch}>
-                                                <ButtonText>Confirm</ButtonText>
-                                            </Button>
-                                        </ModalFooter>
-                                    </ModalContent>
-                                </Modal>
-                            </ScrollView>
+                                    {/* Dispatch Confirmation Modal */}
+                                    <Modal isOpen={showDispatchModal} onClose={() => setShowDispatchModal(false)} size="md">
+                                        <ModalBackdrop />
+                                        <ModalContent>
+                                            <ModalHeader>
+                                                <Heading size="md">Confirm Dispatch</Heading>
+                                                <ModalCloseButton>
+                                                    <Icon as={CloseIcon} size="md" />
+                                                </ModalCloseButton>
+                                            </ModalHeader>
+                                            <ModalBody>
+                                                <Text size="sm">
+                                                    Are you sure you want to dispatch the selected items? This will deduct the dispatched quantity from the available stock. Note: Only items with sufficient stock will be dispatched.
+                                                </Text>
+                                            </ModalBody>
+                                            <ModalFooter>
+                                                <Button variant="outline" action="secondary" onPress={() => setShowDispatchModal(false)}>
+                                                    <ButtonText>Cancel</ButtonText>
+                                                </Button>
+                                                <Button onPress={handleDispatch}>
+                                                    <ButtonText>Confirm</ButtonText>
+                                                </Button>
+                                            </ModalFooter>
+                                        </ModalContent>
+                                    </Modal>
+                                </ScrollView>
+                            </VStack>
                         </VStack>
                     </HStack>
                     <HStack
@@ -1023,7 +1218,7 @@ export default function ScannerScreen() {
                                     isChecked ? selectAll() : unselectAll();
                                 }}
                             >
-                                <CheckboxIndicator>
+                                <CheckboxIndicator style={{ backgroundColor: allSelected ? "#1B9CFF" : "white", borderColor: "#1B9CFF" }}>
                                     <CheckboxIcon as={CheckIcon} color="white" />
                                 </CheckboxIndicator>
                             </Checkbox>
