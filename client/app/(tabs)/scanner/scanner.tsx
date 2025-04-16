@@ -1006,7 +1006,10 @@ export default function ScannerScreen() {
                     <HStack
                         style={{
                             justifyContent: "space-between",
-                            padding: 12,
+                            paddingTop: 12,
+                            paddingBottom: 12,
+                            paddingLeft: 20,
+                            paddingRight: 20,
                             backgroundColor: "white",
                             display: (pendingItems.length + pendingUnknownItems.length) > 0 ? "flex" : "none",
                         }}
@@ -1039,7 +1042,7 @@ export default function ScannerScreen() {
                             </Button>
                         </HStack>
 
-                        <HStack space="sm" style={{ alignItems: "center" }}>
+                        <HStack space="xl" style={{ alignItems: "center" }}>
                             {selectedInsufficientStock && (
                                 <Text style={{ color: "red", fontSize: 12, fontWeight: "500" }} >
                                     Not enough stock to dispatch.
