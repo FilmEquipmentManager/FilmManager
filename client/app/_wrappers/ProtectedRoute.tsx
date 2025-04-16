@@ -1,6 +1,6 @@
 import { useAuth } from "../contexts/AuthContext";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useRouter, usePathname } from "expo-router";
 import { Spinner } from "@/components/ui/spinner";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
@@ -8,7 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
-import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
+import {
+    useToast,
+    Toast,
+    ToastTitle,
+    ToastDescription,
+} from "@/components/ui/toast";
 import { auth } from "@/firebase/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useEffect, useState, useRef } from "react";
@@ -16,6 +21,7 @@ import { Input, InputField } from "@/components/ui/input";
 import { Eye, EyeClosed, LogInIcon } from "lucide-react-native";
 import { Platform } from "react-native";
 import server from "../../networking";
+import { useRoute } from "@react-navigation/native";
 
 const hasRedirectedRef = useRef(false);
 
@@ -132,7 +138,11 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
         const isPasswordValid = validatePassword(password.trim());
         const isUsernameValid = validateUsername(username.trim());
 
-        return (isEmailValid && isPasswordValid && (isRegister ? isUsernameValid : true));
+        return (
+            isEmailValid &&
+            isPasswordValid &&
+            (isRegister ? isUsernameValid : true)
+        );
     };
 
     const handleSubmit = async () => {
@@ -164,7 +174,9 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
                 width: "100%",
                 maxWidth: isWeb ? 480 : "100%",
                 alignSelf: "center",
-                boxShadow: isWeb ? "0px 4px 20px rgba(0, 0, 0, 0.1)" : undefined,
+                boxShadow: isWeb
+                    ? "0px 4px 20px rgba(0, 0, 0, 0.1)"
+                    : undefined,
             }}
         >
             <VStack space="md" style={{ padding: isWeb ? 24 : 16 }}>
@@ -310,7 +322,9 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
                             fontSize: isWeb ? 15 : 14,
                         }}
                     >
-                        {isRegister ? "Already have an account? Login" : "Don't have an account? Register"}
+                        {isRegister
+                            ? "Already have an account? Login"
+                            : "Don't have an account? Register"}
                     </Text>
                 </Button>
             </VStack>
@@ -320,13 +334,11 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 
 type ProtectedRouteProps = {
     showAuth?: boolean;
-    allowedRoles?: string[];
     children: React.ReactNode | ((userData: any) => React.ReactNode);
 };
 
 export default function ProtectedRoute({
     showAuth,
-    allowedRoles,
     children,
 }: ProtectedRouteProps) {
     const [isRegister, setIsRegister] = useState(false);
@@ -334,6 +346,8 @@ export default function ProtectedRoute({
     const router = useRouter();
     const isWeb = Platform.OS === "web";
     const toast = useToast();
+
+    const pathname = usePathname();
 
     const showToast = (title: string, description: string) => {
         const newId = Math.random();
@@ -377,25 +391,44 @@ export default function ProtectedRoute({
                 showToast("Success!", "Logged in successfully.");
             }
         } catch (error: any) {
-            if (error.response && error.response.data && error.response.data.error && typeof error.response.data.error === "string") {
+            if (
+                error.response &&
+                error.response.data &&
+                error.response.data.error &&
+                typeof error.response.data.error === "string"
+            ) {
                 if (error.response.data.error.startsWith("UERROR")) {
-                    showToast("Uh-oh!", error.response.data.error.substring("UERROR:".length));
+                    showToast(
+                        "Uh-oh!",
+                        error.response.data.error.substring("UERROR:".length)
+                    );
                 } else {
-                    showToast("Uh-oh!", error.response.data.error.substring("ERROR:".length));
+                    showToast(
+                        "Uh-oh!",
+                        error.response.data.error.substring("ERROR:".length)
+                    );
                 }
             }
         }
     };
 
     useEffect(() => {
-        if (userData && allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(userData.role) && !hasRedirectedRef.current) {
-            hasRedirectedRef.current = true;
+        if (pathname) {
+            if (userData) {
+                console.log("Path: ", pathname);
 
-            showToast("Access Denied", "You do not have permission to access this page.");
-            
-            router.replace("/auth/account");
+                if (userData.role === "User" && (!pathname.startsWith("/auth") && !pathname.startsWith("/client"))) {
+                    router.replace("/auth/account")
+                    showToast("Access unauthorised", "You are not permitted to access this page")
+                }
+
+                if (userData.role === "Admin" && (!pathname.startsWith("/auth") && !pathname.startsWith("/admin"))) {
+                    router.replace("/auth/account")
+                    showToast("Access unauthorised", "You are not permitted to access this page")
+                }
+            }
         }
-    }, [userData, allowedRoles]);
+    }, [pathname, userData]);
 
     if (loading) {
         return (
@@ -492,7 +525,8 @@ export default function ProtectedRoute({
                                     marginBottom: 6,
                                 }}
                             >
-                                Please log in or create an account to access your profile and manage your content.
+                                Please log in or create an account to access
+                                your profile and manage your content.
                             </Text>
 
                             <Button
@@ -534,15 +568,6 @@ export default function ProtectedRoute({
                 </LinearGradient>
             );
         }
-    }
-
-    if (
-        userData &&
-        allowedRoles &&
-        allowedRoles.length > 0 &&
-        !allowedRoles.includes(userData.role)
-    ) {
-        return null;
     }
 
     return typeof children === "function" ? children(userData) : children;

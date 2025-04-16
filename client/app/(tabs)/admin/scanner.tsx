@@ -515,7 +515,7 @@ export default function ScannerScreen() {
     // );
 
     return (
-        <ProtectedRoute showAuth={false} allowedRoles={["Admin"]}>
+        <ProtectedRoute showAuth={false}>
             {(userData) => (
                 <LinearGradient
                     colors={isMobileScreen ? ['#00FFDD', '#1B9CFF'] : ['#1B9CFF', '#00FFDD']}
