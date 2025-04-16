@@ -422,7 +422,7 @@ export default function ProtectedRoute({
                     showToast("Access unauthorised", "You are not permitted to access this page")
                 }
 
-                if (userData.role === "Admin" && (!pathname.startsWith("/auth") && !pathname.startsWith("/admin"))) {
+                if (userData.role === "Admin" && (!pathname.startsWith("/auth") && !pathname.startsWith("/admin") && pathname !== "/")) {
                     router.replace("/auth/account")
                     showToast("Access unauthorised", "You are not permitted to access this page")
                 }
