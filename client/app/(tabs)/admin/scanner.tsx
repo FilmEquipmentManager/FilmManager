@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import { ScrollView, useWindowDimensions } from "react-native";
 import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
@@ -1213,8 +1213,8 @@ export default function ScannerScreen() {
                                     <CheckboxIcon as={CheckIcon} color="white" />
                                 </CheckboxIndicator>
                             </Checkbox>
-                            <Text size="md" style={{ color: "black", display: currentMode !== "info" ? "flex" : "none" }} onPress={allSelected ? unselectAll : selectAll}>
-                                Select All
+                            <Text size="md" style={{ color: "black", display: currentMode !== "info" ? "flex" : "none" }} >
+                                {allSelected ? "Unselect All" : "Select All"}
                             </Text>
                             <Button
                                 variant="solid"

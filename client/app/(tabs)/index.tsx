@@ -59,7 +59,7 @@ export default function HomepageScreen() {
                                         : 100
                                     : isShortScreen
                                     ? 36
-                                    : 50,
+                                    : 40,
                                 width: "100%",
                                 alignItems: "center",
                                 height: "5%"
@@ -69,6 +69,7 @@ export default function HomepageScreen() {
                                 numberOfLines={1}
                                 ellipsizeMode="tail"
                                 style={{
+                                    lineHeight: 1,
                                     color: "white",
                                     fontSize: isMobileScreen
                                         ? isShortScreen
@@ -76,10 +77,10 @@ export default function HomepageScreen() {
                                             : 28
                                         : isShortScreen
                                         ? 36
-                                        : 50,
+                                        : 40,
                                     fontWeight: "bold",
                                     textAlign: "center",
-                                    padding: 10
+                                    padding: 8
                                 }}
                             >
                                 {getGreeting()}, {userData?.username}!
