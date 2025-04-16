@@ -11,11 +11,13 @@ import { Text } from "@/components/ui/text";
 import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
 import { auth } from "@/firebase/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Input, InputField } from "@/components/ui/input";
 import { Eye, EyeClosed, LogInIcon } from "lucide-react-native";
 import { Platform } from "react-native";
 import server from "../../networking";
+
+const hasRedirectedRef = useRef(false);
 
 type AuthFormProps = {
     isRegister: boolean;
@@ -27,11 +29,7 @@ type AuthFormProps = {
     switchForm: () => void;
 };
 
-const AuthForm = ({
-    isRegister,
-    onSubmit,
-    switchForm,
-}: AuthFormProps) => {
+const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [username, setUsername] = useState("");
@@ -39,7 +37,7 @@ const AuthForm = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const toast = useToast();
-    
+
     const [emailError, setEmailError] = useState("");
     const [passwordError, setPasswordError] = useState("");
     const [usernameError, setUsernameError] = useState("");
@@ -56,7 +54,11 @@ const AuthForm = ({
             render: ({ id }) => {
                 const uniqueToastId = "toast-" + id;
                 return (
-                    <Toast nativeID={uniqueToastId} action="muted" variant="solid">
+                    <Toast
+                        nativeID={uniqueToastId}
+                        action="muted"
+                        variant="solid"
+                    >
                         <ToastTitle>{title}</ToastTitle>
                         <ToastDescription>{description}</ToastDescription>
                     </Toast>
@@ -81,7 +83,7 @@ const AuthForm = ({
 
     const validatePassword = (password: string) => {
         const errors = [];
-    
+
         if (!password) {
             errors.push("Password is required");
         } else {
@@ -98,7 +100,7 @@ const AuthForm = ({
                 errors.push("Must include a special character");
             }
         }
-    
+
         if (errors.length > 0) {
             setPasswordError(errors.join(", "));
             return false;
@@ -106,7 +108,7 @@ const AuthForm = ({
             setPasswordError("");
             return true;
         }
-    };    
+    };
 
     const validateUsername = (username: string) => {
         if (isRegister && !username) {
@@ -129,20 +131,20 @@ const AuthForm = ({
         const isEmailValid = validateEmail(email.trim());
         const isPasswordValid = validatePassword(password.trim());
         const isUsernameValid = validateUsername(username.trim());
-        
-        return isEmailValid && isPasswordValid && (isRegister ? isUsernameValid : true);
+
+        return (isEmailValid && isPasswordValid && (isRegister ? isUsernameValid : true));
     };
 
     const handleSubmit = async () => {
         setAttemptedSubmit(true);
-        
+
         const isValid = validateForm();
-        
+
         if (!isValid) {
             showToast("Uh-oh!", "Please check your inputs again.");
             return;
         }
-        
+
         try {
             setIsSubmitting(true);
             await onSubmit(email.trim(), password.trim(), username.trim());
@@ -193,7 +195,13 @@ const AuthForm = ({
                             />
                         </Input>
                         {attemptedSubmit && usernameError ? (
-                            <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>
+                            <Text
+                                style={{
+                                    color: "red",
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                }}
+                            >
                                 {usernameError}
                             </Text>
                         ) : null}
@@ -215,7 +223,9 @@ const AuthForm = ({
                         />
                     </Input>
                     {attemptedSubmit && emailError ? (
-                        <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>
+                        <Text
+                            style={{ color: "red", fontSize: 12, marginTop: 4 }}
+                        >
                             {emailError}
                         </Text>
                     ) : null}
@@ -235,11 +245,11 @@ const AuthForm = ({
                                 style={{ fontSize: isWeb ? 16 : 14 }}
                             />
                         </Input>
-                        <Button 
-                            onPress={() => setShowPassword(!showPassword)} 
-                            style={{ 
-                                backgroundColor: "transparent", 
-                                ...(isWeb && { cursor: "pointer" }) 
+                        <Button
+                            onPress={() => setShowPassword(!showPassword)}
+                            style={{
+                                backgroundColor: "transparent",
+                                ...(isWeb && { cursor: "pointer" }),
                             }}
                         >
                             <Icon
@@ -250,7 +260,9 @@ const AuthForm = ({
                         </Button>
                     </HStack>
                     {attemptedSubmit && passwordError ? (
-                        <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>
+                        <Text
+                            style={{ color: "red", fontSize: 12, marginTop: 4 }}
+                        >
                             {passwordError}
                         </Text>
                     ) : null}
@@ -258,42 +270,46 @@ const AuthForm = ({
 
                 <Button
                     onPress={handleSubmit}
-                    style={{ 
-                        backgroundColor: "#1B9CFF", 
+                    style={{
+                        backgroundColor: "#1B9CFF",
                         borderRadius: 8,
                         paddingVertical: isWeb ? 12 : 8,
                         marginTop: 8,
-                        ...(isWeb && { cursor: "pointer" })
+                        ...(isWeb && { cursor: "pointer" }),
                     }}
                     disabled={isSubmitting}
                 >
                     {isSubmitting ? (
                         <Spinner size="small" color={"white"} />
                     ) : (
-                        <Text style={{ 
-                            color: "white", 
-                            fontWeight: "700",
-                            fontSize: isWeb ? 16 : 14
-                        }}>
+                        <Text
+                            style={{
+                                color: "white",
+                                fontWeight: "700",
+                                fontSize: isWeb ? 16 : 14,
+                            }}
+                        >
                             {isRegister ? "Register" : "Login"}
                         </Text>
                     )}
                 </Button>
 
-                <Button 
-                    variant="link" 
-                    onPress={switchForm} 
-                    style={{ 
-                        marginTop: 16, 
+                <Button
+                    variant="link"
+                    onPress={switchForm}
+                    style={{
+                        marginTop: 16,
                         marginBottom: 8,
-                        ...(isWeb && { cursor: "pointer" })
+                        ...(isWeb && { cursor: "pointer" }),
                     }}
                 >
-                    <Text style={{ 
-                        color: "#1B9CFF", 
-                        textAlign: "center",
-                        fontSize: isWeb ? 15 : 14
-                    }}>
+                    <Text
+                        style={{
+                            color: "#1B9CFF",
+                            textAlign: "center",
+                            fontSize: isWeb ? 15 : 14,
+                        }}
+                    >
                         {isRegister ? "Already have an account? Login" : "Don't have an account? Register"}
                     </Text>
                 </Button>
@@ -302,12 +318,21 @@ const AuthForm = ({
     );
 };
 
-export default function ProtectedRoute({ showAuth, children }: { showAuth?: boolean; children: React.ReactNode | ((userData: any) => React.ReactNode) }) {
+type ProtectedRouteProps = {
+    showAuth?: boolean;
+    allowedRoles?: string[];
+    children: React.ReactNode | ((userData: any) => React.ReactNode);
+};
+
+export default function ProtectedRoute({
+    showAuth,
+    allowedRoles,
+    children,
+}: ProtectedRouteProps) {
     const [isRegister, setIsRegister] = useState(false);
     const { userData, loading } = useAuth();
     const router = useRouter();
     const isWeb = Platform.OS === "web";
-
     const toast = useToast();
 
     const showToast = (title: string, description: string) => {
@@ -319,7 +344,11 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
             render: ({ id }) => {
                 const uniqueToastId = "toast-" + id;
                 return (
-                    <Toast nativeID={uniqueToastId} action="muted" variant="solid">
+                    <Toast
+                        nativeID={uniqueToastId}
+                        action="muted"
+                        variant="solid"
+                    >
                         <ToastTitle>{title}</ToastTitle>
                         <ToastDescription>{description}</ToastDescription>
                     </Toast>
@@ -328,7 +357,11 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
         });
     };
 
-    const handleAuth = async (email: string, password: string, username?: string) => {
+    const handleAuth = async (
+        email: string,
+        password: string,
+        username?: string
+    ) => {
         try {
             if (isRegister && username) {
                 await server.post("/api/register", {
@@ -336,12 +369,13 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
                     password,
                     username,
                 });
+
                 await signInWithEmailAndPassword(auth, email, password);
+                showToast("Success!", "Logged in successfully.");
             } else {
                 await signInWithEmailAndPassword(auth, email, password);
+                showToast("Success!", "Logged in successfully.");
             }
-
-            showToast("Success!", "Logged in successfully.");
         } catch (error: any) {
             if (error.response && error.response.data && error.response.data.error && typeof error.response.data.error === "string") {
                 if (error.response.data.error.startsWith("UERROR")) {
@@ -352,6 +386,16 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
             }
         }
     };
+
+    useEffect(() => {
+        if (userData && allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(userData.role) && !hasRedirectedRef.current) {
+            hasRedirectedRef.current = true;
+
+            showToast("Access Denied", "You do not have permission to access this page.");
+            
+            router.replace("/auth/account");
+        }
+    }, [userData, allowedRoles]);
 
     if (loading) {
         return (
@@ -375,11 +419,11 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
                     colors={["#00FFDD", "#1B9CFF"]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 0, y: 1 }}
-                    style={{ 
-                        flex: 1, 
-                        justifyContent: "center", 
+                    style={{
+                        flex: 1,
+                        justifyContent: "center",
                         padding: isWeb ? 40 : 24,
-                        minHeight: isWeb ? "100%" : undefined
+                        minHeight: isWeb ? "100%" : undefined,
                     }}
                 >
                     <AuthForm
@@ -390,18 +434,17 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
                 </LinearGradient>
             );
         } else {
-            // Display a web browser and mobile app friendly screen to welcome the user to the FilmManager app, and have a button that redirects them to /auth/account
             return (
                 <LinearGradient
                     colors={["#00FFDD", "#1B9CFF"]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 0, y: 1 }}
-                    style={{ 
-                        flex: 1, 
-                        justifyContent: "center", 
+                    style={{
+                        flex: 1,
+                        justifyContent: "center",
                         alignItems: "center",
                         padding: isWeb ? 12 : 16,
-                        minHeight: "100%"
+                        minHeight: "100%",
                     }}
                 >
                     <Card
@@ -419,7 +462,15 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
                         }}
                     >
                         <VStack space="xl" style={{ alignItems: "center" }}>
-                            <HStack space="xl" style={{ alignItems: "center", marginTop: 0, display: "flex", flexDirection: "column" }}>
+                            <HStack
+                                space="xl"
+                                style={{
+                                    alignItems: "center",
+                                    marginTop: 0,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                }}
+                            >
                                 <Text
                                     style={{
                                         marginTop: 5,
@@ -431,7 +482,7 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
                                     Welcome to FilmManager
                                 </Text>
                             </HStack>
-                            
+
                             <Text
                                 style={{
                                     fontSize: isWeb ? 13 : 12,
@@ -443,7 +494,7 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
                             >
                                 Please log in or create an account to access your profile and manage your content.
                             </Text>
-                            
+
                             <Button
                                 onPress={() => {
                                     router.push("/auth/account");
@@ -462,7 +513,11 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
                                         justifyContent: "center",
                                     }}
                                 >
-                                    <Icon as={LogInIcon} size="md" color="white" />
+                                    <Icon
+                                        as={LogInIcon}
+                                        size="md"
+                                        color="white"
+                                    />
                                     <Text
                                         style={{
                                             fontSize: 18,
@@ -479,7 +534,16 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
                 </LinearGradient>
             );
         }
-    } else {
-        return typeof children === 'function' ? children(userData) : children;
     }
+
+    if (
+        userData &&
+        allowedRoles &&
+        allowedRoles.length > 0 &&
+        !allowedRoles.includes(userData.role)
+    ) {
+        return null;
+    }
+
+    return typeof children === "function" ? children(userData) : children;
 }

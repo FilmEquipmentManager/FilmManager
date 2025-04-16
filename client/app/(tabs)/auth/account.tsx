@@ -13,7 +13,7 @@ import { Avatar, AvatarFallbackText, AvatarImage } from "@/components/ui/avatar"
 import { signOut } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
 import FirebaseDecoder from "@/app/tools/FirebaseDecoder";
-import ProtectedRoute from "@/app/wrappers/ProtectedRoute";
+import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
 
 export default function ProfileScreen() {
     const [isHovered, setIsHovered] = useState(false);

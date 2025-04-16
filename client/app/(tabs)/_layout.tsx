@@ -144,7 +144,7 @@ export default function TabLayout() {
                 }}
             />
             <Tabs.Screen
-                name="scanner/scanner"
+                name="admin/scanner"
                 options={{
                     href: null,
                 }}

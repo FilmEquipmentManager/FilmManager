@@ -8,7 +8,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useWindowDimensions } from "react-native";
-import ProtectedRoute from "../wrappers/ProtectedRoute";
+import ProtectedRoute from "../_wrappers/ProtectedRoute";
 
 const getGreeting = () => {
     const hour = new Date().getHours();
@@ -41,7 +41,7 @@ export default function HomepageScreen() {
     });
 
     return (
-        <ProtectedRoute showAuth={false}>
+        <ProtectedRoute showAuth={false} allowedRoles={["Admin"]}>
             {(userData) => (
                 <LinearGradient
                     colors={isMobileScreen ? ['#00FFDD', '#1B9CFF'] : ['#1B9CFF', '#00FFDD']}

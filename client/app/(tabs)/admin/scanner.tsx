@@ -15,7 +15,7 @@ import { FormControl, FormControlError, FormControlErrorText, FormControlErrorIc
 import { Icon, CloseIcon, CheckIcon, ChevronDownIcon } from "@/components/ui/icon";
 import Constants from "expo-constants";
 import server from "../../../networking";
-import ProtectedRoute from "@/app/wrappers/ProtectedRoute";
+import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
 import { useFocusEffect } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { AlertTriangleIcon, CheckCircleIcon, MapPinIcon, MinusCircleIcon, PencilIcon, ScanIcon, SparklesIcon, Trash2Icon } from "lucide-react-native";
@@ -528,7 +528,7 @@ export default function ScannerScreen() {
     );
 
     return (
-        <ProtectedRoute showAuth={false}>
+        <ProtectedRoute showAuth={false} allowedRoles={["Admin"]}>
             {(userData) => (
                 <LinearGradient
                     colors={isMobileScreen ? ['#00FFDD', '#1B9CFF'] : ['#1B9CFF', '#00FFDD']}

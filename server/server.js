@@ -131,10 +131,17 @@ app.post('/api/register', async (req, res) => {
         }
     }
     
-    const existingEmail = await admin.auth().getUserByEmail(email);
-    if (existingEmail) {
-        return res.status(400).json({ 
-            error: 'UERROR: Email already taken.' 
+    let existingUser = null;
+    
+    try {
+        existingUser = await admin.auth().getUserByEmail(email);
+    } catch (error) {
+        existingUser = null;
+    }
+
+    if (existingUser) {
+        return res.status(400).json({
+            error: 'UERROR: Email already taken.'
         });
     }
     
@@ -148,6 +155,7 @@ app.post('/api/register', async (req, res) => {
         DM['Users'][userRecord.uid] = {
             username,
             email,
+            role: "User",
             points: 0,
             createdAt: Date.now()
         };
@@ -160,6 +168,7 @@ app.post('/api/register', async (req, res) => {
         });
         
     } catch (error) {
+        console.log("ERROR: " + FirebaseDecoder(error.message));
         return res.status(500).json({
             error: "ERROR: " + FirebaseDecoder(error.message)
         });
