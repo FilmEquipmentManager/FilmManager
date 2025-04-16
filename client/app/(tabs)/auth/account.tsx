@@ -12,7 +12,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Avatar, AvatarFallbackText, AvatarImage } from "@/components/ui/avatar";
 import { signOut } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
-import FirebaseErrorDecoder from "@/app/tools/FirebaseErrorDecoder";
+import FirebaseDecoder from "@/app/tools/FirebaseDecoder";
 import ProtectedRoute from "@/app/wrappers/ProtectedRoute";
 
 export default function ProfileScreen() {
@@ -52,7 +52,7 @@ export default function ProfileScreen() {
             await signOut(auth);
             showToast("Logout Successful", "You have been logged out successfully.");
         } catch (error: any) {
-            showToast("Uh-oh!", FirebaseErrorDecoder({ error: error }));
+            showToast("Uh-oh!", FirebaseDecoder({ error: error }));
         } finally {
             setIsLoggingOut(false);
         }

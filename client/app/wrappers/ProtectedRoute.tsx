@@ -15,7 +15,6 @@ import { useEffect, useState } from "react";
 import { Input, InputField } from "@/components/ui/input";
 import { Eye, EyeClosed, LogInIcon } from "lucide-react-native";
 import { Platform } from "react-native";
-import FirebaseErrorDecoder from "../tools/FirebaseErrorDecoder";
 import server from "../../networking";
 
 type AuthFormProps = {
@@ -25,14 +24,12 @@ type AuthFormProps = {
         password: string,
         username?: string
     ) => Promise<void>;
-    error?: string;
     switchForm: () => void;
 };
 
 const AuthForm = ({
     isRegister,
     onSubmit,
-    error,
     switchForm,
 }: AuthFormProps) => {
     const [email, setEmail] = useState("");
@@ -129,9 +126,9 @@ const AuthForm = ({
     }, [isRegister]);
 
     const validateForm = () => {
-        const isEmailValid = validateEmail(email);
-        const isPasswordValid = validatePassword(password);
-        const isUsernameValid = validateUsername(username);
+        const isEmailValid = validateEmail(email.trim());
+        const isPasswordValid = validatePassword(password.trim());
+        const isUsernameValid = validateUsername(username.trim());
         
         return isEmailValid && isPasswordValid && (isRegister ? isUsernameValid : true);
     };
@@ -148,7 +145,7 @@ const AuthForm = ({
         
         try {
             setIsSubmitting(true);
-            await onSubmit(email, password, username);
+            await onSubmit(email.trim(), password.trim(), username.trim());
         } catch (err) {
             setIsSubmitting(false);
         } finally {
@@ -209,7 +206,7 @@ const AuthForm = ({
                     </Text>
                     <Input variant="underlined" style={{ marginTop: 4 }}>
                         <InputField
-                            value={email}
+                            value={email.trim()}
                             onChangeText={setEmail}
                             placeholder="Enter email"
                             autoCapitalize="none"
@@ -231,7 +228,7 @@ const AuthForm = ({
                     <HStack style={{ alignItems: "center", marginTop: 4 }}>
                         <Input variant="underlined" style={{ flex: 1 }}>
                             <InputField
-                                value={password}
+                                value={password.trim()}
                                 onChangeText={setPassword}
                                 placeholder="Enter password (Min. 12 char)"
                                 secureTextEntry={!showPassword}
@@ -307,7 +304,6 @@ const AuthForm = ({
 
 export default function ProtectedRoute({ showAuth, children }: { showAuth?: boolean; children: React.ReactNode | ((userData: any) => React.ReactNode) }) {
     const [isRegister, setIsRegister] = useState(false);
-    const [authError, setAuthError] = useState("");
     const { userData, loading } = useAuth();
     const router = useRouter();
     const isWeb = Platform.OS === "web";
@@ -341,14 +337,19 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
                     username,
                 });
                 await signInWithEmailAndPassword(auth, email, password);
-                setAuthError('');
             } else {
                 await signInWithEmailAndPassword(auth, email, password);
-                setAuthError('');
             }
+
+            showToast("Success!", "Logged in successfully.");
         } catch (error: any) {
-            setAuthError(error.message);
-            showToast("Uh-oh!", FirebaseErrorDecoder({ error: error.message }));
+            if (error.response && error.response.data && error.response.data.error && typeof error.response.data.error === "string") {
+                if (error.response.data.error.startsWith("UERROR")) {
+                    showToast("Uh-oh!", error.response.data.error.substring("UERROR:".length));
+                } else {
+                    showToast("Uh-oh!", error.response.data.error.substring("ERROR:".length));
+                }
+            }
         }
     };
 
@@ -384,7 +385,6 @@ export default function ProtectedRoute({ showAuth, children }: { showAuth?: bool
                     <AuthForm
                         isRegister={isRegister}
                         onSubmit={handleAuth as any}
-                        error={authError}
                         switchForm={() => setIsRegister(!isRegister)}
                     />
                 </LinearGradient>

@@ -12,6 +12,8 @@ const admin = require("firebase-admin");
 
 const DM = require("./services/DatabaseManager");
 
+const FirebaseDecoder = require("./services/FirebaseDecoder");
+
 const port = process.env.PORT || 3000;
 
 const app = express();
@@ -73,7 +75,7 @@ app.get('/api/user', authMiddleware, async (req, res) => {
     }
 });
 
-app.post('/api/user', authMiddleware, async (req, res) => {
+app.put('/api/updateUserPoints', authMiddleware, async (req, res) => {
     try {
         const { username, points } = req.body;
         
@@ -87,15 +89,56 @@ app.post('/api/user', authMiddleware, async (req, res) => {
 
         res.json({ success: true });
     } catch (error) {
-        console.log(`\n[API] - FAILED: /api/user POST - ${error.stack || error}\n`);
-        res.status(500).json({ error: 'ERROR: Failed to update user' });
+        console.log(`\n[API] - FAILED: /api/updateUserPoints PUT - ${error.stack || error}\n`);
+        res.status(500).json({ error: 'ERROR: Failed to update user points' });
     }
 });
 
 app.post('/api/register', async (req, res) => {
-    try {
-        const { email, password, username } = req.body;
+    const { email, password, username } = req.body;
+    
+    if (!email || !password || !username) {
+        return res.status(400).json({ 
+            error: 'UERROR: Please fill in all required fields.' 
+        });
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ 
+            error: 'UERROR: Please enter a valid email address.' 
+        });
+    }
+
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).{12,}$/;
+    if (!passwordRegex.test(password)) {
+        return res.status(400).json({ 
+            error: 'UERROR: Password must be at least 12 characters long and contain at least one uppercase letter, one number, and one special character.' 
+        });
+    }
+    
+    const users = DM.peek(['Users']);
+
+    if (users) {
+        const existingUserWithUsername = Object.values(users).find(
+            (user) => user.username && user.username.toLowerCase() === username.toLowerCase()
+        );
         
+        if (existingUserWithUsername) {
+            return res.status(400).json({ 
+                error: 'UERROR: Username already taken.' 
+            });
+        }
+    }
+    
+    const existingEmail = await admin.auth().getUserByEmail(email);
+    if (existingEmail) {
+        return res.status(400).json({ 
+            error: 'UERROR: Email already taken.' 
+        });
+    }
+    
+    try {
         const userRecord = await admin.auth().createUser({
             email,
             password,
@@ -111,10 +154,15 @@ app.post('/api/register', async (req, res) => {
         
         await DM.save();
         
-        res.status(200).json({ message: "SUCCESS: Successfully registered user", result: userRecord.uid });
+        res.status(200).json({ 
+            message: "SUCCESS: Registration successful.", 
+            result: userRecord.uid 
+        });
+        
     } catch (error) {
-        console.log(`\n[API] - FAILED: /api/register POST - ${error.stack || error}\n`);
-        res.status(400).json({ error: error.message });
+        return res.status(500).json({
+            error: "ERROR: " + FirebaseDecoder(error.message)
+        });
     }
 });
 

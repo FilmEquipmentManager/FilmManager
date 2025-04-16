@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
 import { User, onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
 import server from "@/networking";
@@ -20,6 +21,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [userData, setUserData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
+	const toast = useToast();
+
+	const showToast = (title: string, description: string) => {
+        const newId = Math.random();
+        toast.show({
+            id: newId.toString(),
+            placement: "top",
+            duration: 3000,
+            render: ({ id }) => {
+                const uniqueToastId = "toast-" + id;
+                return (
+                    <Toast nativeID={uniqueToastId} action="muted" variant="solid">
+                        <ToastTitle>{title}</ToastTitle>
+                        <ToastDescription>{description}</ToastDescription>
+                    </Toast>
+                );
+            },
+        });
+    };
+
     useEffect(() => {
 		const unsubscribe = onAuthStateChanged(auth, async (user) => {
 			setUser(user);
@@ -31,7 +52,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 					});
 					setUserData(response.data);
 				} catch (error) {
-					console.error("Failed to fetch user data:", error);
+					if (error.response && error.response.data && error.response.data.error && typeof error.response.data.error === "string") {
+						if (error.response.data.error.startsWith("UERROR")) {
+							showToast("Uh-oh!", error.response.data.error.substring("UERROR:".length));
+							console.error(error.response.data.error.substring("UERROR:".length))
+						} else {
+							showToast("Uh-oh!", error.response.data.error.substring("ERROR:".length));
+							console.error(error.response.data.error.substring("ERROR:".length))
+						}
+					}
 				}
 			} else {
 				setUserData(null);

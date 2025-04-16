@@ -1,8 +1,8 @@
-interface FirebaseErrorDecoderProps {
+interface FirebaseDecoderProps {
     error: string;
 }
 
-function FirebaseErrorDecoder({ error }: FirebaseErrorDecoderProps) {
+function FirebaseDecoder({ error }: FirebaseDecoderProps) {
     const decodeError = (errorMsg: string): string => {
         try {
             const prefix = "Firebase: Error (";
@@ -35,4 +35,4 @@ function FirebaseErrorDecoder({ error }: FirebaseErrorDecoderProps) {
     return decodeError(error);
 }
 
-export default FirebaseErrorDecoder;
+export default FirebaseDecoder;
