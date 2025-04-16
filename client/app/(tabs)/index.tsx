@@ -172,7 +172,7 @@ export default function HomepageScreen() {
                                         onHoverIn={() => setHoverReceive(true)}
                                         onHoverOut={() => setHoverReceive(false)}
                                         onPress={() => {
-                                            router.push("/admin/scanner" as any);
+                                            router.push("/admin/scanner?mode=receive");
                                         }}
                                         style={{
                                             height: isMobileScreen
@@ -229,7 +229,7 @@ export default function HomepageScreen() {
                                         onHoverIn={() => setHoverDispatch(true)}
                                         onHoverOut={() => setHoverDispatch(false)}
                                         onPress={() => {
-                                            router.push("/admin/scanner" as any);
+                                            router.push("/admin/scanner?mode=dispatch");
                                         }}
                                         style={{
                                             height: isMobileScreen
@@ -286,7 +286,7 @@ export default function HomepageScreen() {
                                     onHoverIn={() => setHoverCheckInfo(true)}
                                     onHoverOut={() => setHoverCheckInfo(false)}
                                     onPress={() => {
-                                        router.push("/admin/scanner" as any);
+                                        router.push("/admin/scanner?mode=info")
                                     }}
                                     style={{
                                         height: isMobileScreen

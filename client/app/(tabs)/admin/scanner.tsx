@@ -19,6 +19,7 @@ import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
 import { LinearGradient } from "expo-linear-gradient";
 import { AlertTriangleIcon, ArrowDownCircle, ArrowUpCircle, CheckCircleIcon, MinusCircleIcon, PencilIcon, ScanIcon, SparklesIcon, Trash2Icon, WarehouseIcon } from "lucide-react-native";
 import { Box } from "@/components/ui/box";
+import { useLocalSearchParams } from "expo-router";
 
 interface ScannedItem {
     id: string;
@@ -58,11 +59,9 @@ export default function ScannerScreen() {
     const [originalItemPointsToRedeem, setOriginalItemPointsToRedeem] = useState('');
     const [originalItemGroup, setOriginalItemGroup] = useState('');
     const [isEditingUnknown, setIsEditingUnknown] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showReceiveModal, setShowReceiveModal] = useState(false);
     const [showDispatchModal, setShowDispatchModal] = useState(false);
     const [showUnknownEditModal, setShowUnknownEditModal] = useState(false);
-    const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
     const [isFocused, setIsFocused] = useState(false);
     const { width, height } = useWindowDimensions();
     const isShortScreen = height < 750;
@@ -71,6 +70,8 @@ export default function ScannerScreen() {
     const groupLabels = { camera: "Camera", lighting: "Lighting", audio: "Audio", lenses: "Lenses", accessories: "Accessories", grip: "Grip Equipment", power: "Power Supply", cables: "Cables", misc: "Miscellaneous", others: "Others" };
 
     const inputRef = useRef<any>(null);
+    const { mode } = useLocalSearchParams();
+    const currentMode = typeof mode === "string" ? mode : "info";
 
     const toast = useToast();
     const [toastId, setToastId] = useState(0);
@@ -469,19 +470,6 @@ export default function ScannerScreen() {
         setEditingItemGroup(editingItem?.group || "");
     };
 
-    const handleDelete = async (id: string) => {
-        setIsLoading(true);
-        try {
-            await server.delete(`/api/barcodes/${id}`);
-            setPendingItems((prev) => prev.filter((item) => item.id !== id));
-        } catch (error) {
-            console.error("Error deleting barcode:", error);
-            showToast("Delete failed", "Failed to delete barcode. Please try again.");
-        }
-        setIsLoading(false);
-        setShowEditModal(false);
-    }
-
     const saveEditedUnknownItem = () => {
         if (!editingItem) return;
         setIsLoading(true);
@@ -667,6 +655,9 @@ export default function ScannerScreen() {
                                                                 size="md"
                                                                 isChecked={areAllGroupItemsSelected(items)}
                                                                 onChange={() => toggleSelectGroup(group)}
+                                                                style={{
+                                                                    display: currentMode === "info" ? "none" : "flex",
+                                                                }}
                                                             >
                                                                 <CheckboxIndicator style={{
                                                                     backgroundColor: areAllGroupItemsSelected(items) ? "#1B9CFF" : "white",
@@ -709,6 +700,9 @@ export default function ScannerScreen() {
                                                                             size="md"
                                                                             isChecked={selectedIds.has(item.id)}
                                                                             onChange={() => toggleSelect(item.id)}
+                                                                            style={{
+                                                                                display: currentMode === "info" ? "none" : "flex",
+                                                                            }}
                                                                         >
                                                                             <CheckboxIndicator style={{
                                                                                 backgroundColor: selectedIds.has(item.id) ? "#1B9CFF" : "white",
@@ -825,20 +819,6 @@ export default function ScannerScreen() {
                                                                         }}
                                                                     >
                                                                         <MinusCircleIcon size={20} color="#dc2626" />
-                                                                    </Button>
-
-                                                                    <Button
-                                                                        size="md"
-                                                                        action="secondary"
-                                                                        onPress={() => { setDeleteItemId(item.id); setShowDeleteModal(true); }}
-                                                                        isDisabled={isLoading}
-                                                                        style={{
-                                                                            padding: 8,
-                                                                            borderRadius: 12,
-                                                                            backgroundColor: "transparent"
-                                                                        }}
-                                                                    >
-                                                                        <Trash2Icon size={20} color="#dc2626" />
                                                                     </Button>
                                                                 </HStack>
                                                             </HStack>
@@ -1127,41 +1107,6 @@ export default function ScannerScreen() {
                                         </ModalContent>
                                     </Modal>
 
-                                    {/* Delete Confirmation Modal */}
-                                    <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} size="md">
-                                        <ModalBackdrop />
-                                        <ModalContent>
-                                            <ModalHeader>
-                                                <Heading size="md">Confirm Deletion</Heading>
-                                                <ModalCloseButton style={{ backgroundColor: "transparent" }}>
-                                                    <Icon
-                                                        as={CloseIcon}
-                                                        size="md"
-                                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
-                                                    />
-                                                </ModalCloseButton>
-                                            </ModalHeader>
-                                            <ModalBody>
-                                                <Text size="sm">Are you sure you want to delete this item? This action cannot be undone.</Text>
-                                            </ModalBody>
-                                            <ModalFooter>
-                                                <Button variant="solid" action="primary" style={{ backgroundColor: "#1B9CFF" }} onPress={() => setShowDeleteModal(false)}>
-                                                    <ButtonText>Cancel</ButtonText>
-                                                </Button>
-                                                <Button
-                                                    variant="solid"
-                                                    action="negative"
-                                                    onPress={() => {
-                                                        if (deleteItemId) handleDelete(deleteItemId);
-                                                        setShowDeleteModal(false);
-                                                    }}
-                                                >
-                                                    <ButtonText>Delete</ButtonText>
-                                                </Button>
-                                            </ModalFooter>
-                                        </ModalContent>
-                                    </Modal>
-
                                     {/* Receive Confirmation Modal */}
                                     <Modal isOpen={showReceiveModal} onClose={() => setShowReceiveModal(false)} size="md">
                                         <ModalBackdrop />
@@ -1243,7 +1188,7 @@ export default function ScannerScreen() {
                     </HStack>
                     <HStack
                         style={{
-                            justifyContent: "space-between",
+                            justifyContent: currentMode === "info" ? "center" : "space-between",
                             paddingTop: 12,
                             paddingBottom: 12,
                             paddingLeft: 20,
@@ -1260,12 +1205,15 @@ export default function ScannerScreen() {
                                 onChange={(isChecked) => {
                                     isChecked ? selectAll() : unselectAll();
                                 }}
+                                style={{
+                                    display: currentMode !== "info" ? "flex" : "none" 
+                                }}
                             >
                                 <CheckboxIndicator style={{ backgroundColor: allSelected ? "#1B9CFF" : "white", borderColor: "#1B9CFF" }}>
                                     <CheckboxIcon as={CheckIcon} color="white" />
                                 </CheckboxIndicator>
                             </Checkbox>
-                            <Text size="md" style={{ color: "black" }} onPress={allSelected ? unselectAll : selectAll}>
+                            <Text size="md" style={{ color: "black", display: currentMode !== "info" ? "flex" : "none" }} onPress={allSelected ? unselectAll : selectAll}>
                                 Select All
                             </Text>
                             <Button
@@ -1282,7 +1230,7 @@ export default function ScannerScreen() {
                         </HStack>
 
                         <HStack space="xl" style={{ alignItems: "center" }}>
-                            {selectedInsufficientStock && (
+                            {selectedInsufficientStock && currentMode == "dispatch" && (
                                 <Text style={{ color: "red", fontSize: 12, fontWeight: "500" }} >
                                     Not enough stock to dispatch.
                                 </Text>
@@ -1291,6 +1239,7 @@ export default function ScannerScreen() {
                                 onPress={() => setShowReceiveModal(true)}
                                 isDisabled={selectedIds.size === 0 || isLoading}
                                 style={{
+                                    display: currentMode === "receive" ? "flex" : "none",
                                     backgroundColor: "#1B9CFF",
                                     opacity: selectedIds.size === 0 || isLoading ? 0.5 : 1,
                                 }}
@@ -1303,6 +1252,7 @@ export default function ScannerScreen() {
                                 onPress={() => setShowDispatchModal(true)}
                                 isDisabled={selectedIds.size === 0 || isLoading || selectedInsufficientStock}
                                 style={{
+                                    display: currentMode === "dispatch" ? "flex" : "none",
                                     backgroundColor: "#1B9CFF",
                                     opacity: selectedIds.size === 0 || isLoading || selectedInsufficientStock ? 0.5 : 1,
                                 }}
