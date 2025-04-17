@@ -67,6 +67,7 @@ export default function ScannerScreen() {
     const [currentMode, setCurrentMode] = useState("");
     const [isFocused, setIsFocused] = useState(false);
     const { width, height } = useWindowDimensions();
+    const isMediumLaptop = width < 1400;
     const isSmallLaptop = width < 1024;
     const isShortScreen = height < 750;
     const isMobileScreen = width < 680;
@@ -330,7 +331,8 @@ export default function ScannerScreen() {
         editingItemDescription.trim() !== originalItemDescription.trim() ||
         editingItemCount.trim() !== originalItemCount.trim() ||
         editingItemLocation.trim() !== originalItemLocation.trim() ||
-        editingItemPointsToRedeem.trim() !== originalItemPointsToRedeem.trim()
+        editingItemPointsToRedeem.trim() !== originalItemPointsToRedeem.trim() || 
+        editingItemGroup.trim() !== originalItemGroup.trim();
 
     const handleReceive = async () => {
         setIsLoading(true);
@@ -456,15 +458,15 @@ export default function ScannerScreen() {
         const isKnown = pendingItems.some(item => item.barcode === barcode);
         const currentPendingList = isKnown ? pendingItems : pendingUnknownItems;
         const setPendingList = isKnown ? setPendingItems : setPendingUnknownItems;
-    
+
         const updatedList = currentPendingList.map(item => {
             if (item.barcode === barcode) {
                 const currentCount = item.sessionCount || 0;
-    
+
                 if (mode === "dispatch" && currentCount >= (item.totalCount || 0)) {
-                    return item; 
+                    return item;
                 }
-    
+
                 return {
                     ...item,
                     sessionCount: currentCount + 1,
@@ -472,24 +474,44 @@ export default function ScannerScreen() {
             }
             return item;
         });
-    
+
         setPendingList(updatedList);
-    };    
+    };
 
     const handleDecrease = (barcode: string) => {
         const isKnown = pendingItems.some(item => item.barcode === barcode);
         const currentPendingList = isKnown ? pendingItems : pendingUnknownItems;
         const setPendingList = isKnown ? setPendingItems : setPendingUnknownItems;
-
-        const updatedList = currentPendingList.map(item =>
-            item.barcode === barcode && (item.sessionCount || 0) > 1
-                ? { ...item, sessionCount: (item.sessionCount || 1) - 1 }
-                : item
-        );
-
-        setPendingList(updatedList);
+    
+        const itemToUpdate = currentPendingList.find(item => item.barcode === barcode);
+        if (!itemToUpdate) return;
+    
+        if ((itemToUpdate.sessionCount || 1) <= 1) {
+            handleRemove(itemToUpdate.id);
+    
+            const newPendingItems = isKnown
+                ? pendingItems.filter(item => item.id !== itemToUpdate.id)
+                : pendingItems;
+            const newPendingUnknownItems = !isKnown
+                ? pendingUnknownItems.filter(item => item.id !== itemToUpdate.id)
+                : pendingUnknownItems;
+    
+            if (newPendingItems.length === 0 && newPendingUnknownItems.length === 0) {
+                setScannedCode("");
+            }
+        } else {
+            const updatedList = currentPendingList.map(item =>
+                item.barcode === barcode
+                    ? { ...item, sessionCount: (item.sessionCount || 1) - 1 }
+                    : item
+            );
+    
+            setPendingList(updatedList);
+        }
+    
+        setCurrentScan("");
     };
-
+    
     const saveEditedBarcode = async () => {
         if (!editingItem) return;
         setIsLoading(true);
@@ -823,7 +845,7 @@ export default function ScannerScreen() {
                                                                 <VStack
                                                                     key={item.id}
                                                                     style={{
-                                                                        backgroundColor: "#ffffff",
+                                                                        backgroundColor: currentMode === "dispatch" && item.sessionCount > item.totalCount ? "#FEE2E2" : "#ffffff",
                                                                         borderRadius: 20,
                                                                         padding: 16,
                                                                         marginVertical: 4,
@@ -834,15 +856,15 @@ export default function ScannerScreen() {
                                                                         elevation: 2,
                                                                     }}
                                                                 >
-                                                                    <Box style={{justifyContent: "center", alignItems: "center", marginBottom: 20 }}>
+                                                                    <Box style={{ justifyContent: "center", alignItems: "center", marginBottom: 20 }}>
                                                                         <Image
                                                                             size={isTinyScreen ? "sm" : "md"}
                                                                             borderRadius={12}
                                                                             source={{
-                                                                            uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s', 
+                                                                                uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s',
                                                                             }}
                                                                             alt="item image"
-                                                                            style={{ overflow: "hidden"}}
+                                                                            style={{ overflow: "hidden" }}
                                                                         />
                                                                     </Box>
                                                                     <HStack style={{ justifyContent: "space-between", alignItems: "center" }}>
@@ -905,7 +927,7 @@ export default function ScannerScreen() {
                                                                                             style={{
                                                                                                 fontSize: 16,
                                                                                                 fontWeight: "700",
-                                                                                                color: currentMode === "dispatch" && item.sessionCount > item.totalCount ? "red" : "#64748b",
+                                                                                                color: "#64748b",
                                                                                                 textAlign: "center",
                                                                                                 minWidth: 24,
                                                                                             }}
@@ -1230,7 +1252,7 @@ export default function ScannerScreen() {
                                         justifyContent: "center",
                                         alignItems: "flex-start",
                                         backgroundColor: "transparent",
-                                        padding: isShortScreen ? 0 : pendingItems.length > 0 || pendingUnknownItems.length > 0 ? 20 : 0,
+                                        padding: isShortScreen ? 0 : pendingItems.length > 0 || pendingUnknownItems.length > 0 ? isSmallLaptop ? 10 : isMediumLaptop ? 30 : 100 : 0,
                                     }}
                                 >
                                     <VStack style={{ width: "100%" }}>
@@ -1279,7 +1301,7 @@ export default function ScannerScreen() {
                                                                 <VStack
                                                                     key={item.id}
                                                                     style={{
-                                                                        backgroundColor: "#ffffff",
+                                                                        backgroundColor: currentMode === "dispatch" && item.sessionCount > item.totalCount ? "#FEE2E2" : "#ffffff",
                                                                         borderRadius: 20,
                                                                         padding: 16,
                                                                         shadowColor: "#000",
@@ -1316,7 +1338,7 @@ export default function ScannerScreen() {
                                                                                 size={isSmallLaptop ? "sm" : "lg"}
                                                                                 borderRadius={12}
                                                                                 source={{
-                                                                                uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s', 
+                                                                                    uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s',
                                                                                 }}
                                                                                 alt="item image"
                                                                                 style={{ borderRadius: 12, overflow: "hidden" }}
@@ -1354,7 +1376,7 @@ export default function ScannerScreen() {
                                                                                             style={{
                                                                                                 fontSize: 16,
                                                                                                 fontWeight: "700",
-                                                                                                color: currentMode === "dispatch" && item.sessionCount > item.totalCount ? "red" : "#64748b",
+                                                                                                color: "#64748b",
                                                                                                 textAlign: "center",
                                                                                                 minWidth: 24,
                                                                                             }}
@@ -1826,32 +1848,66 @@ export default function ScannerScreen() {
                         <ModalContent>
                             <ModalHeader>
                                 <Heading size="md">Confirm Receive</Heading>
-                                <ModalCloseButton style={{ backgroundColor: "transparent" }}>
+                                <ModalCloseButton>
                                     <Icon
                                         as={CloseIcon}
-                                        size="md"
-                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
+                                        size="sm"
+                                        style={{ color: "#6B7280" }}
                                     />
                                 </ModalCloseButton>
                             </ModalHeader>
+
                             <ModalBody>
-                                <Text size="sm">Are you sure you want to receive all selected items?</Text>
-                            </ModalBody>
-                            <ModalFooter>
-                                <Button variant="solid" action="negative" onPress={() => setShowReceiveModal(false)}>
-                                    <ButtonText>Cancel</ButtonText>
-                                </Button>
-                                <Button
-                                    variant="solid"
-                                    action="primary"
-                                    style={{ backgroundColor: "#1B9CFF" }}
-                                    onPress={() => {
-                                        handleReceive();
-                                        setShowReceiveModal(false);
+                                <VStack
+                                    space="md"
+                                    style={{
+                                        alignItems: "center",
+                                        padding: 12,
                                     }}
                                 >
-                                    <ButtonText>Confirm</ButtonText>
-                                </Button>
+                                    <Icon
+                                        as={ArrowDownCircle}
+                                        size="xl"
+                                        style={{ color: "#1B9CFF" }}
+                                    />
+                                    <Text
+                                        style={{
+                                            textAlign: "center",
+                                            color: "#111827",
+                                        }}
+                                    >
+                                        Are you sure you want to receive all selected items?
+                                    </Text>
+                                </VStack>
+                            </ModalBody>
+
+                            <ModalFooter>
+                                <HStack space="md" style={{ width: "100%" }}>
+                                    <Button
+                                        variant="outline"
+                                        style={{
+                                            flex: 1,
+                                            borderColor: "#6B7280",
+                                        }}
+                                        onPress={() => setShowReceiveModal(false)}
+                                    >
+                                        <Text style={{ color: "#6B7280" }}>Cancel</Text>
+                                    </Button>
+                                    <Button
+                                        style={{
+                                            flex: 1,
+                                            backgroundColor: "#1B9CFF",
+                                        }}
+                                        onPress={() => {
+                                            handleReceive();
+                                            setShowReceiveModal(false);
+                                        }}
+                                    >
+                                        <Text style={{ color: "white", fontWeight: "bold" }}>
+                                            Confirm
+                                        </Text>
+                                    </Button>
+                                </HStack>
                             </ModalFooter>
                         </ModalContent>
                     </Modal>
@@ -1862,36 +1918,73 @@ export default function ScannerScreen() {
                         <ModalContent>
                             <ModalHeader>
                                 <Heading size="md">Confirm Dispatch</Heading>
-                                <ModalCloseButton style={{ backgroundColor: "transparent" }}>
+                                <ModalCloseButton>
                                     <Icon
                                         as={CloseIcon}
-                                        size="md"
-                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
+                                        size="sm"
+                                        style={{ color: "#1B9CFF" }}
                                     />
                                 </ModalCloseButton>
                             </ModalHeader>
-                            <ModalBody>
-                                <Text size="sm">
-                                    Are you sure you want to dispatch the selected items? This will deduct the dispatched quantity from the available stock. Note: Only items with sufficient stock will be dispatched.
-                                </Text>
-                            </ModalBody>
-                            <ModalFooter style={{ gap: 12 }}>
-                                <Button
-                                    variant="solid"
-                                    action="negative"
-                                    onPress={() => setShowDispatchModal(false)}
-                                >
-                                    <ButtonText style={{ color: "white" }}>Cancel</ButtonText>
-                                </Button>
 
-                                <Button
-                                    onPress={handleDispatch}
-                                    variant="solid"
-                                    action="primary"
-                                    style={{ backgroundColor: "#1B9CFF" }}
+                            <ModalBody>
+                                <VStack
+                                    space="md"
+                                    style={{
+                                        alignItems: "center",
+                                        padding: 12,
+                                    }}
                                 >
-                                    <ButtonText style={{ color: "white" }}>Confirm</ButtonText>
-                                </Button>
+                                    <Icon
+                                        as={ArrowDownCircle}
+                                        size="xl"
+                                        style={{ color: "#1B9CFF" }}
+                                    />
+                                    <Text
+                                        style={{
+                                            textAlign: "center",
+                                            color: "#111827",
+                                        }}
+                                    >
+                                        Are you sure you want to dispatch the selected items?
+                                    </Text>
+                                    <Text
+                                        style={{
+                                            textAlign: "center",
+                                            color: "#6B7280",
+                                            fontSize: 13,
+                                        }}
+                                    >
+                                        This will deduct the dispatched quantity from the available stock. Only items with sufficient stock will be dispatched.
+                                    </Text>
+                                </VStack>
+                            </ModalBody>
+
+                            <ModalFooter>
+                                <HStack space="md" style={{ width: "100%" }}>
+                                    <Button
+                                        variant="outline"
+                                        style={{
+                                            flex: 1,
+                                            borderColor: "#6B7280",
+                                        }}
+                                        onPress={() => setShowDispatchModal(false)}
+                                    >
+                                        <Text style={{ color: "#6B7280" }}>Cancel</Text>
+                                    </Button>
+
+                                    <Button
+                                        style={{
+                                            flex: 1,
+                                            backgroundColor: "#1B9CFF",
+                                        }}
+                                        onPress={handleDispatch}
+                                    >
+                                        <Text style={{ color: "white", fontWeight: "bold" }}>
+                                            Confirm
+                                        </Text>
+                                    </Button>
+                                </HStack>
                             </ModalFooter>
                         </ModalContent>
                     </Modal>
