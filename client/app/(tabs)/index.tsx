@@ -462,17 +462,153 @@ export default function HomepageScreen() {
                         end={isMobileScreen ? { x: 0, y: 1 } : { x: 1, y: 1 }}
                         style={{ flex: 1 }}
                     >
-                        <Box
-                            style={{
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                flexDirection: "column",
-                                height: "100%",
-                            }}
-                        >
-                            <Text style={{ color: "white" }}>Hello, User!</Text>
-                        </Box>
+                        <VStack style={{ flex: 1, padding: 20 }} space="2xl">
+                            <Box style={{ marginTop: isMobileScreen ? 40 : 80, width: "100%" }}>
+                                <Text style={{
+                                    color: "white",
+                                    fontSize: isMobileScreen ? 28 : 36,
+                                    fontWeight: "bold",
+                                    textAlign: "center",
+                                }}>
+                                    {getGreeting()}, {userData?.username}!
+                                </Text>
+                                <Text style={{
+                                    color: "rgba(255,255,255,0.9)",
+                                    fontSize: isMobileScreen ? 16 : 18,
+                                    textAlign: "center",
+                                    marginTop: 20
+                                }}>
+                                    Ready to explore amazing rewards?
+                                </Text>
+                            </Box>
+
+                            <HStack 
+                                style={{ 
+                                    flex: 1,
+                                    flexDirection: isMobileScreen ? "column" : "row", 
+                                    gap: 24,
+                                    padding: 20,
+                                    justifyContent: "center",
+                                    alignItems: "center"
+                                }}
+                            >
+                                <Button
+                                    onHoverIn={() => setHoverReceive(true)}
+                                    onHoverOut={() => setHoverReceive(false)}
+                                    onPress={() => router.push("/client/redeem")}
+                                    style={{
+                                        width: isMobileScreen ? "100%" : 300,
+                                        height: isMobileScreen ? 200 : 350,
+                                        backgroundColor: "white",
+                                        borderRadius: 24,
+                                        padding: 24,
+                                        ...getHoverStyle(hoverReceive, {
+                                            shadowColor: "#000",
+                                            shadowOffset: { width: 0, height: 4 },
+                                            shadowOpacity: 0.1,
+                                            shadowRadius: 12,
+                                        }),
+                                    }}
+                                >
+                                    <VStack space="md" style={{ alignItems: "center" }}>
+                                        <LinearGradient
+                                            colors={['#1B9CFF', '#00FFDD']}
+                                            style={{
+                                                width: 80,
+                                                height: 80,
+                                                borderRadius: 16,
+                                                justifyContent: "center",
+                                                alignItems: "center"
+                                            }}
+                                        >
+                                            <Ionicons name="gift" size={40} color="white" />
+                                        </LinearGradient>
+                                        <Text style={{
+                                            fontSize: isMobileScreen ? 20 : 24,
+                                            fontWeight: "bold",
+                                            color: "#1B9CFF",
+                                            marginTop: 16
+                                        }}>
+                                            Available Rewards
+                                        </Text>
+                                        <Text style={{
+                                            textAlign: "center",
+                                            color: "#666",
+                                            fontSize: isMobileScreen ? 14 : 16
+                                        }}>
+                                            Browse and redeem exciting rewards using your points
+                                        </Text>
+                                    </VStack>
+                                </Button>
+
+                                <Button
+                                    onHoverIn={() => setHoverDispatch(true)}
+                                    onHoverOut={() => setHoverDispatch(false)}
+                                    onPress={() => router.push("/client/rewards")}
+                                    style={{
+                                        width: isMobileScreen ? "100%" : 300,
+                                        height: isMobileScreen ? 200 : 350,
+                                        backgroundColor: "white",
+                                        borderRadius: 24,
+                                        padding: 24,
+                                        ...getHoverStyle(hoverDispatch, {
+                                            shadowColor: "#000",
+                                            shadowOffset: { width: 0, height: 4 },
+                                            shadowOpacity: 0.1,
+                                            shadowRadius: 12,
+                                        }),
+                                    }}
+                                >
+                                    <VStack space="md" style={{ alignItems: "center" }}>
+                                        <LinearGradient
+                                            colors={['#FF6B6B', '#FF8E53']}
+                                            style={{
+                                                width: 80,
+                                                height: 80,
+                                                borderRadius: 16,
+                                                justifyContent: "center",
+                                                alignItems: "center"
+                                            }}
+                                        >
+                                            <Ionicons name="trophy" size={40} color="white" />
+                                        </LinearGradient>
+                                        <Text style={{
+                                            fontSize: isMobileScreen ? 20 : 24,
+                                            fontWeight: "bold",
+                                            color: "#FF6B6B",
+                                            marginTop: 16
+                                        }}>
+                                            My Rewards
+                                        </Text>
+                                        <Text style={{
+                                            textAlign: "center",
+                                            color: "#666",
+                                            fontSize: isMobileScreen ? 14 : 16
+                                        }}>
+                                            View your redeemed rewards and track their status
+                                        </Text>
+                                    </VStack>
+                                </Button>
+                            </HStack>
+
+                            <Box style={{
+                                backgroundColor: "rgba(255,255,255,0.2)",
+                                padding: 16,
+                                borderRadius: 16,
+                                marginBottom: 24,
+                                alignSelf: "center"
+                            }}>
+                                <HStack space="sm" style={{ alignItems: "center" }}>
+                                    <Ionicons name="wallet" size={24} color="white" />
+                                    <Text style={{ color: "white", fontSize: 16 }}>
+                                        Available Points: 
+                                    </Text>
+                                    <Text style={{ color: "white", fontSize: 16, fontWeight: "bold" }}>
+                                        {userData?.points || 0} PTS
+                                    </Text>
+                                </HStack>
+                            </Box>
+                        </VStack>
                     </LinearGradient>
                 )
             )}

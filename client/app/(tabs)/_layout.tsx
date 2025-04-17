@@ -55,18 +55,6 @@ export default function TabLayout() {
                     </Pressable>
 
                     <SafeAreaView style={{ flexDirection: "row", alignItems: "center" }}>
-                        {/* Cart Icon Only */}
-                        <Pressable
-                            onPress={() => router.push("/cart" as any)}
-                            style={{
-                                marginRight: 20,
-                                marginTop: 20,
-                                marginBottom: 20,
-                            }}
-                        >
-                            <Icon as={ShoppingCart} size="lg" color="black" />
-                        </Pressable>
-
                         {/* Avatar for Profile */}
                         <Pressable
                             onPress={() => router.push("/auth/account" as any)}
