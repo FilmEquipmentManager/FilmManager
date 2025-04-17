@@ -12,9 +12,10 @@ import { Modal, ModalBackdrop, ModalContent, ModalCloseButton, ModalHeader, Moda
 import { Checkbox, CheckboxIndicator, CheckboxIcon } from "@/components/ui/checkbox"
 import { Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem } from '@/components/ui/select';
 import { FormControl, FormControlLabel, FormControlLabelText } from "@/components/ui/form-control"
-import { Icon, CloseIcon, CheckIcon, ChevronDownIcon, CircleIcon } from "@/components/ui/icon";
+import { Icon, CloseIcon, CheckIcon, ChevronDownIcon } from "@/components/ui/icon";
+import { Image } from "@/components/ui/image";
 import Constants from "expo-constants";
-import { Radio, RadioGroup, RadioIcon, RadioIndicator, RadioLabel } from '@/components/ui/radio';
+import { Radio, RadioGroup, RadioIndicator, RadioLabel } from '@/components/ui/radio';
 import server from "../../../networking";
 import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
 import { LinearGradient } from "expo-linear-gradient";
@@ -66,8 +67,10 @@ export default function ScannerScreen() {
     const [currentMode, setCurrentMode] = useState("");
     const [isFocused, setIsFocused] = useState(false);
     const { width, height } = useWindowDimensions();
+    const isSmallLaptop = width < 1024;
     const isShortScreen = height < 750;
     const isMobileScreen = width < 680;
+    const isTinyScreen = width < 375;
 
     const { mode } = useLocalSearchParams();
     const initialMode = typeof mode === "string" ? mode : "info";
@@ -696,8 +699,8 @@ export default function ScannerScreen() {
                                                                         borderColor: "#1B9CFF",
                                                                         borderWidth: 2,
                                                                         borderRadius: 9999,
-                                                                        width: 20,
-                                                                        height: 20,
+                                                                        width: 16,
+                                                                        height: 16,
                                                                         justifyContent: "center",
                                                                         alignItems: "center",
                                                                     }}
@@ -709,15 +712,15 @@ export default function ScannerScreen() {
                                                                                 borderColor: "#1B9CFF",
                                                                                 borderWidth: 2,
                                                                                 borderRadius: 9999,
-                                                                                width: 12,
-                                                                                height: 12,
+                                                                                width: 8,
+                                                                                height: 8,
                                                                             }}
                                                                         />
                                                                     )}
                                                                 </RadioIndicator>
                                                                 <RadioLabel
                                                                     style={{
-                                                                        fontSize: 14,
+                                                                        fontSize: 10,
                                                                         fontWeight: "700",
                                                                         color: currentMode === value ? "#1B9CFF" : "#64748b",
                                                                     }}
@@ -831,6 +834,17 @@ export default function ScannerScreen() {
                                                                         elevation: 2,
                                                                     }}
                                                                 >
+                                                                    <Box style={{justifyContent: "center", alignItems: "center", marginBottom: 20 }}>
+                                                                        <Image
+                                                                            size={isTinyScreen ? "sm" : "md"}
+                                                                            borderRadius={12}
+                                                                            source={{
+                                                                            uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s', 
+                                                                            }}
+                                                                            alt="item image"
+                                                                            style={{ overflow: "hidden"}}
+                                                                        />
+                                                                    </Box>
                                                                     <HStack style={{ justifyContent: "space-between", alignItems: "center" }}>
                                                                         {/* Selection & Main Info */}
                                                                         <HStack style={{ flex: 1, gap: 12, alignItems: "center" }}>
@@ -1126,7 +1140,7 @@ export default function ScannerScreen() {
                                             </HStack>
 
                                             <RadioGroup value={currentMode} onChange={setCurrentMode} style={{ justifyContent: "center", alignItems: "center", marginTop: 8 }} >
-                                                <HStack space="sm" style={{ gap: 30 }}>
+                                                <HStack space="sm" style={{ gap: 10 }}>
                                                     {[
                                                         { value: "receive", label: "Receive" },
                                                         { value: "dispatch", label: "Dispatch" },
@@ -1140,8 +1154,8 @@ export default function ScannerScreen() {
                                                                         borderColor: "#1B9CFF",
                                                                         borderWidth: 2,
                                                                         borderRadius: 9999,
-                                                                        width: 20,
-                                                                        height: 20,
+                                                                        width: 18,
+                                                                        height: 18,
                                                                         justifyContent: "center",
                                                                         alignItems: "center",
                                                                     }}
@@ -1161,7 +1175,7 @@ export default function ScannerScreen() {
                                                                 </RadioIndicator>
                                                                 <RadioLabel
                                                                     style={{
-                                                                        fontSize: 18,
+                                                                        fontSize: 14,
                                                                         fontWeight: "700",
                                                                         color: currentMode === value ? "#1B9CFF" : "#64748b",
                                                                     }}
@@ -1216,7 +1230,7 @@ export default function ScannerScreen() {
                                         justifyContent: "center",
                                         alignItems: "flex-start",
                                         backgroundColor: "transparent",
-                                        padding: isShortScreen ? 0 : 100,
+                                        padding: isShortScreen ? 0 : pendingItems.length > 0 || pendingUnknownItems.length > 0 ? 20 : 0,
                                     }}
                                 >
                                     <VStack style={{ width: "100%" }}>
@@ -1297,6 +1311,16 @@ export default function ScannerScreen() {
                                                                                     </CheckboxIndicator>
                                                                                 </Checkbox>
                                                                             </Box>
+
+                                                                            <Image
+                                                                                size={isSmallLaptop ? "sm" : "lg"}
+                                                                                borderRadius={12}
+                                                                                source={{
+                                                                                uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s', 
+                                                                                }}
+                                                                                alt="item image"
+                                                                                style={{ borderRadius: 12, overflow: "hidden" }}
+                                                                            />
 
                                                                             {/* Item Details */}
                                                                             <VStack style={{ flex: 1, gap: 6 }}>
@@ -1397,7 +1421,7 @@ export default function ScannerScreen() {
                                                                         </HStack>
 
                                                                         {/* Action Buttons */}
-                                                                        <HStack style={{ gap: 8, alignItems: "center" }}>
+                                                                        <HStack style={{ alignItems: "center" }}>
                                                                             <Button
                                                                                 size="md"
                                                                                 action="secondary"
