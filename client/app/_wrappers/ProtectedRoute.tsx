@@ -8,12 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
-import {
-    useToast,
-    Toast,
-    ToastTitle,
-    ToastDescription,
-} from "@/components/ui/toast";
+import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
 import { auth } from "@/firebase/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useEffect, useState, useRef } from "react";
@@ -21,9 +16,6 @@ import { Input, InputField } from "@/components/ui/input";
 import { Eye, EyeClosed, LogInIcon } from "lucide-react-native";
 import { Platform } from "react-native";
 import server from "../../networking";
-import { useRoute } from "@react-navigation/native";
-
-const hasRedirectedRef = useRef(false);
 
 type AuthFormProps = {
     isRegister: boolean;
@@ -415,8 +407,6 @@ export default function ProtectedRoute({
     useEffect(() => {
         if (pathname) {
             if (userData) {
-                console.log("Path: ", pathname);
-
                 if (userData.role === "User" && (!pathname.startsWith("/auth") && !pathname.startsWith("/client"))) {
                     router.replace("/auth/account")
                     showToast("Access unauthorised", "You are not permitted to access this page")
