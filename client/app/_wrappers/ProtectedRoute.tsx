@@ -407,7 +407,7 @@ export default function ProtectedRoute({
     useEffect(() => {
         if (pathname) {
             if (userData) {
-                if (userData.role === "User" && (!pathname.startsWith("/auth") && !pathname.startsWith("/client"))) {
+                if (userData.role === "User" && (!pathname.startsWith("/auth") && !pathname.startsWith("/client") && pathname !== "/")) {
                     router.replace("/auth/account")
                     showToast("Access unauthorised", "You are not permitted to access this page")
                 }

@@ -149,6 +149,12 @@ export default function TabLayout() {
                     href: null,
                 }}
             />
+            <Tabs.Screen
+                name="client/redeem"
+                options={{
+                    href: null,
+                }}
+            />
         </Tabs>
     );
 }
