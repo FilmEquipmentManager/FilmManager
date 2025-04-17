@@ -1072,7 +1072,7 @@ export default function ScannerScreen() {
                                                 </Text>
                                             </HStack>
 
-                                            <RadioGroup value={currentMode} onChange={setCurrentMode} style={{ justifyContent: "center", alignItems: "center" }} >
+                                            <RadioGroup value={currentMode} onChange={setCurrentMode} style={{ justifyContent: "center", alignItems: "center", marginTop: 8 }} >
                                                 <HStack space="sm" style={{ gap: 30 }}>
                                                     {[
                                                         { value: "receive", label: "Receive" },
@@ -1108,7 +1108,7 @@ export default function ScannerScreen() {
                                                                 </RadioIndicator>
                                                                 <RadioLabel
                                                                     style={{
-                                                                        fontSize: 14,
+                                                                        fontSize: 18,
                                                                         fontWeight: "700",
                                                                         color: currentMode === value ? "#1B9CFF" : "#64748b",
                                                                     }}
