@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
 import { User, onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
+import { getDatabase, ref, onValue, off } from "firebase/database";
 import server from "@/networking";
 
 type AuthContextType = {
@@ -42,33 +43,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     useEffect(() => {
-		const unsubscribe = onAuthStateChanged(auth, async (user) => {
-			setUser(user);
-			if (user) {
-				try {
-					const token = await user.getIdToken();
-					const response = await server.get("/api/user", {
-						headers: { Authorization: `Bearer ${token}` },
-					});
-					setUserData(response.data);
-				} catch (error) {
-					if (error.response && error.response.data && error.response.data.error && typeof error.response.data.error === "string") {
-						if (error.response.data.error.startsWith("UERROR")) {
-							showToast("Uh-oh!", error.response.data.error.substring("UERROR:".length));
-							console.error(error.response.data.error.substring("UERROR:".length))
-						} else {
-							showToast("Uh-oh!", error.response.data.error.substring("ERROR:".length));
-							console.error(error.response.data.error.substring("ERROR:".length))
-						}
-					}
-				}
-			} else {
-				setUserData(null);
-			}
-			setLoading(false);
-		});
-		return unsubscribe;
-	}, []);	
+        let userRefCleanup: (() => void) | null = null;
+    
+        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+            setUser(user);
+            if (user) {
+                const db = getDatabase();
+                const userRef = ref(db, `Users/${user.uid}`);
+    
+                userRefCleanup = () => off(userRef);
+    
+                onValue(userRef, (snapshot) => {
+                    const data = snapshot.val();
+                    setUserData(data);
+                    setLoading(false);
+                }, (error) => {
+                    showToast("Uh-oh!", "Failed to load user data.");
+                    console.error("Realtime DB error:", error);
+                    setLoading(false);
+                });
+            } else {
+                setUserData(null);
+                setLoading(false);
+            }
+        });
+    
+        return () => {
+            unsubscribeAuth();
+            if (userRefCleanup) userRefCleanup();
+        };
+    }, []);        
 
     return (
         <AuthContext.Provider value={{ user, userData, loading }}>
