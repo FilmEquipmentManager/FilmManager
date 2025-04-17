@@ -412,6 +412,34 @@ export default function ScannerScreen() {
         }
     };
 
+    const handleIncrease = (barcode: string) => {
+        const isKnown = pendingItems.some(item => item.barcode === barcode);
+        const currentPendingList = isKnown ? pendingItems : pendingUnknownItems;
+        const setPendingList = isKnown ? setPendingItems : setPendingUnknownItems;
+    
+        const updatedList = currentPendingList.map(item =>
+            item.barcode === barcode
+                ? { ...item, sessionCount: (item.sessionCount || 0) + 1 }
+                : item
+        );
+    
+        setPendingList(updatedList);
+    };
+    
+    const handleDecrease = (barcode: string) => {
+        const isKnown = pendingItems.some(item => item.barcode === barcode);
+        const currentPendingList = isKnown ? pendingItems : pendingUnknownItems;
+        const setPendingList = isKnown ? setPendingItems : setPendingUnknownItems;
+    
+        const updatedList = currentPendingList.map(item =>
+            item.barcode === barcode && (item.sessionCount || 0) > 1
+                ? { ...item, sessionCount: (item.sessionCount || 1) - 1 }
+                : item
+        );
+    
+        setPendingList(updatedList);
+    };       
+
     const saveEditedBarcode = async () => {
         if (!editingItem) return;
         setIsLoading(true);
@@ -552,7 +580,7 @@ export default function ScannerScreen() {
                                     >
                                         {/* Title Section */}
                                         <VStack style={{ gap: 8, alignItems: "center" }}>
-                                            <ScanIcon size={isMobileScreen ? 40 : 32 } color="#3b82f6" />
+                                            <ScanIcon size={isMobileScreen ? 40 : 32} color="#3b82f6" />
                                             <Text style={{ fontSize: 20, fontWeight: "700", color: "#1e293b" }}>
                                                 Scan Area
                                             </Text>
@@ -608,16 +636,19 @@ export default function ScannerScreen() {
                                             >
                                                 <HStack style={{ gap: 8, alignItems: "center", justifyContent: "center", }}>
                                                     <CheckCircleIcon size={isMobileScreen ? 14 : 20} color="#16a34a" />
-                                                    <Text style={{ fontSize: 14, fontWeight: "500", color: "#166534"}}>
+                                                    <Text style={{ fontSize: 14, fontWeight: "500", color: "#166534" }}>
                                                         Last Scanned:
                                                     </Text>
                                                 </HStack>
                                                 <Text
+                                                    isTruncated={true}
                                                     style={{
                                                         fontSize: isMobileScreen ? 20 : 18,
                                                         fontWeight: "600",
                                                         color: "#166534",
-                                                        letterSpacing: 2
+                                                        letterSpacing: 2,
+                                                        width: "90%",
+                                                        textAlign: "center"
                                                     }}
                                                 >
                                                     {scannedCode}
@@ -718,28 +749,52 @@ export default function ScannerScreen() {
 
                                                                             {/* Item Details */}
                                                                             <VStack style={{ flex: 1, gap: 6 }}>
-                                                                                <HStack style={{ alignItems: "center", gap: 8}}>
-                                                                                    <Text style={{
-                                                                                        fontSize: isMobileScreen ? 20 : 18 , fontWeight: "800", color: "#1e293b",
+                                                                                <HStack style={{ alignItems: "center", gap: 8, justifyContent: "space-between", flexWrap: "wrap", width: "100%" }}>
+                                                                                    <Text isTruncated={true} style={{
+                                                                                        fontSize: isMobileScreen ? 20 : 18, fontWeight: "800", color: "#1e293b",
                                                                                         textShadowColor: "rgba(79, 70, 229, 0.1)",
                                                                                         textShadowOffset: { width: 1, height: 1 },
-                                                                                        textShadowRadius: 2
+                                                                                        textShadowRadius: 2,
+                                                                                        flexGrow: 1,
+                                                                                        textAlign: "left",
+                                                                                        minWidth: isMobileScreen ? "50%" : "auto",
+                                                                                        
                                                                                     }}>
                                                                                         {item.barcode}
                                                                                     </Text>
-                                                                                    <Box style={{
-                                                                                        backgroundColor: "#f1f5f9",
-                                                                                        width: 30,
-                                                                                        padding: 2,
-                                                                                        borderRadius: 2,
-                                                                                        justifyContent: "center",
-                                                                                        alignContent: "center",
-                                                                                    }} >
+                                                                                    <Box
+                                                                                        style={{
+                                                                                            backgroundColor: "#f1f5f9",
+                                                                                            paddingHorizontal: 6,
+                                                                                            paddingVertical: 2,
+                                                                                            borderRadius: 6,
+                                                                                            flexDirection: "row",
+                                                                                            alignItems: "center",
+                                                                                            justifyContent: "center",
+                                                                                            gap: 6,
+                                                                                            alignSelf: isMobileScreen ? "flex-end" : "center",
+                                                                                            marginTop: isMobileScreen ? 8 : 0,
+                                                                                        }}
+                                                                                    >
+                                                                                        <Button onPress={() => handleDecrease(item.barcode)} style={{ backgroundColor: "transparent" }}>
+                                                                                            <ButtonText style={{ fontSize: 18, fontWeight: "700", color: "#94a3b8" }}>−</ButtonText>
+                                                                                        </Button>
+
                                                                                         <Text
-                                                                                            style={{ fontSize: 16, fontWeight: "700", color: "#64748b", textAlign: "center" }}
+                                                                                            style={{
+                                                                                                fontSize: 16,
+                                                                                                fontWeight: "700",
+                                                                                                color: "#64748b",
+                                                                                                textAlign: "center",
+                                                                                                minWidth: 24,
+                                                                                            }}
                                                                                         >
                                                                                             X{item.sessionCount}
                                                                                         </Text>
+
+                                                                                        <Button onPress={() => handleIncrease(item.barcode)} style={{ backgroundColor: "transparent" }}>
+                                                                                            <ButtonText style={{ fontSize: 18, fontWeight: "700", color: "#94a3b8" }}>+</ButtonText>
+                                                                                        </Button>
                                                                                     </Box>
                                                                                 </HStack>
 
@@ -769,8 +824,8 @@ export default function ScannerScreen() {
                                                                                         alignItems: "center",
                                                                                         gap: 4
                                                                                     }}>
-                                                                                        <WarehouseIcon size={14} color="#94a3b8" />
-                                                                                        <Text style={{ fontSize: 14, color: "#64748b", fontWeight: "500" }}>
+                                                                                        <WarehouseIcon size={14} color="#94a3b8" style={{ minWidth: 14 }} />
+                                                                                        <Text isTruncated={true} style={{ fontSize: 14, color: "#64748b", fontWeight: "500" }}>
                                                                                             {item.location || "Unknown Location"}
                                                                                         </Text>
                                                                                     </HStack>
@@ -782,8 +837,8 @@ export default function ScannerScreen() {
                                                                                         alignItems: "center",
                                                                                         gap: 8
                                                                                     }}>
-                                                                                        <Box style={{ width: 8, height: 8, backgroundColor: item.totalCount <= 10 ? "#fca5a5" : item.totalCount <= 100 ? "#fde68a" : "#86efac", borderRadius: 4, marginLeft: 4 }} />
-                                                                                        <Text style={{
+                                                                                        <Box style={{ minWidth: 8, width: 8, height: 8, backgroundColor: item.totalCount <= 10 ? "#fca5a5" : item.totalCount <= 100 ? "#fde68a" : "#86efac", borderRadius: 4, marginLeft: 4 }} />
+                                                                                        <Text isTruncated={true} style={{
                                                                                             fontSize: 14,
                                                                                             color: item.totalCount <= 10 ? "#991b1b" : item.totalCount <= 100 ? "#92400e" : "#166534",
                                                                                             fontWeight: "600"
@@ -838,8 +893,8 @@ export default function ScannerScreen() {
                                                                         alignItems: "center",
                                                                         gap: 8
                                                                     }}>
-                                                                        <SparklesIcon size={16} color="#eab308" />
-                                                                        <Text style={{
+                                                                        <SparklesIcon size={16} color="#eab308" style={{ minWidth: 16 }} />
+                                                                        <Text isTruncated={true} style={{
                                                                             fontSize: 16,
                                                                             fontWeight: "700",
                                                                             color: "#eab308",
@@ -877,7 +932,7 @@ export default function ScannerScreen() {
                                                             <ScanIcon size={24} color="#3b82f6" />
                                                             <Text
                                                                 style={{
-                                                                    fontSize: 16,
+                                                                    fontSize: 14,
                                                                     fontWeight: "600",
                                                                     color: "black",
                                                                     textAlign: "center",
@@ -983,11 +1038,14 @@ export default function ScannerScreen() {
                                                     </Text>
                                                 </HStack>
                                                 <Text
+                                                    isTruncated={true}
                                                     style={{
-                                                        fontSize: 18,
+                                                        fontSize: 24,
                                                         fontWeight: "600",
                                                         color: "#166534",
-                                                        letterSpacing: 2
+                                                        letterSpacing: 2,
+                                                        width: "90%",
+                                                        textAlign: "center"
                                                     }}
                                                 >
                                                     {scannedCode}
@@ -1088,28 +1146,47 @@ export default function ScannerScreen() {
 
                                                                             {/* Item Details */}
                                                                             <VStack style={{ flex: 1, gap: 6 }}>
-                                                                                <HStack style={{ alignItems: "center", gap: 8}}>
-                                                                                    <Text style={{
-                                                                                        fontSize: isMobileScreen ? 20 : 18 , fontWeight: "800", color: "#1e293b",
+                                                                                <HStack style={{ alignItems: "center", gap: 8, justifyContent: "flex-start", flexWrap: "wrap", width: "100%" }}>
+                                                                                    <Text isTruncated={true} style={{
+                                                                                        fontSize: isMobileScreen ? 20 : 18, fontWeight: "800", color: "#1e293b",
                                                                                         textShadowColor: "rgba(79, 70, 229, 0.1)",
                                                                                         textShadowOffset: { width: 1, height: 1 },
-                                                                                        textShadowRadius: 2
+                                                                                        textShadowRadius: 2,
+                                                                                        width: "auto"
                                                                                     }}>
                                                                                         {item.barcode}
                                                                                     </Text>
-                                                                                    <Box style={{
-                                                                                        backgroundColor: "#f1f5f9",
-                                                                                        width: 30,
-                                                                                        padding: 2,
-                                                                                        borderRadius: 2,
-                                                                                        justifyContent: "center",
-                                                                                        alignContent: "center",
-                                                                                    }} >
+                                                                                    <Box
+                                                                                        style={{
+                                                                                            backgroundColor: "#f1f5f9",
+                                                                                            paddingHorizontal: 6,
+                                                                                            paddingVertical: 2,
+                                                                                            borderRadius: 6,
+                                                                                            flexDirection: "row",
+                                                                                            alignItems: "center",
+                                                                                            justifyContent: "center",
+                                                                                            alignSelf: "center",
+                                                                                        }}
+                                                                                    >
+                                                                                        <Button onPress={() => handleDecrease(item.barcode)} style={{ backgroundColor: "transparent" }}>
+                                                                                            <ButtonText style={{ fontSize: 18, fontWeight: "700", color: "#94a3b8" }}>−</ButtonText>
+                                                                                        </Button>
+
                                                                                         <Text
-                                                                                            style={{ fontSize: 16, fontWeight: "700", color: "#64748b", textAlign: "center" }}
+                                                                                            style={{
+                                                                                                fontSize: 16,
+                                                                                                fontWeight: "700",
+                                                                                                color: "#64748b",
+                                                                                                textAlign: "center",
+                                                                                                minWidth: 24,
+                                                                                            }}
                                                                                         >
                                                                                             X{item.sessionCount}
                                                                                         </Text>
+
+                                                                                        <Button onPress={() => handleIncrease(item.barcode)} style={{ backgroundColor: "transparent" }}>
+                                                                                            <ButtonText style={{ fontSize: 18, fontWeight: "700", color: "#94a3b8" }}>+</ButtonText>
+                                                                                        </Button>
                                                                                     </Box>
                                                                                 </HStack>
 
@@ -1139,8 +1216,8 @@ export default function ScannerScreen() {
                                                                                         alignItems: "center",
                                                                                         gap: 4
                                                                                     }}>
-                                                                                        <WarehouseIcon size={14} color="#94a3b8" />
-                                                                                        <Text style={{ fontSize: 14, color: "#64748b", fontWeight: "500" }}>
+                                                                                        <WarehouseIcon size={14} color="#94a3b8" style={{ minWidth: 14 }} />
+                                                                                        <Text isTruncated={true} style={{ fontSize: 14, color: "#64748b", fontWeight: "500" }}>
                                                                                             {item.location || "Unknown Location"}
                                                                                         </Text>
                                                                                     </HStack>
@@ -1152,8 +1229,8 @@ export default function ScannerScreen() {
                                                                                         alignItems: "center",
                                                                                         gap: 8
                                                                                     }}>
-                                                                                        <Box style={{ width: 8, height: 8, backgroundColor: item.totalCount <= 10 ? "#fca5a5" : item.totalCount <= 100 ? "#fde68a" : "#86efac", borderRadius: 4, marginLeft: 4 }} />
-                                                                                        <Text style={{
+                                                                                        <Box style={{ minWidth: 8, width: 8, height: 8, backgroundColor: item.totalCount <= 10 ? "#fca5a5" : item.totalCount <= 100 ? "#fde68a" : "#86efac", borderRadius: 4, marginLeft: 4 }} />
+                                                                                        <Text isTruncated={true} style={{
                                                                                             fontSize: 14,
                                                                                             color: item.totalCount <= 10 ? "#991b1b" : item.totalCount <= 100 ? "#92400e" : "#166534",
                                                                                             fontWeight: "600"
@@ -1208,8 +1285,8 @@ export default function ScannerScreen() {
                                                                         alignItems: "center",
                                                                         gap: 8
                                                                     }}>
-                                                                        <SparklesIcon size={16} color="#eab308" />
-                                                                        <Text style={{
+                                                                        <SparklesIcon size={16} color="#eab308" style={{ minWidth: 16 }} />
+                                                                        <Text isTruncated={true} style={{
                                                                             fontSize: 16,
                                                                             fontWeight: "700",
                                                                             color: "#eab308",
@@ -1293,7 +1370,7 @@ export default function ScannerScreen() {
                                     <CheckboxIcon as={CheckIcon} color="white" />
                                 </CheckboxIndicator>
                             </Checkbox>
-                            <Text size={ isMobileScreen ? "xs" : "md"} style={{ color: "black", display: currentMode !== "info" ? "flex" : "none" }} >
+                            <Text size={isMobileScreen ? "xs" : "md"} style={{ color: "black", display: currentMode !== "info" ? "flex" : "none" }} >
                                 {allSelected ? "Unselect All" : "Select All"}
                             </Text>
                             <Button
@@ -1304,14 +1381,14 @@ export default function ScannerScreen() {
                                 isDisabled={isLoading}
                                 style={{ marginLeft: 8 }}
                             >
-                                <MinusCircleIcon size={16} color="white" style={{ display: isMobileScreen ? "none" : "flex"}} />
+                                <MinusCircleIcon size={16} color="white" style={{ display: isMobileScreen ? "none" : "flex" }} />
                                 <ButtonText size={isMobileScreen ? "xs" : "md"}>Clear All</ButtonText>
                             </Button>
                         </HStack>
 
                         <HStack space={isMobileScreen && currentMode === "dispatch" ? "xs" : "xl"} style={{ alignItems: "center", width: "auto" }}>
                             {selectedInsufficientStock && currentMode == "dispatch" && (
-                                <Text style={{ color: "red", fontWeight: "500" }} size={ isMobileScreen ? "xs" : "md"} >
+                                <Text style={{ color: "red", fontWeight: "500" }} size={isMobileScreen ? "xs" : "md"} >
                                     Not enough stock to dispatch.
                                 </Text>
                             )}
@@ -1325,7 +1402,7 @@ export default function ScannerScreen() {
                                     opacity: selectedIds.size === 0 || isLoading ? 0.5 : 1,
                                 }}
                             >
-                                <ArrowDownCircle size={16} color="white" style={{ display: isMobileScreen ? "none" : "flex"}} />
+                                <ArrowDownCircle size={16} color="white" style={{ display: isMobileScreen ? "none" : "flex" }} />
                                 <ButtonText size={isMobileScreen ? "xs" : "md"}>Receive</ButtonText>
                             </Button>
 
@@ -1339,7 +1416,7 @@ export default function ScannerScreen() {
                                     opacity: selectedIds.size === 0 || isLoading || selectedInsufficientStock ? 0.5 : 1,
                                 }}
                             >
-                                <ArrowUpCircle size={16} color="white" style={{ display: isMobileScreen ? "none" : "flex"}} />
+                                <ArrowUpCircle size={16} color="white" style={{ display: isMobileScreen ? "none" : "flex" }} />
                                 <ButtonText size={isMobileScreen ? "xs" : "md"}>Dispatch</ButtonText>
                             </Button>
                         </HStack>
