@@ -41,7 +41,7 @@ import {
     ToastTitle,
     ToastDescription,
 } from "@/components/ui/toast";
-import { useAuth } from "@/app/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import {
     ShoppingCart,
     X,
@@ -80,7 +80,7 @@ interface Voucher {
     expiresAt?: string;
 }
 
-const RedeemScreen = () => {
+export default function RedeemScreen () {
     const { width } = useWindowDimensions();
     const isMobileScreen = width < 680;
     const { userData } = useAuth();
@@ -820,9 +820,8 @@ const RedeemScreen = () => {
 
                                                                 <Text
                                                                     style={{
-                                                                        fontWeight:
-                                                                            "medium",
-                                                                        color: "#059669",
+                                                                        fontWeight: "medium",
+                                                                        color: "#059669"
                                                                     }}
                                                                 >
                                                                     {item
@@ -1499,5 +1498,3 @@ const RedeemScreen = () => {
         </ProtectedRoute>
     );
 };
-
-export default RedeemScreen;
