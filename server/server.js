@@ -265,6 +265,7 @@ app.post("/api/barcodes", authMiddleware, async (req, res) => {
 app.put("/api/barcodes/:id", authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
+        const operation = req.body.operation || "edit"; 
         const {
             barcode,
             itemName,
@@ -304,6 +305,25 @@ app.put("/api/barcodes/:id", authMiddleware, async (req, res) => {
             return res.status(404).json({ error: "UERROR: Barcode not found." });
         }
 
+        let newCount = existingBarcode.totalCount;
+
+        if (operation === "receive") {
+            if (typeof count !== "number") {
+                return res.status(400).json({ error: "UERROR: Item's count must be numeric" });
+            }
+            newCount += count;
+        } else if (operation === "dispatch") {
+            if (typeof count !== "number") {
+                return res.status(400).json({ error: "UERROR: Item's count must be numeric" });
+            }
+            if (count > existingBarcode.totalCount) {
+                return res.status(400).json({ error: "UERROR: Not enough stock to dispatch. Please rescan the item or check inventory" });
+            }
+            newCount -= count;
+        } else {
+            newCount = typeof count === "number" ? count : existingBarcode.totalCount;
+        }
+
         const updatedBarcode = {
             ...existingBarcode,
             barcode: typeof barcode === "string" ? barcode.trim() : existingBarcode.barcode,
@@ -312,7 +332,7 @@ app.put("/api/barcodes/:id", authMiddleware, async (req, res) => {
             group: typeof group === "string" ? group.trim() : existingBarcode.group || "",
             location: typeof location === "string" ? location.trim() : existingBarcode.location || "",
             pointsToRedeem: typeof pointsToRedeem === "number" ? pointsToRedeem : existingBarcode.pointsToRedeem || 0,
-            totalCount: typeof count === "number" ? count : existingBarcode.totalCount || 1,
+            totalCount: newCount,
             sessionCount: 0,
             updatedAt: now,
             updatedBy,

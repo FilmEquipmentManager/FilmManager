@@ -65,7 +65,8 @@ export default function ScannerScreen() {
     const [showUnknownEditModal, setShowUnknownEditModal] = useState(false);
     const [currentMode, setCurrentMode] = useState("");
     const [isFocused, setIsFocused] = useState(false);
-    const { width } = useWindowDimensions();
+    const { width, height } = useWindowDimensions();
+    const isShortScreen = height < 750;
     const isMobileScreen = width < 680;
 
     const { mode } = useLocalSearchParams();
@@ -200,8 +201,18 @@ export default function ScannerScreen() {
                 setIsFocused(false);
                 setIsLoading(false);
             } catch (error) {
-                console.error("Error checking barcode:", error);
-                showToast("Scan failed", "Could not verify barcode with the server.");
+                console.error("Scanner Error:", error);
+                if (
+                    error.response &&
+                    error.response.data &&
+                    typeof error.response.data.error === "string" &&
+                    error.response.data.error.startsWith("UERROR: ")
+                ) {
+                    const cleanedMessage = error.response.data.error.replace("UERROR: ", "");
+                    showToast("Scanner Error", cleanedMessage);
+                } else {
+                    showToast("Scanner Error", "Could not verify barcode with the server.");
+                }
                 setIsLoading(false);
                 setIsFocused(false);
             }
@@ -316,8 +327,7 @@ export default function ScannerScreen() {
         editingItemDescription.trim() !== originalItemDescription.trim() ||
         editingItemCount.trim() !== originalItemCount.trim() ||
         editingItemLocation.trim() !== originalItemLocation.trim() ||
-        editingItemPointsToRedeem.trim() !== originalItemPointsToRedeem.trim() ||
-        editingItemGroup.trim() !== originalItemGroup.trim();
+        editingItemPointsToRedeem.trim() !== originalItemPointsToRedeem.trim()
 
     const handleReceive = async () => {
         setIsLoading(true);
@@ -328,13 +338,14 @@ export default function ScannerScreen() {
             // Update known items (PUT)
             const updatePromises = knownItemsToReceive.map(item =>
                 server.put(`/api/barcodes/${item.id}`, {
+                    operation: "receive",
+                    count: item.sessionCount,
                     barcode: item.barcode,
                     group: item.group,
                     itemName: item.itemName,
                     itemDescription: item.itemDescription,
                     location: item.location,
                     pointsToRedeem: item.pointsToRedeem,
-                    count: item.totalCount + item.sessionCount,
                 })
             );
 
@@ -361,10 +372,20 @@ export default function ScannerScreen() {
             setSelectedIds(new Set());
 
             const totalReceived = knownItemsToReceive.length + unknownItemsToReceive.length;
-            showToast("Items Received", `${totalReceived} barcodes saved.`);
+            showToast("Items Received", `${totalReceived} barcodes received.`);
         } catch (error) {
-            console.error("Error receiving barcodes:", error);
-            showToast("Error", "Failed to receive some items.");
+            console.error("Receive Error:", error);
+            if (
+                error.response &&
+                error.response.data &&
+                typeof error.response.data.error === "string" &&
+                error.response.data.error.startsWith("UERROR: ")
+            ) {
+                const cleanedMessage = error.response.data.error.replace("UERROR: ", "");
+                showToast("Receive Error", cleanedMessage);
+            } else {
+                showToast("Receive Error", "Failed to receive some items.");
+            }
         } finally {
             setIsLoading(false);
             setShowReceiveModal(false);
@@ -389,13 +410,14 @@ export default function ScannerScreen() {
         try {
             const updatePromises = dispatchableItems.map(item =>
                 server.put(`/api/barcodes/${item.id}`, {
+                    operation: "dispatch",
+                    count: item.sessionCount,
                     barcode: item.barcode,
                     group: item.group,
                     itemName: item.itemName,
                     itemDescription: item.itemDescription,
                     location: item.location,
                     pointsToRedeem: item.pointsToRedeem,
-                    count: item.totalCount - item.sessionCount,
                 })
             );
 
@@ -406,8 +428,18 @@ export default function ScannerScreen() {
             setSelectedIds(new Set());
             showToast("Dispatch Successful", `${dispatchableItems.length} items dispatched.`);
         } catch (error) {
-            console.error("Error dispatching barcodes:", error);
-            showToast("Dispatch Error", "Failed to dispatch items. Please try again.");
+            console.error("Dispatch Error:", error);
+            if (
+                error.response &&
+                error.response.data &&
+                typeof error.response.data.error === "string" &&
+                error.response.data.error.startsWith("UERROR: ")
+            ) {
+                const cleanedMessage = error.response.data.error.replace("UERROR: ", "");
+                showToast("Dispatch Error", cleanedMessage);
+            } else {
+                showToast("Dispatch Error", "Failed to dispatch items. Please try again.");
+            }
         } finally {
             setIsLoading(false);
             setShowDispatchModal(false);
@@ -421,15 +453,25 @@ export default function ScannerScreen() {
         const isKnown = pendingItems.some(item => item.barcode === barcode);
         const currentPendingList = isKnown ? pendingItems : pendingUnknownItems;
         const setPendingList = isKnown ? setPendingItems : setPendingUnknownItems;
-
-        const updatedList = currentPendingList.map(item =>
-            item.barcode === barcode
-                ? { ...item, sessionCount: (item.sessionCount || 0) + 1 }
-                : item
-        );
-
+    
+        const updatedList = currentPendingList.map(item => {
+            if (item.barcode === barcode) {
+                const currentCount = item.sessionCount || 0;
+    
+                if (mode === "dispatch" && currentCount >= (item.totalCount || 0)) {
+                    return item; 
+                }
+    
+                return {
+                    ...item,
+                    sessionCount: currentCount + 1,
+                };
+            }
+            return item;
+        });
+    
         setPendingList(updatedList);
-    };
+    };    
 
     const handleDecrease = (barcode: string) => {
         const isKnown = pendingItems.some(item => item.barcode === barcode);
@@ -472,12 +514,14 @@ export default function ScannerScreen() {
         } else {
             try {
                 await server.put(`/api/barcodes/${editingItem.id}`, {
+                    operation: "edit",
                     barcode: editingBarcode.trim(),
                     group: editingItemGroup.trim(),
                     location: editingItemLocation.trim(),
                     pointsToRedeem: parseInt(editingItemPointsToRedeem) || 0,
                     itemName: editingItemName.trim(),
                     itemDescription: editingItemDescription.trim(),
+                    count: parseInt(editingItemCount),
                 });
 
                 setPendingItems((prev) =>
@@ -486,8 +530,18 @@ export default function ScannerScreen() {
                     )
                 );
             } catch (error) {
-                console.error("Error updating barcode:", error);
-                showToast("Edit failed", "Failed to update barcode. Please try again.");
+                console.error("Edit Error:", error);
+                if (
+                    error.response &&
+                    error.response.data &&
+                    typeof error.response.data.error === "string" &&
+                    error.response.data.error.startsWith("UERROR: ")
+                ) {
+                    const cleanedMessage = error.response.data.error.replace("UERROR: ", "");
+                    showToast("Edit Error", cleanedMessage);
+                } else {
+                    showToast("Edit Error", "Failed to update barcode. Please try again.");
+                }
             }
         }
 
@@ -513,7 +567,7 @@ export default function ScannerScreen() {
             itemDescription: editingItemDescription.trim(),
             location: editingItemLocation.trim(),
             pointsToRedeem: parseInt(editingItemPointsToRedeem) || 0,
-            totalCount: parseInt(editingItemCount) || editingItem.totalCount,
+            totalCount: parseInt(editingItemCount),
             group: editingItemGroup.trim(),
         };
 
@@ -534,7 +588,7 @@ export default function ScannerScreen() {
         setShowUnknownEditModal(false);
     };
 
-    const selectedInsufficientStock = [...pendingItems, ...pendingUnknownItems].filter(item => selectedIds.has(item.id)).some(item => item.totalCount < 1);
+    const selectedInsufficientStock = [...pendingItems, ...pendingUnknownItems].filter(item => selectedIds.has(item.id)).some(item => item.totalCount < 1 || item.sessionCount > item.totalCount);
 
     // useFocusEffect(
     //     useCallback(() => {
@@ -837,7 +891,7 @@ export default function ScannerScreen() {
                                                                                             style={{
                                                                                                 fontSize: 16,
                                                                                                 fontWeight: "700",
-                                                                                                color: "#64748b",
+                                                                                                color: currentMode === "dispatch" && item.sessionCount > item.totalCount ? "red" : "#64748b",
                                                                                                 textAlign: "center",
                                                                                                 minWidth: 24,
                                                                                             }}
@@ -845,7 +899,7 @@ export default function ScannerScreen() {
                                                                                             X{item.sessionCount}
                                                                                         </Text>
 
-                                                                                        <Button onPress={() => handleIncrease(item.barcode)} style={{ backgroundColor: "transparent" }}>
+                                                                                        <Button onPress={() => handleIncrease(item.barcode)} disabled={currentMode === "dispatch" && item.sessionCount >= item.totalCount} style={{ backgroundColor: "transparent" }}>
                                                                                             <ButtonText style={{ fontSize: 18, fontWeight: "700", color: "#94a3b8" }}>+</ButtonText>
                                                                                         </Button>
                                                                                     </Box>
@@ -1010,7 +1064,6 @@ export default function ScannerScreen() {
                                         justifyContent: "center",
                                         alignItems: "center",
                                         backgroundColor: "transparent",
-                                        padding: 24
                                     }}
                                 >
                                     <VStack
@@ -1161,9 +1214,9 @@ export default function ScannerScreen() {
                                     style={{
                                         flex: 1,
                                         justifyContent: "center",
-                                        alignItems: "center",
+                                        alignItems: "flex-start",
                                         backgroundColor: "transparent",
-                                        padding: isMobileScreen ? 10 : 24
+                                        padding: isShortScreen ? 0 : 100,
                                     }}
                                 >
                                     <VStack style={{ width: "100%" }}>
@@ -1277,7 +1330,7 @@ export default function ScannerScreen() {
                                                                                             style={{
                                                                                                 fontSize: 16,
                                                                                                 fontWeight: "700",
-                                                                                                color: "#64748b",
+                                                                                                color: currentMode === "dispatch" && item.sessionCount > item.totalCount ? "red" : "#64748b",
                                                                                                 textAlign: "center",
                                                                                                 minWidth: 24,
                                                                                             }}
@@ -1285,7 +1338,7 @@ export default function ScannerScreen() {
                                                                                             X{item.sessionCount}
                                                                                         </Text>
 
-                                                                                        <Button onPress={() => handleIncrease(item.barcode)} style={{ backgroundColor: "transparent" }}>
+                                                                                        <Button onPress={() => handleIncrease(item.barcode)} disabled={currentMode === "dispatch" && item.sessionCount >= item.totalCount} style={{ backgroundColor: "transparent" }}>
                                                                                             <ButtonText style={{ fontSize: 18, fontWeight: "700", color: "#94a3b8" }}>+</ButtonText>
                                                                                         </Button>
                                                                                     </Box>
