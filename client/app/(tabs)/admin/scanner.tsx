@@ -1167,8 +1167,8 @@ export default function ScannerScreen() {
                                                                                 borderColor: "#1B9CFF",
                                                                                 borderWidth: 2,
                                                                                 borderRadius: 9999,
-                                                                                width: 12,
-                                                                                height: 12,
+                                                                                width: 10,
+                                                                                height: 10,
                                                                             }}
                                                                         />
                                                                     )}
