@@ -21,6 +21,7 @@ import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
 import { LinearGradient } from "expo-linear-gradient";
 import { AlertTriangleIcon, ArrowDownCircle, ArrowUpCircle, CheckCircleIcon, MinusCircleIcon, PencilIcon, ScanIcon, SparklesIcon, WarehouseIcon } from "lucide-react-native";
 import { Box } from "@/components/ui/box";
+import { useData } from "@/contexts/DataContext";
 import { useLocalSearchParams } from "expo-router";
 
 interface ScannedItem {
@@ -72,6 +73,8 @@ export default function ScannerScreen() {
     const isShortScreen = height < 750;
     const isMobileScreen = width < 680;
     const isTinyScreen = width < 375;
+
+    const { barcodes, loading } = useData();
 
     const { mode } = useLocalSearchParams();
     const initialMode = typeof mode === "string" ? mode : "info";
