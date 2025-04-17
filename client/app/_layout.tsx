@@ -11,6 +11,7 @@ import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
 import { useColorScheme } from "@/components/useColorScheme";
 import { Slot } from "expo-router";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { DataProvider } from "@/contexts/DataContext";
 
 import "../global.css";
 
@@ -65,7 +66,9 @@ function RootLayoutNav() {
                 value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
             >
                 <AuthProvider>
-                    <Slot />
+                    <DataProvider>
+                        <Slot />
+                    </DataProvider>
                 </AuthProvider>
             </ThemeProvider>
         </GluestackUIProvider>
