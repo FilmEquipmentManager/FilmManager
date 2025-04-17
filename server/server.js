@@ -208,12 +208,23 @@ app.post("/api/barcodes", authMiddleware, async (req, res) => {
         } = req.body;
 
         if (
-            typeof barcode !== "string" || barcode.trim() === "" ||
-            typeof itemName !== "string" || itemName.trim() === "" ||
-            typeof itemDescription !== "string" || itemDescription.trim() === ""
+            (barcode !== null && barcode !== undefined && typeof barcode !== "string") ||
+            (itemName !== null && itemName !== undefined && typeof itemName !== "string") ||
+            (itemDescription !== null && itemDescription !== undefined && typeof itemDescription !== "string") ||
+            (group !== null && group !== undefined && typeof group !== "string") ||
+            (location !== null && location !== undefined && typeof location !== "string")
         ) {
             return res.status(400).json({
-                error: "UERROR: Missing required parameters.",
+                error: "UERROR: Invalid input types for strings.",
+            });
+        }
+
+        if (
+            (count !== null && count !== undefined && typeof count !== "number") ||
+            (pointsToRedeem !== null && pointsToRedeem !== undefined && typeof pointsToRedeem !== "number")
+        ) {
+            return res.status(400).json({
+                error: "UERROR: Invalid input types for numbers.",
             });
         }
 
@@ -222,17 +233,17 @@ app.post("/api/barcodes", authMiddleware, async (req, res) => {
 
         const newBarcode = {
             id: Date.now().toString(),
-            barcode: barcode.trim(),
-            group: group || "Unknown",
-            itemName: itemName.trim(),
-            itemDescription: itemDescription.trim(),
+            barcode: typeof barcode === "string" ? barcode.trim() : null,
+            itemName: typeof itemName === "string" ? itemName.trim() : null,
+            itemDescription: typeof itemDescription === "string" ? itemDescription.trim() : null,
+            group: typeof group === "string" ? group.trim() : "Unknown",
+            location: typeof location === "string" ? location.trim() : "Unknown",
+            totalCount: typeof count === "number" ? count : 1,
+            pointsToRedeem: typeof pointsToRedeem === "number" ? pointsToRedeem : 0,
+            sessionCount: 0,
             createdAt: now,
             updatedAt: now,
             updatedBy,
-            totalCount: count || 1,
-            sessionCount: 0,
-            location: location || "Unknown",
-            pointsToRedeem: pointsToRedeem || 0,
         };
 
         DM["Barcodes"][newBarcode.id] = newBarcode;
@@ -265,34 +276,44 @@ app.put("/api/barcodes/:id", authMiddleware, async (req, res) => {
         } = req.body;
 
         if (
-            !id ||
-            typeof barcode !== "string" || barcode.trim() === "" ||
-            typeof itemName !== "string" || itemName.trim() === "" ||
-            typeof itemDescription !== "string" || itemDescription.trim() === ""
+            (barcode !== null && barcode !== undefined && typeof barcode !== "string") ||
+            (itemName !== null && itemName !== undefined && typeof itemName !== "string") ||
+            (itemDescription !== null && itemDescription !== undefined && typeof itemDescription !== "string") ||
+            (group !== null && group !== undefined && typeof group !== "string") ||
+            (location !== null && location !== undefined && typeof location !== "string")
         ) {
-            return res.status(400).json({ error: "UERROR: All fields are required." });
+            return res.status(400).json({
+                error: "UERROR: Invalid input types for strings.",
+            });
         }
+
+        if (
+            (count !== null && count !== undefined && typeof count !== "number") ||
+            (pointsToRedeem !== null && pointsToRedeem !== undefined && typeof pointsToRedeem !== "number")
+        ) {
+            return res.status(400).json({
+                error: "UERROR: Invalid input types for numbers.",
+            });
+        }
+
+        const now = new Date().toISOString();
+        const updatedBy = req.user.name || req.user.email || req.user.uid || "Unknown";
 
         const existingBarcode = DM.peek(["Barcodes", id]);
         if (!existingBarcode) {
             return res.status(404).json({ error: "UERROR: Barcode not found." });
         }
 
-        const now = new Date().toISOString();
-        const updatedBy = req.user.name || req.user.email || req.user.uid || "Unknown";
-
-        console.log(count)
-
         const updatedBarcode = {
             ...existingBarcode,
-            barcode: barcode.trim(),
-            itemName: itemName.trim(),
-            itemDescription: itemDescription.trim(),
-            group: group || existingBarcode.group || "",
-            location: location || existingBarcode.location || "",
+            barcode: typeof barcode === "string" ? barcode.trim() : existingBarcode.barcode,
+            itemName: typeof itemName === "string" ? itemName.trim() : existingBarcode.itemName,
+            itemDescription: typeof itemDescription === "string" ? itemDescription.trim() : existingBarcode.itemDescription,
+            group: typeof group === "string" ? group.trim() : existingBarcode.group || "",
+            location: typeof location === "string" ? location.trim() : existingBarcode.location || "",
             pointsToRedeem: typeof pointsToRedeem === "number" ? pointsToRedeem : existingBarcode.pointsToRedeem || 0,
-            sessionCount: 0,
             totalCount: typeof count === "number" ? count : existingBarcode.totalCount || 1,
+            sessionCount: 0,
             updatedAt: now,
             updatedBy,
         };

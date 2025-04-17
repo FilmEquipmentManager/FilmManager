@@ -12,12 +12,13 @@ import { Modal, ModalBackdrop, ModalContent, ModalCloseButton, ModalHeader, Moda
 import { Checkbox, CheckboxIndicator, CheckboxIcon } from "@/components/ui/checkbox"
 import { Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem } from '@/components/ui/select';
 import { FormControl, FormControlLabel, FormControlLabelText } from "@/components/ui/form-control"
-import { Icon, CloseIcon, CheckIcon, ChevronDownIcon } from "@/components/ui/icon";
+import { Icon, CloseIcon, CheckIcon, ChevronDownIcon, CircleIcon } from "@/components/ui/icon";
 import Constants from "expo-constants";
+import { Radio, RadioGroup, RadioIcon, RadioIndicator, RadioLabel } from '@/components/ui/radio';
 import server from "../../../networking";
 import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
 import { LinearGradient } from "expo-linear-gradient";
-import { AlertTriangleIcon, ArrowDownCircle, ArrowUpCircle, CheckCircleIcon, MinusCircleIcon, PencilIcon, ScanIcon, SparklesIcon, Trash2Icon, WarehouseIcon } from "lucide-react-native";
+import { AlertTriangleIcon, ArrowDownCircle, ArrowUpCircle, CheckCircleIcon, MinusCircleIcon, PencilIcon, ScanIcon, SparklesIcon, WarehouseIcon } from "lucide-react-native";
 import { Box } from "@/components/ui/box";
 import { useLocalSearchParams } from "expo-router";
 
@@ -62,16 +63,20 @@ export default function ScannerScreen() {
     const [showReceiveModal, setShowReceiveModal] = useState(false);
     const [showDispatchModal, setShowDispatchModal] = useState(false);
     const [showUnknownEditModal, setShowUnknownEditModal] = useState(false);
+    const [currentMode, setCurrentMode] = useState("");
     const [isFocused, setIsFocused] = useState(false);
-    const { width, height } = useWindowDimensions();
-    const isShortScreen = height < 750;
+    const { width } = useWindowDimensions();
     const isMobileScreen = width < 680;
+
+    const { mode } = useLocalSearchParams();
+    const initialMode = typeof mode === "string" ? mode : "info";
+    useEffect(() => {
+        setCurrentMode(initialMode);
+    }, [initialMode]);
 
     const groupLabels = { camera: "Camera", lighting: "Lighting", audio: "Audio", lenses: "Lenses", accessories: "Accessories", grip: "Grip Equipment", power: "Power Supply", cables: "Cables", misc: "Miscellaneous", others: "Others" };
 
     const inputRef = useRef<any>(null);
-    const { mode } = useLocalSearchParams();
-    const currentMode = typeof mode === "string" ? mode : "info";
 
     const toast = useToast();
     const [toastId, setToastId] = useState(0);
@@ -416,29 +421,29 @@ export default function ScannerScreen() {
         const isKnown = pendingItems.some(item => item.barcode === barcode);
         const currentPendingList = isKnown ? pendingItems : pendingUnknownItems;
         const setPendingList = isKnown ? setPendingItems : setPendingUnknownItems;
-    
+
         const updatedList = currentPendingList.map(item =>
             item.barcode === barcode
                 ? { ...item, sessionCount: (item.sessionCount || 0) + 1 }
                 : item
         );
-    
+
         setPendingList(updatedList);
     };
-    
+
     const handleDecrease = (barcode: string) => {
         const isKnown = pendingItems.some(item => item.barcode === barcode);
         const currentPendingList = isKnown ? pendingItems : pendingUnknownItems;
         const setPendingList = isKnown ? setPendingItems : setPendingUnknownItems;
-    
+
         const updatedList = currentPendingList.map(item =>
             item.barcode === barcode && (item.sessionCount || 0) > 1
                 ? { ...item, sessionCount: (item.sessionCount || 1) - 1 }
                 : item
         );
-    
+
         setPendingList(updatedList);
-    };       
+    };
 
     const saveEditedBarcode = async () => {
         if (!editingItem) return;
@@ -581,7 +586,7 @@ export default function ScannerScreen() {
                                         {/* Title Section */}
                                         <VStack style={{ gap: 8, alignItems: "center" }}>
                                             <ScanIcon size={isMobileScreen ? 40 : 32} color="#3b82f6" />
-                                            <Text style={{ fontSize: 20, fontWeight: "700", color: "#1e293b" }}>
+                                            <Text style={{ fontSize: 16, fontWeight: "700", color: "#1e293b" }}>
                                                 Scan Area
                                             </Text>
                                         </VStack>
@@ -621,6 +626,55 @@ export default function ScannerScreen() {
                                                     We only accept 1D barcodes
                                                 </Text>
                                             </HStack>
+
+                                            <RadioGroup value={currentMode} onChange={setCurrentMode} style={{ justifyContent: "center", alignItems: "center", paddingBottom: pendingItems.length > 0 || pendingUnknownItems.length > 0 ? 0 : 10 }} >
+                                                <HStack space="sm" style={{ gap: 30 }}>
+                                                    {[
+                                                        { value: "receive", label: "Receive" },
+                                                        { value: "dispatch", label: "Dispatch" },
+                                                        { value: "info", label: "Scan Info" },
+                                                    ].map(({ value, label }) => (
+                                                        <Radio key={value} value={value} size="sm"  >
+                                                            <HStack style={{ alignItems: "center", gap: 6 }}>
+                                                                <RadioIndicator
+                                                                    style={{
+                                                                        backgroundColor: "white",
+                                                                        borderColor: "#1B9CFF",
+                                                                        borderWidth: 2,
+                                                                        borderRadius: 9999,
+                                                                        width: 20,
+                                                                        height: 20,
+                                                                        justifyContent: "center",
+                                                                        alignItems: "center",
+                                                                    }}
+                                                                >
+                                                                    {currentMode === value && (
+                                                                        <RadioIndicator
+                                                                            style={{
+                                                                                backgroundColor: currentMode === value ? "#1B9CFF" : "white",
+                                                                                borderColor: "#1B9CFF",
+                                                                                borderWidth: 2,
+                                                                                borderRadius: 9999,
+                                                                                width: 12,
+                                                                                height: 12,
+                                                                            }}
+                                                                        />
+                                                                    )}
+                                                                </RadioIndicator>
+                                                                <RadioLabel
+                                                                    style={{
+                                                                        fontSize: 14,
+                                                                        fontWeight: "700",
+                                                                        color: currentMode === value ? "#1B9CFF" : "#64748b",
+                                                                    }}
+                                                                >
+                                                                    {label}
+                                                                </RadioLabel>
+                                                            </HStack>
+                                                        </Radio>
+                                                    ))}
+                                                </HStack>
+                                            </RadioGroup>
                                         </VStack>
 
                                         {/* Scanned Result Display */}
@@ -630,7 +684,6 @@ export default function ScannerScreen() {
                                                     backgroundColor: "#f0fdf4",
                                                     borderRadius: 8,
                                                     padding: isMobileScreen ? 6 : 16,
-                                                    gap: 8,
                                                     alignItems: "center"
                                                 }}
                                             >
@@ -669,7 +722,7 @@ export default function ScannerScreen() {
                                 >
                                     <VStack style={{ flex: 1, width: "100%" }}>
                                         <ScrollView style={{ flex: 1, width: "100%" }}>
-                                            <VStack style={{ gap: 16, paddingBottom: 16 }}>
+                                            <VStack style={{ gap: 16 }}>
                                                 {Object.entries(groupedItems).length > 0 ? (
                                                     Object.entries(groupedItems).map(([group, items]) => (
                                                         <VStack key={group} style={{
@@ -758,7 +811,7 @@ export default function ScannerScreen() {
                                                                                         flexGrow: 1,
                                                                                         textAlign: "left",
                                                                                         minWidth: isMobileScreen ? "50%" : "auto",
-                                                                                        
+
                                                                                     }}>
                                                                                         {item.barcode}
                                                                                     </Text>
@@ -925,7 +978,7 @@ export default function ScannerScreen() {
                                                             shadowOffset: { width: 0, height: 4 },
                                                             shadowOpacity: 0.1,
                                                             shadowRadius: 8,
-                                                            elevation: 4
+                                                            elevation: 4,
                                                         }}
                                                     >
                                                         <HStack style={{ gap: 8, alignItems: "center" }}>
@@ -1018,6 +1071,55 @@ export default function ScannerScreen() {
                                                     We only accept 1D barcodes
                                                 </Text>
                                             </HStack>
+
+                                            <RadioGroup value={currentMode} onChange={setCurrentMode} style={{ justifyContent: "center", alignItems: "center" }} >
+                                                <HStack space="sm" style={{ gap: 30 }}>
+                                                    {[
+                                                        { value: "receive", label: "Receive" },
+                                                        { value: "dispatch", label: "Dispatch" },
+                                                        { value: "info", label: "Scan Info" },
+                                                    ].map(({ value, label }) => (
+                                                        <Radio key={value} value={value} size="sm"  >
+                                                            <HStack style={{ alignItems: "center", gap: 6 }}>
+                                                                <RadioIndicator
+                                                                    style={{
+                                                                        backgroundColor: "white",
+                                                                        borderColor: "#1B9CFF",
+                                                                        borderWidth: 2,
+                                                                        borderRadius: 9999,
+                                                                        width: 20,
+                                                                        height: 20,
+                                                                        justifyContent: "center",
+                                                                        alignItems: "center",
+                                                                    }}
+                                                                >
+                                                                    {currentMode === value && (
+                                                                        <RadioIndicator
+                                                                            style={{
+                                                                                backgroundColor: currentMode === value ? "#1B9CFF" : "white",
+                                                                                borderColor: "#1B9CFF",
+                                                                                borderWidth: 2,
+                                                                                borderRadius: 9999,
+                                                                                width: 12,
+                                                                                height: 12,
+                                                                            }}
+                                                                        />
+                                                                    )}
+                                                                </RadioIndicator>
+                                                                <RadioLabel
+                                                                    style={{
+                                                                        fontSize: 14,
+                                                                        fontWeight: "700",
+                                                                        color: currentMode === value ? "#1B9CFF" : "#64748b",
+                                                                    }}
+                                                                >
+                                                                    {label}
+                                                                </RadioLabel>
+                                                            </HStack>
+                                                        </Radio>
+                                                    ))}
+                                                </HStack>
+                                            </RadioGroup>
                                         </VStack>
 
                                         {/* Scanned Result Display */}
@@ -1066,7 +1168,7 @@ export default function ScannerScreen() {
                                 >
                                     <VStack style={{ width: "100%" }}>
                                         <ScrollView style={{ flex: 1, width: "100%" }}>
-                                            <VStack style={{ gap: 16, paddingBottom: 16 }}>
+                                            <VStack style={{ gap: 16 }}>
                                                 {Object.entries(groupedItems).length > 0 ? (
                                                     Object.entries(groupedItems).map(([group, items]) => (
                                                         <VStack key={group} style={{
@@ -1077,7 +1179,7 @@ export default function ScannerScreen() {
                                                             {/* Group Header */}
                                                             <HStack style={{
                                                                 alignItems: "center", gap: 10, padding: 12,
-                                                                backgroundColor: "#eef2ff", borderRadius: 16, marginBottom: 8, flex: 1
+                                                                backgroundColor: "#eef2ff", borderRadius: 16, flex: 1
                                                             }}>
                                                                 <Box style={{ position: 'relative', flexDirection: 'row', alignItems: 'center' }}>
                                                                     <Checkbox
@@ -1113,12 +1215,11 @@ export default function ScannerScreen() {
                                                                         backgroundColor: "#ffffff",
                                                                         borderRadius: 20,
                                                                         padding: 16,
-                                                                        marginVertical: 4,
                                                                         shadowColor: "#000",
                                                                         shadowOffset: { width: 0, height: 2 },
                                                                         shadowOpacity: 0.05,
                                                                         shadowRadius: 6,
-                                                                        elevation: 2,
+                                                                        elevation: 2
                                                                     }}
                                                                 >
                                                                     <HStack style={{ justifyContent: "space-between", alignItems: "center" }}>
@@ -1366,7 +1467,7 @@ export default function ScannerScreen() {
                                     display: currentMode !== "info" ? "flex" : "none"
                                 }}
                             >
-                                <CheckboxIndicator style={{ backgroundColor: allSelected ? "#1B9CFF" : "white", borderColor: "#1B9CFF" }}>
+                                <CheckboxIndicator style={{ backgroundColor: allSelected ? "#1B9CFF" : "white", borderColor: "#1B9CFF", borderRadius: 6 }}>
                                     <CheckboxIcon as={CheckIcon} color="white" />
                                 </CheckboxIndicator>
                             </Checkbox>
