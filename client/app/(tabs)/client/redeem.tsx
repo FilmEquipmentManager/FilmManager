@@ -213,6 +213,7 @@ export default function RedeemScreen () {
             setCartItems([]);
             setSelectedVoucher(null);
             setCartVisible(false);
+            setConfirmCheckoutVisible(false);
             showToast("Success", "Redemption successful!");
         } catch (error) {
             showToast("Error", "Checkout failed");
@@ -278,39 +279,39 @@ export default function RedeemScreen () {
                             onPress={() => setCartVisible(true)}
                             variant={cartItems.length > 0 ? "solid" : "outline"}
                             style={{
-                                padding: 12,
                                 borderRadius: 12,
                                 backgroundColor: "transparent",
                                 borderColor: "#10B981",
                                 borderWidth: 2
                             }}
                         >
-                            <HStack space="xs" style={{ alignItems: "center" }}>
-                                <Icon
-                                    as={ShoppingCart}
-                                    size="md"
-                                    style={{
-                                        color: "#10B981"
-                                    }}
-                                />
-
-                                <Text style={{ marginLeft: 3, marginRight: 3 }}>Shopping Cart</Text>
+                            <Box style={{ alignItems: "center", display: "flex", flexDirection: "row", justifyContent: "space-between" }}>
+                                <Box style={{ marginRight: 5 }}>
+                                    <Icon
+                                        as={ShoppingCart}
+                                        size="md"
+                                        style={{
+                                            color: "#10B981"
+                                        }}
+                                    />
+                                </Box>
 
                                 {cartItems.length > 0 && (
                                     <Badge
                                         variant="solid"
                                         style={{
-                                            backgroundColor: "#ECFDF5",
+                                            backgroundColor: "#10B981",
                                             borderRadius: 20,
                                             minWidth: 24,
                                             height: 24,
                                             alignItems: "center",
                                             justifyContent: "center",
+                                            marginLeft: 5
                                         }}
                                     >
                                         <Text
                                             style={{
-                                                color: "#10B981",
+                                                color: "white",
                                                 fontWeight: "bold",
                                             }}
                                         >
@@ -318,7 +319,7 @@ export default function RedeemScreen () {
                                         </Text>
                                     </Badge>
                                 )}
-                            </HStack>
+                            </Box>
                         </Button>
                     </HStack>
 
@@ -606,6 +607,7 @@ export default function RedeemScreen () {
                         isOpen={cartVisible}
                         onClose={() => setCartVisible(false)}
                         size={isMobileScreen ? "full" : "md"}
+                        style={{ padding: 15 }}
                     >
                         <ModalBackdrop />
                         <ModalContent>
@@ -1136,6 +1138,19 @@ export default function RedeemScreen () {
                                         space="md"
                                         style={{ width: "100%" }}
                                     >
+                                        <Button
+                                            variant="outline"
+                                            style={{
+                                                flex: 1,
+                                                borderColor: "#6B7280",
+                                            }}
+                                            onPress={() => setCartVisible(false)}
+                                        >
+                                            <Text style={{ color: "#6B7280" }}>
+                                                Continue Shopping
+                                            </Text>
+                                        </Button>
+
                                         <Button
                                             style={{
                                                 flex: 1,
