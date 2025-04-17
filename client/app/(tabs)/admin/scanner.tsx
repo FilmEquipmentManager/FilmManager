@@ -644,7 +644,7 @@ export default function ScannerScreen() {
                                                         <VStack key={group} style={{
                                                             gap: 12, backgroundColor: "white", padding: 16, borderRadius: 24,
                                                             shadowColor: "#4f46e5", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1,
-                                                            shadowRadius: 12, elevation: 8, marginVertical: 8, flex: 1
+                                                            shadowRadius: 12, elevation: 8, marginVertical: 8
                                                         }}>
                                                             {/* Group Header */}
                                                             <HStack style={{
@@ -1006,7 +1006,7 @@ export default function ScannerScreen() {
                                         padding: isMobileScreen ? 10 : 24
                                     }}
                                 >
-                                    <VStack style={{ flex: 1, width: "100%" }}>
+                                    <VStack style={{ width: "100%" }}>
                                         <ScrollView style={{ flex: 1, width: "100%" }}>
                                             <VStack style={{ gap: 16, paddingBottom: 16 }}>
                                                 {Object.entries(groupedItems).length > 0 ? (
@@ -1014,7 +1014,7 @@ export default function ScannerScreen() {
                                                         <VStack key={group} style={{
                                                             gap: 12, backgroundColor: "white", padding: 16, borderRadius: 24,
                                                             shadowColor: "#4f46e5", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1,
-                                                            shadowRadius: 12, elevation: 8, marginVertical: 8, flex: 1
+                                                            shadowRadius: 12, elevation: 8, marginVertical: 8
                                                         }}>
                                                             {/* Group Header */}
                                                             <HStack style={{
