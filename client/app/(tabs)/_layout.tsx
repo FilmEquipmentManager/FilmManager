@@ -143,6 +143,12 @@ export default function TabLayout() {
                     href: null,
                 }}
             />
+            <Tabs.Screen
+                name="client/rewards"
+                options={{
+                    href: null,
+                }}
+            />
         </Tabs>
     );
 }
