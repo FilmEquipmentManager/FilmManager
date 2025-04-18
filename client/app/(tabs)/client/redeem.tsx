@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { LinearGradient } from "expo-linear-gradient";
-import { useWindowDimensions, ScrollView, Pressable, Platform } from "react-native";
+import { useWindowDimensions, ScrollView, Pressable } from "react-native";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
