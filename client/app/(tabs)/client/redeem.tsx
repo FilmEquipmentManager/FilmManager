@@ -365,11 +365,8 @@ export default function RedeemScreen () {
                                             shadowOpacity: 0.05,
                                             shadowRadius: 4,
                                             elevation: 2,
-                                            borderWidth:
-                                                addedToCartId === product.id
-                                                    ? 2
-                                                    : 0,
-                                            borderColor: "#10B981",
+                                            borderWidth: 1,
+                                            borderColor: cartItems.some((i) => i.product.id === product.id) ? "#10B981" : "white",
                                         }}
                                     >
                                         <HStack space="md">
