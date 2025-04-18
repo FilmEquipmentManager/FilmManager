@@ -457,63 +457,63 @@ export default function ScannerScreen() {
         }
     };
 
-    const handleIncrease = (barcode: string) => {
-        const isKnown = pendingItems.some(item => item.barcode === barcode);
-        const currentPendingList = isKnown ? pendingItems : pendingUnknownItems;
-        const setPendingList = isKnown ? setPendingItems : setPendingUnknownItems;
+    // const handleIncrease = (barcode: string) => {
+    //     const isKnown = pendingItems.some(item => item.barcode === barcode);
+    //     const currentPendingList = isKnown ? pendingItems : pendingUnknownItems;
+    //     const setPendingList = isKnown ? setPendingItems : setPendingUnknownItems;
 
-        const updatedList = currentPendingList.map(item => {
-            if (item.barcode === barcode) {
-                const currentCount = item.sessionCount || 0;
+    //     const updatedList = currentPendingList.map(item => {
+    //         if (item.barcode === barcode) {
+    //             const currentCount = item.sessionCount || 0;
 
-                if (mode === "dispatch" && currentCount >= (item.totalCount || 0)) {
-                    return item;
-                }
+    //             if (mode === "dispatch" && currentCount >= (item.totalCount || 0)) {
+    //                 return item;
+    //             }
 
-                return {
-                    ...item,
-                    sessionCount: currentCount + 1,
-                };
-            }
-            return item;
-        });
+    //             return {
+    //                 ...item,
+    //                 sessionCount: currentCount + 1,
+    //             };
+    //         }
+    //         return item;
+    //     });
 
-        setPendingList(updatedList);
-    };
+    //     setPendingList(updatedList);
+    // };
 
-    const handleDecrease = (barcode: string) => {
-        const isKnown = pendingItems.some(item => item.barcode === barcode);
-        const currentPendingList = isKnown ? pendingItems : pendingUnknownItems;
-        const setPendingList = isKnown ? setPendingItems : setPendingUnknownItems;
+    // const handleDecrease = (barcode: string) => {
+    //     const isKnown = pendingItems.some(item => item.barcode === barcode);
+    //     const currentPendingList = isKnown ? pendingItems : pendingUnknownItems;
+    //     const setPendingList = isKnown ? setPendingItems : setPendingUnknownItems;
     
-        const itemToUpdate = currentPendingList.find(item => item.barcode === barcode);
-        if (!itemToUpdate) return;
+    //     const itemToUpdate = currentPendingList.find(item => item.barcode === barcode);
+    //     if (!itemToUpdate) return;
     
-        if ((itemToUpdate.sessionCount || 1) <= 1) {
-            handleRemove(itemToUpdate.id);
+    //     if ((itemToUpdate.sessionCount || 1) <= 1) {
+    //         handleRemove(itemToUpdate.id);
     
-            const newPendingItems = isKnown
-                ? pendingItems.filter(item => item.id !== itemToUpdate.id)
-                : pendingItems;
-            const newPendingUnknownItems = !isKnown
-                ? pendingUnknownItems.filter(item => item.id !== itemToUpdate.id)
-                : pendingUnknownItems;
+    //         const newPendingItems = isKnown
+    //             ? pendingItems.filter(item => item.id !== itemToUpdate.id)
+    //             : pendingItems;
+    //         const newPendingUnknownItems = !isKnown
+    //             ? pendingUnknownItems.filter(item => item.id !== itemToUpdate.id)
+    //             : pendingUnknownItems;
     
-            if (newPendingItems.length === 0 && newPendingUnknownItems.length === 0) {
-                setScannedCode("");
-            }
-        } else {
-            const updatedList = currentPendingList.map(item =>
-                item.barcode === barcode
-                    ? { ...item, sessionCount: (item.sessionCount || 1) - 1 }
-                    : item
-            );
+    //         if (newPendingItems.length === 0 && newPendingUnknownItems.length === 0) {
+    //             setScannedCode("");
+    //         }
+    //     } else {
+    //         const updatedList = currentPendingList.map(item =>
+    //             item.barcode === barcode
+    //                 ? { ...item, sessionCount: (item.sessionCount || 1) - 1 }
+    //                 : item
+    //         );
     
-            setPendingList(updatedList);
-        }
+    //         setPendingList(updatedList);
+    //     }
     
-        setCurrentScan("");
-    };
+    //     setCurrentScan("");
+    // };
     
     const saveEditedBarcode = async () => {
         if (!editingItem) return;
@@ -895,16 +895,13 @@ export default function ScannerScreen() {
 
                                                                             {/* Item Details */}
                                                                             <VStack style={{ flex: 1, gap: 6 }}>
-                                                                                <HStack style={{ alignItems: "center", gap: 8, justifyContent: "space-between", flexWrap: "wrap", width: "100%" }}>
+                                                                                <HStack style={{ alignItems: "center", gap: 8, justifyContent: "flex-start", flexWrap: "wrap", width: "100%" }}>
                                                                                     <Text isTruncated={true} style={{
                                                                                         fontSize: isMobileScreen ? 20 : 18, fontWeight: "800", color: "#1e293b",
                                                                                         textShadowColor: "rgba(79, 70, 229, 0.1)",
                                                                                         textShadowOffset: { width: 1, height: 1 },
                                                                                         textShadowRadius: 2,
-                                                                                        flexGrow: 1,
-                                                                                        textAlign: "left",
-                                                                                        minWidth: isMobileScreen ? "50%" : "auto",
-
+                                                                                        width: "auto"
                                                                                     }}>
                                                                                         {item.barcode}
                                                                                     </Text>
@@ -915,16 +912,15 @@ export default function ScannerScreen() {
                                                                                             paddingVertical: 2,
                                                                                             borderRadius: 6,
                                                                                             flexDirection: "row",
+                                                                                            gap: 6,
                                                                                             alignItems: "center",
                                                                                             justifyContent: "center",
-                                                                                            gap: 6,
-                                                                                            alignSelf: isMobileScreen ? "flex-end" : "center",
-                                                                                            marginTop: isMobileScreen ? 8 : 0,
+                                                                                            alignSelf: "center",
                                                                                         }}
                                                                                     >
-                                                                                        <Button onPress={() => handleDecrease(item.barcode)} style={{ backgroundColor: "transparent" }}>
+                                                                                        {/* <Button onPress={() => handleDecrease(item.barcode)} style={{ backgroundColor: "transparent" }}>
                                                                                             <ButtonText style={{ fontSize: 18, fontWeight: "700", color: "#94a3b8" }}>−</ButtonText>
-                                                                                        </Button>
+                                                                                        </Button> */}
 
                                                                                         <Text
                                                                                             style={{
@@ -932,15 +928,15 @@ export default function ScannerScreen() {
                                                                                                 fontWeight: "700",
                                                                                                 color: "#64748b",
                                                                                                 textAlign: "center",
-                                                                                                minWidth: 24,
+                                                                                                minWidth: 28,
                                                                                             }}
                                                                                         >
                                                                                             X{item.sessionCount}
                                                                                         </Text>
 
-                                                                                        <Button onPress={() => handleIncrease(item.barcode)} disabled={currentMode === "dispatch" && item.sessionCount >= item.totalCount} style={{ backgroundColor: "transparent" }}>
+                                                                                        {/* <Button onPress={() => handleIncrease(item.barcode)} disabled={currentMode === "dispatch" && item.sessionCount >= item.totalCount} style={{ backgroundColor: "transparent" }}>
                                                                                             <ButtonText style={{ fontSize: 18, fontWeight: "700", color: "#94a3b8" }}>+</ButtonText>
-                                                                                        </Button>
+                                                                                        </Button> */}
                                                                                     </Box>
                                                                                 </HStack>
 
@@ -1371,9 +1367,9 @@ export default function ScannerScreen() {
                                                                                             alignSelf: "center",
                                                                                         }}
                                                                                     >
-                                                                                        <Button onPress={() => handleDecrease(item.barcode)} style={{ backgroundColor: "transparent" }}>
+                                                                                        {/* <Button onPress={() => handleDecrease(item.barcode)} style={{ backgroundColor: "transparent" }}>
                                                                                             <ButtonText style={{ fontSize: 18, fontWeight: "700", color: "#94a3b8" }}>−</ButtonText>
-                                                                                        </Button>
+                                                                                        </Button> */}
 
                                                                                         <Text
                                                                                             style={{
@@ -1381,15 +1377,15 @@ export default function ScannerScreen() {
                                                                                                 fontWeight: "700",
                                                                                                 color: "#64748b",
                                                                                                 textAlign: "center",
-                                                                                                minWidth: 24,
+                                                                                                minWidth: 28,
                                                                                             }}
                                                                                         >
                                                                                             X{item.sessionCount}
                                                                                         </Text>
 
-                                                                                        <Button onPress={() => handleIncrease(item.barcode)} disabled={currentMode === "dispatch" && item.sessionCount >= item.totalCount} style={{ backgroundColor: "transparent" }}>
+                                                                                        {/* <Button onPress={() => handleIncrease(item.barcode)} disabled={currentMode === "dispatch" && item.sessionCount >= item.totalCount} style={{ backgroundColor: "transparent" }}>
                                                                                             <ButtonText style={{ fontSize: 18, fontWeight: "700", color: "#94a3b8" }}>+</ButtonText>
-                                                                                        </Button>
+                                                                                        </Button> */}
                                                                                     </Box>
                                                                                 </HStack>
 
