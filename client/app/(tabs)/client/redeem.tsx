@@ -50,7 +50,6 @@ export default function RedeemScreen () {
     const [products, setProducts] = useState<Product[]>([]);
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
-    const [addedToCartId, setAddedToCartId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [cartModalVisible, setCartModalVisible] = useState(false);
     const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
