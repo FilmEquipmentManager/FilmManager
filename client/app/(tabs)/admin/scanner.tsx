@@ -74,7 +74,7 @@ export default function ScannerScreen() {
     const isMobileScreen = width < 680;
     const isTinyScreen = width < 375;
 
-    const { barcodes, loading } = useData();
+    const { barcodes, loading } = useData()
 
     const { mode } = useLocalSearchParams();
     const initialMode = typeof mode === "string" ? mode : "info";
@@ -90,6 +90,7 @@ export default function ScannerScreen() {
     useEffect(() => {
         const interval = setInterval(() => {
             if (
+                typeof document !== "undefined" &&
                 scanInputRef.current &&
                 document.activeElement !== scanInputRef.current
             ) {
@@ -266,7 +267,7 @@ export default function ScannerScreen() {
         });
     };
 
-    const allPendingItems = [...pendingItems, ...pendingUnknownItems];
+    const allPendingItems = [...(pendingItems || []), ...(pendingUnknownItems || [])];
 
     const groupedItems: Record<string, ScannedItem[]> = allPendingItems.reduce((groups, item) => {
         const group = item.group?.toLowerCase() || "Unknown";
@@ -289,7 +290,7 @@ export default function ScannerScreen() {
         setIsLoading(true);
         setCurrentScan("");
         setIsFocused(false);
-        setScannedCode("");
+        setScannedCode("")
         setPendingItems([]);
         setPendingUnknownItems([]);
         setSelectedIds(new Set());
@@ -298,10 +299,21 @@ export default function ScannerScreen() {
     };
 
     const handleRemove = (id: string) => {
+        let updatedKnown = pendingItems;
+        let updatedUnknown = pendingUnknownItems;
+
         if (pendingItems.some(item => item.id === id)) {
-            setPendingItems(prev => prev.filter(item => item.id !== id));
+            updatedKnown = pendingItems.filter(item => item.id !== id);
+            setPendingItems(updatedKnown);
         } else {
-            setPendingUnknownItems(prev => prev.filter(item => item.id !== id));
+            updatedUnknown = pendingUnknownItems.filter(item => item.id !== id);
+            setPendingUnknownItems(updatedUnknown);
+        }
+
+        // Check if both are empty AFTER updating
+        if (updatedKnown.length === 0 && updatedUnknown.length === 0) {
+            setCurrentScan("");
+            setScannedCode("");
         }
     };
 
@@ -633,6 +645,7 @@ export default function ScannerScreen() {
 
     // Update items when realtime database have changes on barcodes
     useEffect(() => {
+        if (!barcodes) return;
         const barcodesArray = Object.values(barcodes) as ScannedItem[];
 
         setPendingItems(prev =>
