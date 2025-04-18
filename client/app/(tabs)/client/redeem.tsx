@@ -155,14 +155,15 @@ export default function RedeemScreen () {
             prev.map((item) => {
                 if (item.product.id === productId) {
                     const newQuantity = item.quantity + delta;
-                    if (newQuantity < 1) return item;
+                    if (newQuantity < 1) return null;
+
                     return { ...item, quantity: newQuantity };
                 }
                 return item;
-            })
+            }).filter(item => item !== null)
         );
     };
-
+    
     const toggleSelection = (productId?: string) => {
         if (!productId) {
             const allSelected = cartItems.every((item) => item.selected);
@@ -194,6 +195,11 @@ export default function RedeemScreen () {
             : 0;
 
         return { subtotal, discount, total: subtotal - discount };
+    };
+
+    // Calculate total number of items (sum of all quantities)
+    const getTotalItemsCount = () => {
+        return cartItems.reduce((sum, item) => sum + item.quantity, 0);
     };
 
     const handleCheckout = async () => {
@@ -315,7 +321,7 @@ export default function RedeemScreen () {
                                                 fontWeight: "bold",
                                             }}
                                         >
-                                            {cartItems.length}
+                                            {getTotalItemsCount()}
                                         </Text>
                                     </Badge>
                                 )}
