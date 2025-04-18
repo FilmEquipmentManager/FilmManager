@@ -129,6 +129,42 @@ export default function RedeemScreen () {
                 itemName: "DSLR Rig",
                 variant: "Mini",
                 pointsToRedeem: 200,
+            },
+            {
+                id: "5",
+                itemName: "DSLR Rig",
+                variant: "Mini",
+                pointsToRedeem: 200,
+            },
+            {
+                id: "6",
+                itemName: "DSLR Rig",
+                variant: "Mini",
+                pointsToRedeem: 200,
+            },
+            {
+                id: "7",
+                itemName: "DSLR Rig",
+                variant: "Mini",
+                pointsToRedeem: 200,
+            },
+            {
+                id: "8",
+                itemName: "DSLR Rig",
+                variant: "Mini",
+                pointsToRedeem: 200,
+            },
+            {
+                id: "9",
+                itemName: "DSLR Rig",
+                variant: "Mini",
+                pointsToRedeem: 200,
+            },
+            {
+                id: "10",
+                itemName: "DSLR Rig",
+                variant: "Mini",
+                pointsToRedeem: 200,
             }
         ];
 
@@ -613,7 +649,7 @@ export default function RedeemScreen () {
                         isOpen={cartVisible}
                         onClose={() => setCartVisible(false)}
                         size={isMobileScreen ? "full" : "md"}
-                        style={{ padding: 15 }}
+                        style={{ paddingHorizontal: 15, paddingVertical: 100 }}
                     >
                         <ModalBackdrop />
                         <ModalContent>
@@ -621,7 +657,7 @@ export default function RedeemScreen () {
                                 <Heading size="lg">Your Cart</Heading>
                             </ModalHeader>
 
-                            <ModalBody>
+                            <ModalBody style={{ paddingRight: 10, marginLeft: 10 }}>
                                 {cartItems.length === 0 ? (
                                     <VStack
                                         space="md"
@@ -1139,7 +1175,7 @@ export default function RedeemScreen () {
                             </ModalBody>
 
                             {cartItems.length > 0 && (
-                                <ModalFooter>
+                                <ModalFooter style={{ paddingRight: 10, marginLeft: 10 }}>
                                     <HStack
                                         space="md"
                                         style={{ width: "100%" }}
