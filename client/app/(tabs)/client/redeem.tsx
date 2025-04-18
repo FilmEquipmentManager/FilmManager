@@ -55,7 +55,7 @@ export default function RedeemScreen () {
     const [cartModalVisible, setCartModalVisible] = useState(false);
     const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
     const [voucherModalVisible, setVoucherModalVisible] = useState(false);
-    const [confirmCheckoutVisible, setConfirmCheckoutVisible] = useState(false);
+    const [confirmCheckoutModalVisible, setConfirmCheckoutModalVisible] = useState(false);
     const toast = useToast();
 
     const vouchers: Voucher[] = [
@@ -224,7 +224,8 @@ export default function RedeemScreen () {
             setCartItems([]);
             setSelectedVoucher(null);
             setCartModalVisible(false);
-            setConfirmCheckoutVisible(false);
+            setConfirmCheckoutModalVisible(false);
+            setCheckoutModalVisible(false)
             showToast("Success", "Redemption successful!");
         } catch (error) {
             showToast("Error", "Checkout failed");
@@ -1401,7 +1402,7 @@ export default function RedeemScreen () {
                                                         : "#10B981",
                                             }}
                                             onPress={() =>
-                                                setConfirmCheckoutVisible(true)
+                                                setConfirmCheckoutModalVisible(true)
                                             }
                                             disabled={
                                                 calculateTotal().total >
@@ -1680,8 +1681,8 @@ export default function RedeemScreen () {
 
                     {/* Checkout Confirmation Modal */}
                     <Modal
-                        isOpen={confirmCheckoutVisible}
-                        onClose={() => setConfirmCheckoutVisible(false)}
+                        isOpen={confirmCheckoutModalVisible}
+                        onClose={() => setConfirmCheckoutModalVisible(false)}
                         size="sm"
                     >
                         <ModalBackdrop />
@@ -1742,7 +1743,7 @@ export default function RedeemScreen () {
                                                 borderColor: "#6B7280",
                                             }}
                                             onPress={() =>
-                                                setConfirmCheckoutVisible(false)
+                                                setConfirmCheckoutModalVisible(false)
                                             }
                                         >
                                             <Text style={{ color: "#6B7280" }}>
