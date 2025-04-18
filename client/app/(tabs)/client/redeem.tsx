@@ -1,12 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { LinearGradient } from "expo-linear-gradient";
-import {
-    useWindowDimensions,
-    ScrollView,
-    Alert,
-    Platform,
-    Pressable,
-} from "react-native";
+import { useWindowDimensions, ScrollView, Pressable } from "react-native";
 import React from "react";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
@@ -19,41 +13,12 @@ import { Icon } from "@/components/ui/icon";
 import { Badge } from "@/components/ui/badge";
 import { Box } from "@/components/ui/box";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import {
-    Modal,
-    ModalBackdrop,
-    ModalContent,
-    ModalCloseButton,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-} from "@/components/ui/modal";
+import { Modal, ModalBackdrop, ModalContent, ModalCloseButton, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-    Checkbox,
-    CheckboxIndicator,
-    CheckboxIcon,
-    CheckboxLabel,
-} from "@/components/ui/checkbox";
-import {
-    useToast,
-    Toast,
-    ToastTitle,
-    ToastDescription,
-} from "@/components/ui/toast";
+import { Checkbox, CheckboxIndicator, CheckboxIcon } from "@/components/ui/checkbox";
+import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-    ShoppingCart,
-    X,
-    Check,
-    Minus,
-    Plus,
-    TagIcon,
-    Disc,
-    Camera,
-    AlertCircle,
-    CheckCircle2,
-} from "lucide-react-native";
+import { ShoppingCart, X, Check, Minus, Plus, TagIcon, Disc, Camera, AlertCircle, CheckCircle2 } from "lucide-react-native";
 import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
 import server from "../../../networking";
 
@@ -85,12 +50,13 @@ export default function RedeemScreen () {
     const isMobileScreen = width < 680;
     const { userData } = useAuth();
     const [products, setProducts] = useState<Product[]>([]);
-    const [voucherModalVisible, setVoucherModalVisible] = useState(false);
-    const [cartVisible, setCartVisible] = useState(false);
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
     const [addedToCartId, setAddedToCartId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [cartModalVisible, setCartModalVisible] = useState(false);
+    const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
+    const [voucherModalVisible, setVoucherModalVisible] = useState(false);
     const [confirmCheckoutVisible, setConfirmCheckoutVisible] = useState(false);
     const toast = useToast();
 
@@ -200,20 +166,25 @@ export default function RedeemScreen () {
         );
     };
 
+    const selectedItems = useMemo(() => 
+        cartItems.filter(item => item.selected), 
+        [cartItems]
+    );
+      
     const toggleSelection = (productId?: string) => {
         if (!productId) {
-            const allSelected = cartItems.every((item) => item.selected);
-            setCartItems((prev) =>
-                prev.map((item) => ({ ...item, selected: !allSelected }))
-            );
+          const allSelected = cartItems.every((item) => item.selected);
+          setCartItems((prev) =>
+            prev.map((item) => ({ ...item, selected: !allSelected }))
+          );
         } else {
-            setCartItems((prev) =>
-                prev.map((item) =>
-                    item.product.id === productId
-                        ? { ...item, selected: !item.selected }
-                        : item
-                )
-            );
+          setCartItems((prev) =>
+            prev.map((item) =>
+              item.product.id === productId
+                ? { ...item, selected: !item.selected }
+                : item
+            )
+          );
         }
     };
 
@@ -254,7 +225,7 @@ export default function RedeemScreen () {
 
             setCartItems([]);
             setSelectedVoucher(null);
-            setCartVisible(false);
+            setCartModalVisible(false);
             setConfirmCheckoutVisible(false);
             showToast("Success", "Redemption successful!");
         } catch (error) {
@@ -318,7 +289,7 @@ export default function RedeemScreen () {
                         </VStack>
 
                         <Button
-                            onPress={() => setCartVisible(true)}
+                            onPress={() => setCartModalVisible(true)}
                             variant={cartItems.length > 0 ? "solid" : "outline"}
                             style={{
                                 borderRadius: 12,
@@ -646,15 +617,15 @@ export default function RedeemScreen () {
 
                     {/* Cart Modal */}
                     <Modal
-                        isOpen={cartVisible}
-                        onClose={() => setCartVisible(false)}
+                        isOpen={cartModalVisible}
+                        onClose={() => setCartModalVisible(false)}
                         size={isMobileScreen ? "full" : "md"}
                         style={{ paddingHorizontal: 15, paddingVertical: 100 }}
                     >
                         <ModalBackdrop />
                         <ModalContent>
                             <ModalHeader style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
-                                <Heading size="lg">Checkout</Heading>
+                                <Heading size="lg">Cart</Heading>
                             </ModalHeader>
 
                             <ModalBody style={{ paddingRight: 10, marginLeft: 10 }}>
@@ -682,7 +653,7 @@ export default function RedeemScreen () {
                                         </Text>
                                         <Button
                                             onPress={() =>
-                                                setCartVisible(false)
+                                                setCartModalVisible(false)
                                             }
                                             style={{ marginTop: 8, backgroundColor: "#10B981" }}
                                         >
@@ -696,6 +667,359 @@ export default function RedeemScreen () {
                                             style={{ marginBottom: 16 }}
                                         >
                                             {cartItems.map((item) => (
+                                                <Card
+                                                    key={item.product.id}
+                                                    style={{
+                                                        padding: 12,
+                                                        borderRadius: 12,
+                                                        backgroundColor:
+                                                            item.selected
+                                                                ? "#ECFDF5"
+                                                                : "white",
+                                                        borderWidth: 1,
+                                                        borderColor:
+                                                            item.selected
+                                                                ? "#10B981"
+                                                                : "#E5E7EB",
+                                                    }}
+                                                >
+                                                    <HStack
+                                                        space="md"
+                                                        style={{
+                                                            alignItems:
+                                                                "center",
+                                                        }}
+                                                    >
+                                                        <Checkbox
+                                                            value={
+                                                                item.product.id
+                                                            }
+                                                            isChecked={
+                                                                item.selected
+                                                            }
+                                                            onChange={() =>
+                                                                toggleSelection(
+                                                                    item.product
+                                                                        .id
+                                                                )
+                                                            }
+                                                        >
+                                                            <CheckboxIndicator
+                                                                style={{
+                                                                    marginRight: 8,
+                                                                }}
+                                                            >
+                                                                <CheckboxIcon
+                                                                    as={Check}
+                                                                />
+                                                            </CheckboxIndicator>
+                                                        </Checkbox>
+
+                                                        <Box
+                                                            style={{
+                                                                width: 50,
+                                                                height: 50,
+                                                                borderRadius: 6,
+                                                                backgroundColor:
+                                                                    "#F9FAFB",
+                                                                justifyContent:
+                                                                    "center",
+                                                                alignItems:
+                                                                    "center",
+                                                            }}
+                                                        >
+                                                            <Icon
+                                                                as={Camera}
+                                                                size="md"
+                                                                style={{
+                                                                    color: "#9CA3AF",
+                                                                }}
+                                                            />
+                                                        </Box>
+
+                                                        <VStack
+                                                            style={{ flex: 1 }}
+                                                        >
+                                                            <Text
+                                                                style={{
+                                                                    fontWeight:
+                                                                        "medium",
+                                                                    color: "#111827",
+                                                                }}
+                                                            >
+                                                                {
+                                                                    item.product
+                                                                        .itemName
+                                                                }
+                                                            </Text>
+                                                            <Text
+                                                                style={{
+                                                                    color: "#6B7280",
+                                                                    fontSize: 12,
+                                                                }}
+                                                            >
+                                                                {
+                                                                    item.product
+                                                                        .variant
+                                                                }
+                                                            </Text>
+
+                                                            <HStack
+                                                                style={{
+                                                                    justifyContent:
+                                                                        "space-between",
+                                                                    marginTop: 4,
+                                                                }}
+                                                            >
+                                                                <HStack
+                                                                    space="sm"
+                                                                    style={{
+                                                                        alignItems:
+                                                                            "center",
+                                                                    }}
+                                                                >
+                                                                    <Pressable
+                                                                        onPress={() =>
+                                                                            updateQuantity(
+                                                                                item
+                                                                                    .product
+                                                                                    .id,
+                                                                                -1
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Icon
+                                                                            as={
+                                                                                Minus
+                                                                            }
+                                                                            size="xs"
+                                                                            style={{
+                                                                                color: "#6B7280",
+                                                                            }}
+                                                                        />
+                                                                    </Pressable>
+
+                                                                    <Text
+                                                                        style={{
+                                                                            width: 20,
+                                                                            textAlign:
+                                                                                "center",
+                                                                        }}
+                                                                    >
+                                                                        {
+                                                                            item.quantity
+                                                                        }
+                                                                    </Text>
+
+                                                                    <Pressable
+                                                                        onPress={() =>
+                                                                            updateQuantity(
+                                                                                item
+                                                                                    .product
+                                                                                    .id,
+                                                                                1
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Icon
+                                                                            as={
+                                                                                Plus
+                                                                            }
+                                                                            size="xs"
+                                                                            style={{
+                                                                                color: "#6B7280",
+                                                                            }}
+                                                                        />
+                                                                    </Pressable>
+                                                                </HStack>
+
+                                                                <Text
+                                                                    style={{
+                                                                        fontWeight: "medium",
+                                                                        color: "#059669"
+                                                                    }}
+                                                                >
+                                                                    {item
+                                                                        .product
+                                                                        .pointsToRedeem *
+                                                                        item.quantity}{" "}
+                                                                    pts
+                                                                </Text>
+                                                            </HStack>
+                                                        </VStack>
+
+                                                        <Pressable
+                                                            onPress={() =>
+                                                                removeFromCart(
+                                                                    item.product
+                                                                        .id
+                                                                )
+                                                            }
+                                                            style={{
+                                                                width: 32,
+                                                                height: 32,
+                                                                borderRadius: 16,
+                                                                padding: 0,
+                                                            }}
+                                                        >
+                                                            <Icon
+                                                                as={X}
+                                                                size="sm"
+                                                                style={{
+                                                                    color: "#6B7280",
+                                                                }}
+                                                            />
+                                                        </Pressable>
+                                                    </HStack>
+                                                </Card>
+                                            ))}
+                                        </VStack>
+
+                                        {/* Order Summary */}
+                                        <Card
+                                            style={{
+                                                padding: 16,
+                                                borderRadius: 12,
+                                                backgroundColor: "#F9FAFB",
+                                                marginBottom: 16,
+                                            }}
+                                        >
+                                            <VStack space="sm">
+                                                <HStack
+                                                    style={{
+                                                        justifyContent:
+                                                            "space-between",
+                                                    }}
+                                                >
+                                                    <Text
+                                                        style={{
+                                                            fontWeight: "bold",
+                                                            color: "#111827",
+                                                        }}
+                                                    >
+                                                        Subtotal:
+                                                    </Text>
+                                                    <Text
+                                                        style={{
+                                                            fontWeight: "bold",
+                                                            color: "#ee4d2d",
+                                                            fontSize: 16,
+                                                        }}
+                                                    >
+                                                        {calculateTotal().total}{" "}
+                                                        pts
+                                                    </Text>
+                                                </HStack>
+                                            </VStack>
+                                        </Card>
+                                    </>
+                                )}
+                            </ModalBody>
+
+                            {cartItems.length > 0 && (
+                                <ModalFooter style={{ paddingRight: 10, marginLeft: 10 }}>
+                                    <HStack
+                                        space="md"
+                                        style={{ width: "100%" }}
+                                    >
+                                        <Button
+                                            variant="outline"
+                                            style={{
+                                                flex: 1,
+                                                borderColor: "#6B7280",
+                                            }}
+                                            onPress={() => setCartModalVisible(false)}
+                                        >
+                                            <Text style={{ color: "#6B7280" }}>
+                                                Continue Shopping
+                                            </Text>
+                                        </Button>
+
+                                        <Button
+                                            style={{
+                                                flex: 1,
+                                                backgroundColor:
+                                                    calculateTotal().total >
+                                                    (userData?.points || 0)
+                                                        ? "#9CA3AF"
+                                                        : "#10B981",
+                                            }}
+                                            onPress={() => {
+                                                setCartModalVisible(false)
+                                                setCheckoutModalVisible(true)
+                                            }}
+                                            disabled={
+                                                calculateTotal().total >
+                                                (userData?.points || 0)
+                                            }
+                                        >
+                                            <Text
+                                                style={{
+                                                    color: "white",
+                                                    fontWeight: "bold",
+                                                }}
+                                            >
+                                                Checkout
+                                            </Text>
+                                        </Button>
+                                    </HStack>
+                                </ModalFooter>
+                            )}
+                        </ModalContent>
+                    </Modal>
+
+                    {/* Checkout Modal */}
+                    <Modal
+                        isOpen={checkoutModalVisible}
+                        onClose={() => setCheckoutModalVisible(false)}
+                        size={isMobileScreen ? "full" : "md"}
+                        style={{ paddingHorizontal: 15, paddingVertical: 100 }}
+                    >
+                        <ModalBackdrop />
+                        <ModalContent>
+                            <ModalHeader style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
+                                <Heading size="lg">Checkout</Heading>
+                            </ModalHeader>
+
+                            <ModalBody style={{ paddingRight: 10, marginLeft: 10 }}>
+                                {selectedItems.length === 0 ? (
+                                    <VStack
+                                        space="md"
+                                        style={{
+                                            alignItems: "center",
+                                            padding: 24,
+                                        }}
+                                    >
+                                        <Icon
+                                            as={ShoppingCart}
+                                            size="xl"
+                                            style={{ color: "#D1D5DB" }}
+                                        />
+                                        <Text
+                                            style={{
+                                                color: "#6B7280",
+                                                textAlign: "center",
+                                            }}
+                                        >
+                                            You have nothing to checkout.
+                                        </Text>
+                                        <Button
+                                            onPress={() =>{
+                                                setCheckoutModalVisible(false)
+                                                setCartModalVisible(true)
+                                            }}
+                                            style={{ marginTop: 8, backgroundColor: "#10B981" }}
+                                        >
+                                            <Text style={{ color: "white" }}>Go back to cart</Text>
+                                        </Button>
+                                    </VStack>
+                                ) : (
+                                    <>
+                                        <VStack
+                                            space="md"
+                                            style={{ marginBottom: 16 }}
+                                        >
+                                            {selectedItems.map((item) => (
                                                 <Card
                                                     key={item.product.id}
                                                     style={{
@@ -1186,10 +1510,15 @@ export default function RedeemScreen () {
                                                 flex: 1,
                                                 borderColor: "#6B7280",
                                             }}
-                                            onPress={() => setCartVisible(false)}
+                                            onPress={
+                                                () => {
+                                                    setCheckoutModalVisible(false)
+                                                    setCartModalVisible(true)
+                                                }
+                                            }
                                         >
                                             <Text style={{ color: "#6B7280" }}>
-                                                Continue Shopping
+                                                Go back to cart
                                             </Text>
                                         </Button>
 
@@ -1216,7 +1545,7 @@ export default function RedeemScreen () {
                                                     fontWeight: "bold",
                                                 }}
                                             >
-                                                Checkout
+                                                Place order
                                             </Text>
                                         </Button>
                                     </HStack>
