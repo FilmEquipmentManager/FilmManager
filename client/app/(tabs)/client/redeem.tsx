@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { LinearGradient } from "expo-linear-gradient";
-import { useWindowDimensions, ScrollView, Pressable } from "react-native";
+import { useWindowDimensions, ScrollView, Pressable, Platform } from "react-native";
 import React from "react";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
@@ -12,7 +12,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Icon } from "@/components/ui/icon";
 import { Badge } from "@/components/ui/badge";
 import { Box } from "@/components/ui/box";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarBadge, AvatarImage, AvatarFallbackText } from "@/components/ui/avatar";
 import { Modal, ModalBackdrop, ModalContent, ModalCloseButton, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Checkbox, CheckboxIndicator, CheckboxIcon } from "@/components/ui/checkbox";
@@ -290,49 +290,51 @@ export default function RedeemScreen () {
 
                         <Button
                             onPress={() => setCartModalVisible(true)}
-                            variant={cartItems.length > 0 ? "solid" : "outline"}
                             style={{
-                                borderRadius: 12,
-                                backgroundColor: "transparent",
+                                aspectRatio: 1,
+                                padding: 12,
+                                borderRadius: 999,
+                                backgroundColor: cartItems.length > 0 ? "#ECFDF5" : "transparent",
                                 borderColor: "#10B981",
-                                borderWidth: 2
+                                borderWidth: 1,
+                                alignItems: "center",
+                                justifyContent: "center",
+                                position: "relative",
                             }}
                         >
-                            <Box style={{ alignItems: "center", display: "flex", flexDirection: "row", justifyContent: "space-between" }}>
-                                <Box style={{ marginRight: cartItems.length > 0 ? 5 : 0 }}>
-                                    <Icon
-                                        as={ShoppingCart}
-                                        size="md"
-                                        style={{
-                                            color: "#10B981"
-                                        }}
-                                    />
-                                </Box>
 
-                                {cartItems.length > 0 && (
-                                    <Badge
-                                        variant="solid"
+                            <Icon
+                                as={ShoppingCart}
+                                size="xl"
+                                style={{ color: "#10B981" }}
+                            />
+
+                            {cartItems.length > 0 && (
+                                <Box
+                                    style={{
+                                        position: "absolute",
+                                        top: -5,
+                                        right: -5,
+                                        backgroundColor: "#10B981",
+                                        borderRadius: 999,
+                                        minWidth: 20,
+                                        height: 20,
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        paddingHorizontal: 4
+                                    }}
+                                >
+                                    <Text
                                         style={{
-                                            backgroundColor: "#10B981",
-                                            borderRadius: 20,
-                                            minWidth: 24,
-                                            height: 24,
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            marginLeft: 5
+                                            color: "white",
+                                            fontSize: 12,
+                                            fontWeight: "bold"
                                         }}
                                     >
-                                        <Text
-                                            style={{
-                                                color: "white",
-                                                fontWeight: "bold",
-                                            }}
-                                        >
-                                            {getTotalItemsCount()}
-                                        </Text>
-                                    </Badge>
-                                )}
-                            </Box>
+                                        {getTotalItemsCount()}
+                                    </Text>
+                                </Box>
+                            )}
                         </Button>
                     </HStack>
 
