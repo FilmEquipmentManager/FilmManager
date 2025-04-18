@@ -151,10 +151,9 @@ export default function ScannerScreen() {
             const barcodeToScan = currentScan.trim();
 
             try {
-                const response = await server.get("/api/barcodes");
-                const existingBarcodes: ScannedItem[] = response.data.result;
+                const barcodesArray = Object.values(barcodes) as ScannedItem[];
 
-                const matchedItem = existingBarcodes.find(item => item.barcode === barcodeToScan);
+                const matchedItem = barcodesArray.find(item => item.barcode === barcodeToScan);
                 const isKnown = !!matchedItem;
 
                 const currentPendingList = isKnown ? pendingItems : pendingUnknownItems;
@@ -334,7 +333,7 @@ export default function ScannerScreen() {
         editingItemDescription.trim() !== originalItemDescription.trim() ||
         editingItemCount.trim() !== originalItemCount.trim() ||
         editingItemLocation.trim() !== originalItemLocation.trim() ||
-        editingItemPointsToRedeem.trim() !== originalItemPointsToRedeem.trim() || 
+        editingItemPointsToRedeem.trim() !== originalItemPointsToRedeem.trim() ||
         editingItemGroup.trim() !== originalItemGroup.trim();
 
     const handleReceive = async () => {
@@ -485,20 +484,20 @@ export default function ScannerScreen() {
     //     const isKnown = pendingItems.some(item => item.barcode === barcode);
     //     const currentPendingList = isKnown ? pendingItems : pendingUnknownItems;
     //     const setPendingList = isKnown ? setPendingItems : setPendingUnknownItems;
-    
+
     //     const itemToUpdate = currentPendingList.find(item => item.barcode === barcode);
     //     if (!itemToUpdate) return;
-    
+
     //     if ((itemToUpdate.sessionCount || 1) <= 1) {
     //         handleRemove(itemToUpdate.id);
-    
+
     //         const newPendingItems = isKnown
     //             ? pendingItems.filter(item => item.id !== itemToUpdate.id)
     //             : pendingItems;
     //         const newPendingUnknownItems = !isKnown
     //             ? pendingUnknownItems.filter(item => item.id !== itemToUpdate.id)
     //             : pendingUnknownItems;
-    
+
     //         if (newPendingItems.length === 0 && newPendingUnknownItems.length === 0) {
     //             setScannedCode("");
     //         }
@@ -508,13 +507,13 @@ export default function ScannerScreen() {
     //                 ? { ...item, sessionCount: (item.sessionCount || 1) - 1 }
     //                 : item
     //         );
-    
+
     //         setPendingList(updatedList);
     //     }
-    
+
     //     setCurrentScan("");
     // };
-    
+
     const saveEditedBarcode = async () => {
         if (!editingItem) return;
         setIsLoading(true);
@@ -618,6 +617,36 @@ export default function ScannerScreen() {
 
     const selectedInsufficientStock = [...pendingItems, ...pendingUnknownItems].filter(item => selectedIds.has(item.id)).some(item => item.totalCount < 1 || item.sessionCount > item.totalCount);
 
+    // Update items when realtime database have changes on barcodes
+    useEffect(() => {
+        const barcodesArray = Object.values(barcodes) as ScannedItem[];
+
+        setPendingItems(prev =>
+            prev.map(item => {
+                const updated = barcodes[item.id];
+                return updated
+                    ? {
+                        ...item,
+                        ...updated,
+                    }
+                    : item;
+            })
+        );
+
+        setPendingUnknownItems(prev =>
+            prev.map(item => {
+                const updated = barcodesArray.find(b => b.barcode === item.barcode);
+                return updated
+                    ? {
+                        ...item,
+                        ...updated,
+                    }
+                    : item;
+            })
+        );
+    }, [barcodes]);
+
+    // Refresh on Landing
     // useFocusEffect(
     //     useCallback(() => {
     //         setPendingItems([]);
@@ -1553,7 +1582,7 @@ export default function ScannerScreen() {
                             display: (pendingItems.length + pendingUnknownItems.length) > 0 ? "flex" : "none",
                         }}
                     >
-                        <HStack space={isMobileScreen ? "xs" : "sm"} style={{ alignItems: "center", width: "auto" }}>
+                        <HStack space={isTinyScreen ? "xs" : isMobileScreen ? "xs" : "md"} style={{ alignItems: "center", width: "auto" }}>
                             <Checkbox
                                 value="selectAll"
                                 size={isMobileScreen ? "sm" : "md"}
@@ -1578,46 +1607,57 @@ export default function ScannerScreen() {
                                 size={isMobileScreen ? "xs" : "md"}
                                 onPress={handleClearResults}
                                 isDisabled={isLoading}
-                                style={{ marginLeft: 8 }}
                             >
-                                <MinusCircleIcon size={16} color="white" style={{ display: isMobileScreen ? "none" : "flex" }} />
-                                <ButtonText size={isMobileScreen ? "xs" : "md"}>Clear All</ButtonText>
+                                <MinusCircleIcon size={14} color="white" style={{ display: isTinyScreen ? "flex" : isMobileScreen ? "none" : "flex" }} />
+                                {!isTinyScreen && (
+                                    <ButtonText size={isMobileScreen ? "sm" : "md"} style={{ color: "white" }}>Clear All</ButtonText>
+                                )}
                             </Button>
                         </HStack>
 
-                        <HStack space={isMobileScreen && currentMode === "dispatch" ? "xs" : "xl"} style={{ alignItems: "center", width: "auto" }}>
-                            {selectedInsufficientStock && currentMode == "dispatch" && (
-                                <Text style={{ color: "red", fontWeight: "500" }} size={isMobileScreen ? "xs" : "md"} >
-                                    Not enough stock to dispatch.
-                                </Text>
-                            )}
+                        <HStack space={isTinyScreen ? "xs" : isMobileScreen && currentMode === "dispatch" ? "xs" : "xl"} style={{ alignItems: "center", width: "auto" }}>
                             <Button
                                 onPress={() => setShowReceiveModal(true)}
                                 isDisabled={selectedIds.size === 0 || isLoading}
-                                size={isMobileScreen ? "xs" : "md"}
+                                size={isTinyScreen ? "xs" : isMobileScreen ? "sm" : "md"}
                                 style={{
                                     display: currentMode === "receive" ? "flex" : "none",
                                     backgroundColor: "#1B9CFF",
                                     opacity: selectedIds.size === 0 || isLoading ? 0.5 : 1,
                                 }}
                             >
-                                <ArrowDownCircle size={16} color="white" style={{ display: isMobileScreen ? "none" : "flex" }} />
-                                <ButtonText size={isMobileScreen ? "xs" : "md"}>Receive</ButtonText>
+                                <ArrowDownCircle size={14} color="white" style={{ display: isTinyScreen ? "flex" : isMobileScreen ? "none" : "flex" }} />
+                                {!isTinyScreen && (
+                                    <ButtonText size={isMobileScreen ? "sm" : "md"} style={{ color: "white" }} >Receive</ButtonText>
+                                )}
                             </Button>
 
-                            <Button
-                                onPress={() => setShowDispatchModal(true)}
-                                isDisabled={selectedIds.size === 0 || isLoading || selectedInsufficientStock}
-                                size={isMobileScreen ? "xs" : "md"}
-                                style={{
-                                    display: currentMode === "dispatch" ? "flex" : "none",
-                                    backgroundColor: "#1B9CFF",
-                                    opacity: selectedIds.size === 0 || isLoading || selectedInsufficientStock ? 0.5 : 1,
-                                }}
-                            >
-                                <ArrowUpCircle size={16} color="white" style={{ display: isMobileScreen ? "none" : "flex" }} />
-                                <ButtonText size={isMobileScreen ? "xs" : "md"}>Dispatch</ButtonText>
-                            </Button>
+                            {currentMode === "dispatch" && (
+                                <HStack space="sm" style={{ alignItems: "center", display: "flex", width: "auto", justifyContent: "flex-end" }}>
+                                    {selectedInsufficientStock && (
+                                        <Text
+                                            size={isTinyScreen ? "2xs" : isMobileScreen ? "2xs" : "md"}
+                                            style={{ color: "red", fontWeight: "500", display: isTinyScreen ? "none" : "flex", textAlign: "right" }}
+                                        >
+                                            Not enough stock to dispatch.
+                                        </Text>
+                                    )}
+                                    <Button
+                                        onPress={() => setShowDispatchModal(true)}
+                                        isDisabled={selectedIds.size === 0 || isLoading || selectedInsufficientStock}
+                                        size={isTinyScreen ? "xs" : isMobileScreen ? "sm" : "md"}
+                                        style={{
+                                            backgroundColor: "#1B9CFF",
+                                            opacity: selectedIds.size === 0 || isLoading || selectedInsufficientStock ? 0.5 : 1,
+                                        }}
+                                    >
+                                        <ArrowUpCircle size={14} color="white" style={{ display: isTinyScreen ? "flex" : isMobileScreen ? "none" : "flex" }} />
+                                        {!isTinyScreen && (
+                                            <ButtonText size={isMobileScreen ? "sm" : "md"} style={{ color: "white" }} >Dispatch</ButtonText>
+                                        )}
+                                    </Button>
+                                </HStack>
+                            )}
                         </HStack>
                     </HStack>
 
@@ -1626,7 +1666,7 @@ export default function ScannerScreen() {
                         <ModalBackdrop />
                         <ModalContent>
                             <ModalHeader>
-                                <Heading size="md" className="text-typography-950">Edit Items</Heading>
+                                <Heading size="md" className="text-typography-950" >Edit Items</Heading>
                                 <ModalCloseButton style={{ backgroundColor: "transparent" }}>
                                     <Icon
                                         as={CloseIcon}
@@ -1712,12 +1752,23 @@ export default function ScannerScreen() {
                                 </FormControl>
                             </ModalBody>
                             <ModalFooter>
-                                <Button variant="solid" action="negative" onPress={() => setShowEditModal(false)}>
-                                    <ButtonText>Cancel</ButtonText>
-                                </Button>
-                                <Button variant="solid" action="primary" style={{ backgroundColor: "#1B9CFF" }} onPress={saveEditedBarcode} isDisabled={isLoading || !hasChanges}>
-                                    <ButtonText>Save</ButtonText>
-                                </Button>
+                                <HStack space="md" style={{ width: "100%" }}>
+                                    <Button
+                                        variant="outline"
+                                        style={{ flex: 1, borderColor: "#6B7280" }}
+                                        onPress={() => setShowEditModal(false)}
+                                        isDisabled={isLoading}
+                                    >
+                                        <Text style={{ color: "#6B7280" }}>Cancel</Text>
+                                    </Button>
+                                    <Button
+                                        style={{ flex: 1, backgroundColor: "#1B9CFF" }}
+                                        onPress={saveEditedBarcode}
+                                        isDisabled={isLoading || !hasChanges}
+                                    >
+                                        <Text style={{ color: "white", fontWeight: "bold" }}>Save</Text>
+                                    </Button>
+                                </HStack>
                             </ModalFooter>
                         </ModalContent>
                     </Modal>
@@ -1820,23 +1871,23 @@ export default function ScannerScreen() {
                                 </FormControl>
                             </ModalBody>
                             <ModalFooter>
-                                <Button
-                                    variant="solid"
-                                    action="negative"
-                                    onPress={handleCancelUnknownItem}
-                                    isDisabled={isLoading}
-                                >
-                                    <ButtonText>Cancel</ButtonText>
-                                </Button>
-                                <Button
-                                    variant="solid"
-                                    action="primary"
-                                    style={{ backgroundColor: "#1B9CFF" }}
-                                    onPress={saveEditedUnknownItem}
-                                    isDisabled={isLoading || !hasChanges}
-                                >
-                                    <ButtonText>Save</ButtonText>
-                                </Button>
+                                <HStack space="md" style={{ width: "100%" }}>
+                                    <Button
+                                        variant="outline"
+                                        style={{ flex: 1, borderColor: "#6B7280" }}
+                                        onPress={handleCancelUnknownItem}
+                                        isDisabled={isLoading}
+                                    >
+                                        <Text style={{ color: "#6B7280" }}>Cancel</Text>
+                                    </Button>
+                                    <Button
+                                        style={{ flex: 1, backgroundColor: "#1B9CFF" }}
+                                        onPress={saveEditedUnknownItem}
+                                        isDisabled={isLoading || !hasChanges}
+                                    >
+                                        <Text style={{ color: "white", fontWeight: "bold" }}>Save</Text>
+                                    </Button>
+                                </HStack>
                             </ModalFooter>
                         </ModalContent>
                     </Modal>
@@ -1844,9 +1895,9 @@ export default function ScannerScreen() {
                     {/* Receive Confirmation Modal */}
                     <Modal isOpen={showReceiveModal} onClose={() => setShowReceiveModal(false)} size="md">
                         <ModalBackdrop />
-                        <ModalContent>
+                        <ModalContent style={{ backgroundColor: "white" }}>
                             <ModalHeader>
-                                <Heading size="md">Confirm Receive</Heading>
+                                <Heading size="md" style={{ color: "black" }}>Confirm Receive</Heading>
                                 <ModalCloseButton>
                                     <Icon
                                         as={CloseIcon}
@@ -1914,9 +1965,9 @@ export default function ScannerScreen() {
                     {/* Dispatch Confirmation Modal */}
                     <Modal isOpen={showDispatchModal} onClose={() => setShowDispatchModal(false)} size="md">
                         <ModalBackdrop />
-                        <ModalContent>
+                        <ModalContent style={{ backgroundColor: "white" }}>
                             <ModalHeader>
-                                <Heading size="md">Confirm Dispatch</Heading>
+                                <Heading size="md" style={{ color: "black" }}>Confirm Dispatch</Heading>
                                 <ModalCloseButton>
                                     <Icon
                                         as={CloseIcon}
