@@ -89,7 +89,7 @@ export default function HomepageScreen() {
                             </Box>
 
                             {/* Tab Navigation */}
-                            <HStack style={{ backgroundColor: "backgroundLight100", padding: 2, width: isMobileScreen ? isShortScreen ? "100%" : "90%" : isShortScreen ? "60%" : "60%", borderRadius: 999, margin: "auto", marginBottom: 0, height: "5%" }} space="xl">
+                            <HStack style={{ backgroundColor: "backgroundLight100", padding: 2, width: "100%", maxWidth: 600, alignSelf: "center", borderRadius: 999, margin: "auto", marginBottom: 0, height: "5%" }} space="xl">
                                 <Button
                                     onHoverIn={() => setHoverScannerTab(true)}
                                     onHoverOut={() => setHoverScannerTab(false)}
@@ -112,7 +112,7 @@ export default function HomepageScreen() {
                                         <Ionicons name="scan" size={ isMobileScreen ? 16 : 24} color={activeTab === "scanner" ? "white" : "black"} />
                                         <ButtonText style={{
                                             fontWeight: "600", color: activeTab === "scanner" ? "white" : "black",
-                                            fontSize: isMobileScreen ? isShortScreen ? 16 : 18 : isShortScreen ? 20 : 20, textAlign: "center"
+                                            fontSize: isMobileScreen ? 15 : isShortScreen ? 20 : 20, textAlign: "center"
                                         }}>
                                             Scanner
                                         </ButtonText>
@@ -141,7 +141,7 @@ export default function HomepageScreen() {
                                         <Ionicons name="settings" size={ isMobileScreen ? 16 : 24} color={activeTab === "management" ? "white" : "black"} />
                                         <ButtonText style={{
                                             fontWeight: "600", color: activeTab === "management" ? "white" : "black",
-                                            fontSize: isMobileScreen ? isShortScreen ? 16 : 18 : isShortScreen ? 20 : 20, textAlign: "center"
+                                            fontSize: isMobileScreen ? 15 : isShortScreen ? 20 : 20, textAlign: "center"
                                         }}>
                                             Management
                                         </ButtonText>
