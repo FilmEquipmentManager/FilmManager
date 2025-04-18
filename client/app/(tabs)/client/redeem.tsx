@@ -50,11 +50,12 @@ export default function RedeemScreen () {
     const [products, setProducts] = useState<Product[]>([]);
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [productsLoading, setProductsLoading] = useState(true);
     const [cartModalVisible, setCartModalVisible] = useState(false);
     const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
     const [voucherModalVisible, setVoucherModalVisible] = useState(false);
     const [confirmCheckoutModalVisible, setConfirmCheckoutModalVisible] = useState(false);
+    const [checkingOut, setCheckingOut] = useState(false);
     const toast = useToast();
 
     const vouchers: Voucher[] = [
@@ -132,7 +133,7 @@ export default function RedeemScreen () {
         ];
 
         setProducts(dummyProducts);
-        setLoading(false);
+        setProductsLoading(false);
     };
 
     const handleAddToCart = (product: Product) => {
@@ -207,6 +208,8 @@ export default function RedeemScreen () {
     };
 
     const handleCheckout = async () => {
+        setCheckingOut(true)
+
         const { total } = calculateTotal();
 
         if (total > (userData?.points || 0)) {
@@ -228,6 +231,8 @@ export default function RedeemScreen () {
             showToast("Success", "Redemption successful!");
         } catch (error) {
             showToast("Error", "Checkout failed");
+        } finally {
+            setCheckingOut(false)
         }
     };
 
@@ -338,7 +343,7 @@ export default function RedeemScreen () {
 
                     {/* Main Content */}
                     <ScrollView contentContainerStyle={{ padding: 16 }}>
-                        {loading ? (
+                        {productsLoading ? (
                             <Box style={{ padding: 40, alignItems: "center" }}>
                                 <Spinner size="large" color="#10B981" />
                                 <Text
@@ -1754,14 +1759,18 @@ export default function RedeemScreen () {
                                             }}
                                             onPress={handleCheckout}
                                         >
-                                            <Text
-                                                style={{
-                                                    color: "white",
-                                                    fontWeight: "bold",
-                                                }}
-                                            >
-                                                Place order
-                                            </Text>
+                                            {checkingOut ? (
+                                                <Spinner size="small" color={"white"} />
+                                            ) : (
+                                                <Text
+                                                    style={{
+                                                        color: "white",
+                                                        fontWeight: "bold",
+                                                    }}
+                                                >
+                                                    Place order
+                                                </Text>
+                                            )}
                                         </Button>
                                     </HStack>
                                 </VStack>
