@@ -653,8 +653,8 @@ export default function RedeemScreen () {
                     >
                         <ModalBackdrop />
                         <ModalContent>
-                            <ModalHeader>
-                                <Heading size="lg">Your Cart</Heading>
+                            <ModalHeader style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
+                                <Heading size="lg">Checkout</Heading>
                             </ModalHeader>
 
                             <ModalBody style={{ paddingRight: 10, marginLeft: 10 }}>
@@ -1233,212 +1233,247 @@ export default function RedeemScreen () {
                     >
                         <ModalBackdrop />
                         <ModalContent>
-                            <ModalHeader>
-                                <Heading size="md">Available Vouchers</Heading>
-                                <ModalCloseButton>
-                                    <Icon
-                                        as={X}
-                                        size="sm"
-                                        style={{ color: "#6B7280" }}
-                                    />
-                                </ModalCloseButton>
-                            </ModalHeader>
-
                             <ModalBody>
                                 <VStack space="md">
-                                    {vouchers.map((voucher) => {
-                                        const isSelected =
-                                            selectedVoucher?.id === voucher.id;
-                                        const isEligible =
-                                            !voucher.minSpend ||
-                                            calculateTotal().subtotal >=
-                                                voucher.minSpend;
-
-                                        return (
-                                            <Card
-                                                key={voucher.id}
-                                                style={{
-                                                    padding: 12,
-                                                    borderRadius: 12,
-                                                    backgroundColor: isSelected
-                                                        ? "#F0F9FF"
-                                                        : "white",
-                                                    borderWidth: 1,
-                                                    borderColor: isSelected
-                                                        ? "#0EA5E9"
-                                                        : "#E5E7EB",
-                                                    opacity: isEligible
-                                                        ? 1
-                                                        : 0.6,
-                                                }}
-                                            >
-                                                <HStack
-                                                    space="md"
+                                    {vouchers.length > 0 ? (
+                                        vouchers.map((voucher) => {
+                                            const isSelected =
+                                                selectedVoucher?.id === voucher.id;
+                                            const isEligible =
+                                                !voucher.minSpend ||
+                                                calculateTotal().subtotal >=
+                                                    voucher.minSpend;
+    
+                                            return (
+                                                <Card
+                                                    key={voucher.id}
                                                     style={{
-                                                        alignItems: "center",
+                                                        padding: 12,
+                                                        borderRadius: 12,
+                                                        backgroundColor: isSelected
+                                                            ? "#F0F9FF"
+                                                            : "white",
+                                                        borderWidth: 1,
+                                                        borderColor: isSelected
+                                                            ? "#0EA5E9"
+                                                            : "#E5E7EB",
+                                                        opacity: isEligible
+                                                            ? 1
+                                                            : 0.6,
                                                     }}
                                                 >
-                                                    <LinearGradient
-                                                        colors={
-                                                            isSelected
-                                                                ? [
-                                                                      "#0EA5E9",
-                                                                      "#38BDF8",
-                                                                  ]
-                                                                : [
-                                                                      "#64748B",
-                                                                      "#94A3B8",
-                                                                  ]
-                                                        }
+                                                    <HStack
+                                                        space="md"
                                                         style={{
-                                                            width: 48,
-                                                            height: 48,
-                                                            borderRadius: 12,
-                                                            justifyContent:
-                                                                "center",
-                                                            alignItems:
-                                                                "center",
+                                                            alignItems: "center",
                                                         }}
                                                     >
-                                                        <Text
+                                                        <LinearGradient
+                                                            colors={
+                                                                isSelected
+                                                                    ? [
+                                                                          "#0EA5E9",
+                                                                          "#38BDF8",
+                                                                      ]
+                                                                    : [
+                                                                          "#64748B",
+                                                                          "#94A3B8",
+                                                                      ]
+                                                            }
                                                             style={{
-                                                                color: "white",
-                                                                fontWeight:
-                                                                    "bold",
-                                                                fontSize: 16,
-                                                            }}
-                                                        >
-                                                            {(
-                                                                voucher.discount *
-                                                                100
-                                                            ).toFixed(0)}
-                                                            %
-                                                        </Text>
-                                                    </LinearGradient>
-
-                                                    <VStack style={{ flex: 1 }}>
-                                                        <Text
-                                                            style={{
-                                                                fontWeight:
-                                                                    "bold",
-                                                                color: "#111827",
-                                                            }}
-                                                        >
-                                                            {voucher.label}
-                                                        </Text>
-
-                                                        <HStack
-                                                            space="xs"
-                                                            style={{
+                                                                width: 48,
+                                                                height: 48,
+                                                                borderRadius: 12,
+                                                                justifyContent:
+                                                                    "center",
                                                                 alignItems:
                                                                     "center",
-                                                                marginTop: 2,
                                                             }}
                                                         >
-                                                            {voucher.minSpend && (
-                                                                <Text
-                                                                    style={{
-                                                                        color: "#6B7280",
-                                                                        fontSize: 13,
-                                                                    }}
-                                                                >
-                                                                    Min.{" "}
-                                                                    {
-                                                                        voucher.minSpend
-                                                                    }{" "}
-                                                                    pts
-                                                                </Text>
-                                                            )}
-
-                                                            {voucher.expiresAt && (
-                                                                <>
-                                                                    {voucher.minSpend && (
-                                                                        <Text
-                                                                            style={{
-                                                                                color: "#CBD5E1",
-                                                                            }}
-                                                                        >
-                                                                            •
-                                                                        </Text>
-                                                                    )}
+                                                            <Text
+                                                                style={{
+                                                                    color: "white",
+                                                                    fontWeight:
+                                                                        "bold",
+                                                                    fontSize: 16,
+                                                                }}
+                                                            >
+                                                                {(
+                                                                    voucher.discount *
+                                                                    100
+                                                                ).toFixed(0)}
+                                                                %
+                                                            </Text>
+                                                        </LinearGradient>
+    
+                                                        <VStack style={{ flex: 1 }}>
+                                                            <Text
+                                                                style={{
+                                                                    fontWeight:
+                                                                        "bold",
+                                                                    color: "#111827",
+                                                                }}
+                                                            >
+                                                                {voucher.label}
+                                                            </Text>
+    
+                                                            <HStack
+                                                                space="xs"
+                                                                style={{
+                                                                    alignItems:
+                                                                        "center",
+                                                                    marginTop: 2,
+                                                                }}
+                                                            >
+                                                                {voucher.minSpend && (
                                                                     <Text
                                                                         style={{
                                                                             color: "#6B7280",
                                                                             fontSize: 13,
                                                                         }}
                                                                     >
-                                                                        Expires{" "}
+                                                                        Min.{" "}
                                                                         {
-                                                                            voucher.expiresAt
-                                                                        }
+                                                                            voucher.minSpend
+                                                                        }{" "}
+                                                                        pts
                                                                     </Text>
-                                                                </>
+                                                                )}
+    
+                                                                {voucher.expiresAt && (
+                                                                    <>
+                                                                        {voucher.minSpend && (
+                                                                            <Text
+                                                                                style={{
+                                                                                    color: "#CBD5E1",
+                                                                                }}
+                                                                            >
+                                                                                •
+                                                                            </Text>
+                                                                        )}
+                                                                        <Text
+                                                                            style={{
+                                                                                color: "#6B7280",
+                                                                                fontSize: 13,
+                                                                            }}
+                                                                        >
+                                                                            Expires{" "}
+                                                                            {
+                                                                                voucher.expiresAt
+                                                                            }
+                                                                        </Text>
+                                                                    </>
+                                                                )}
+                                                            </HStack>
+    
+                                                            {!isEligible && (
+                                                                <Text
+                                                                    style={{
+                                                                        color: "#DC2626",
+                                                                        fontSize: 12,
+                                                                        marginTop: 2,
+                                                                    }}
+                                                                >
+                                                                    Need{" "}
+                                                                    {
+                                                                        voucher.minSpend
+                                                                    }{" "}
+                                                                    pts minimum to
+                                                                    use this voucher
+                                                                </Text>
                                                             )}
-                                                        </HStack>
-
-                                                        {!isEligible && (
+                                                        </VStack>
+    
+                                                        <Button
+                                                            onPress={() => {
+                                                                if (isEligible) {
+                                                                    setSelectedVoucher(
+                                                                        isSelected
+                                                                            ? null
+                                                                            : voucher
+                                                                    );
+                                                                    setVoucherModalVisible(
+                                                                        false
+                                                                    );
+                                                                }
+                                                            }}
+                                                            variant={
+                                                                isSelected
+                                                                    ? "solid"
+                                                                    : "outline"
+                                                            }
+                                                            style={{
+                                                                backgroundColor:
+                                                                    isSelected
+                                                                        ? "#0EA5E9"
+                                                                        : "transparent",
+                                                                borderColor:
+                                                                    "#0EA5E9",
+                                                            }}
+                                                            disabled={!isEligible}
+                                                        >
                                                             <Text
                                                                 style={{
-                                                                    color: "#DC2626",
-                                                                    fontSize: 12,
-                                                                    marginTop: 2,
+                                                                    color: isSelected
+                                                                        ? "white"
+                                                                        : "#0EA5E9",
                                                                 }}
                                                             >
-                                                                Need{" "}
-                                                                {
-                                                                    voucher.minSpend
-                                                                }{" "}
-                                                                pts minimum to
-                                                                use this voucher
+                                                                {isSelected
+                                                                    ? "Applied"
+                                                                    : "Apply"}
                                                             </Text>
-                                                        )}
-                                                    </VStack>
-
-                                                    <Button
-                                                        onPress={() => {
-                                                            if (isEligible) {
-                                                                setSelectedVoucher(
-                                                                    isSelected
-                                                                        ? null
-                                                                        : voucher
-                                                                );
-                                                                setVoucherModalVisible(
-                                                                    false
-                                                                );
-                                                            }
-                                                        }}
-                                                        variant={
-                                                            isSelected
-                                                                ? "solid"
-                                                                : "outline"
-                                                        }
-                                                        style={{
-                                                            backgroundColor:
-                                                                isSelected
-                                                                    ? "#0EA5E9"
-                                                                    : "transparent",
-                                                            borderColor:
-                                                                "#0EA5E9",
-                                                        }}
-                                                        disabled={!isEligible}
-                                                    >
-                                                        <Text
-                                                            style={{
-                                                                color: isSelected
-                                                                    ? "white"
-                                                                    : "#0EA5E9",
-                                                            }}
-                                                        >
-                                                            {isSelected
-                                                                ? "Applied"
-                                                                : "Apply"}
-                                                        </Text>
-                                                    </Button>
-                                                </HStack>
-                                            </Card>
-                                        );
-                                    })}
+                                                        </Button>
+                                                    </HStack>
+                                                </Card>
+                                            );
+                                        })
+                                    ) : (
+                                        <VStack
+                                            space="md"
+                                            style={{
+                                                alignItems: "center",
+                                                paddingTop: 24,
+                                            }}
+                                        >
+                                            <Text
+                                                style={{
+                                                    color: "#6B7280",
+                                                    textAlign: "center",
+                                                }}
+                                            >
+                                                You have no vouchers available
+                                            </Text>
+                                            <Button
+                                                onPress={() =>
+                                                    setVoucherModalVisible(false)
+                                                }
+                                                style={{ marginTop: 8, backgroundColor: "#10B981" }}
+                                            >
+                                                <Text style={{ color: "white" }}>Go back</Text>
+                                            </Button>
+                                        </VStack>
+                                    )}
                                 </VStack>
+                                <ModalFooter style={{ marginTop: 20 }}>
+                                    <HStack
+                                        space="md"
+                                        style={{ width: "100%" }}
+                                    >
+                                        <Button
+                                            variant="outline"
+                                            style={{
+                                                flex: 1,
+                                                borderColor: "#6B7280",
+                                            }}
+                                            onPress={() => setVoucherModalVisible(false)}
+                                        >
+                                            <Text style={{ color: "#6B7280" }}>
+                                                Close
+                                            </Text>
+                                        </Button>
+                                    </HStack>
+                                </ModalFooter>
                             </ModalBody>
                         </ModalContent>
                     </Modal>
