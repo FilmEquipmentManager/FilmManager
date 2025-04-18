@@ -163,7 +163,7 @@ export default function RedeemScreen () {
             }).filter(item => item !== null)
         );
     };
-    
+
     const toggleSelection = (productId?: string) => {
         if (!productId) {
             const allSelected = cartItems.every((item) => item.selected);
@@ -292,7 +292,7 @@ export default function RedeemScreen () {
                             }}
                         >
                             <Box style={{ alignItems: "center", display: "flex", flexDirection: "row", justifyContent: "space-between" }}>
-                                <Box style={{ marginRight: 5 }}>
+                                <Box style={{ marginRight: cartItems.length > 0 ? 5 : 0 }}>
                                     <Icon
                                         as={ShoppingCart}
                                         size="md"
