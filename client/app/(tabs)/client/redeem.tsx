@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { useWindowDimensions, ScrollView, Pressable, Platform } from "react-native";
-import React from "react";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
@@ -10,9 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { Icon } from "@/components/ui/icon";
-import { Badge } from "@/components/ui/badge";
 import { Box } from "@/components/ui/box";
-import { Avatar, AvatarBadge, AvatarImage, AvatarFallbackText } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Modal, ModalBackdrop, ModalContent, ModalCloseButton, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Checkbox, CheckboxIndicator, CheckboxIcon } from "@/components/ui/checkbox";
@@ -1786,25 +1784,27 @@ export default function RedeemScreen () {
                                         </VStack>
                                     )}
                                 </VStack>
-                                <ModalFooter style={{ marginTop: 20 }}>
-                                    <HStack
-                                        space="md"
-                                        style={{ width: "100%" }}
-                                    >
-                                        <Button
-                                            variant="outline"
-                                            style={{
-                                                flex: 1,
-                                                borderColor: "#6B7280",
-                                            }}
-                                            onPress={() => setVoucherModalVisible(false)}
+                                {vouchers.length > 0 && (
+                                    <ModalFooter style={{ marginTop: 20 }}>
+                                        <HStack
+                                            space="md"
+                                            style={{ width: "100%" }}
                                         >
-                                            <Text style={{ color: "#6B7280" }}>
-                                                Close
-                                            </Text>
-                                        </Button>
-                                    </HStack>
-                                </ModalFooter>
+                                            <Button
+                                                variant="outline"
+                                                style={{
+                                                    flex: 1,
+                                                    borderColor: "#6B7280",
+                                                }}
+                                                onPress={() => setVoucherModalVisible(false)}
+                                            >
+                                                <Text style={{ color: "#6B7280" }}>
+                                                    Go back
+                                                </Text>
+                                            </Button>
+                                        </HStack>
+                                    </ModalFooter>
+                                )}
                             </ModalBody>
                         </ModalContent>
                     </Modal>
