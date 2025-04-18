@@ -84,7 +84,21 @@ export default function ScannerScreen() {
 
     const groupLabels = { camera: "Camera", lighting: "Lighting", audio: "Audio", lenses: "Lenses", accessories: "Accessories", grip: "Grip Equipment", power: "Power Supply", cables: "Cables", misc: "Miscellaneous", others: "Others" };
 
+    const scanInputRef = useRef<any>(null)
     const inputRef = useRef<any>(null);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (
+                scanInputRef.current &&
+                document.activeElement !== scanInputRef.current
+            ) {
+                scanInputRef.current.focus();
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     const toast = useToast();
     const [toastId, setToastId] = useState(0);
@@ -706,7 +720,7 @@ export default function ScannerScreen() {
                                         <VStack style={{ gap: 12 }}>
                                             <Input isDisabled={isLoading} variant="outline">
                                                 <InputField
-                                                    ref={inputRef}
+                                                    ref={scanInputRef}
                                                     placeholder={isFocused ? "" : "Scan barcode here..."}
                                                     value={currentScan}
                                                     onChangeText={(text) => {
@@ -1157,7 +1171,7 @@ export default function ScannerScreen() {
                                         <VStack style={{ gap: 12 }}>
                                             <Input isDisabled={isLoading} variant="outline">
                                                 <InputField
-                                                    ref={inputRef}
+                                                    ref={scanInputRef}
                                                     placeholder={isFocused ? "" : "Scan barcode here..."}
                                                     value={currentScan}
                                                     onChangeText={(text) => {
