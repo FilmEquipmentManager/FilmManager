@@ -20,36 +20,13 @@ import { ShoppingCart, X, Check, Minus, Plus, TagIcon, Disc, Camera, AlertCircle
 import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
 import server from "../../../networking";
 
-interface Product {
-    id: string;
-    itemName: string;
-    variant: string;
-    pointsToRedeem: number;
-    image?: string;
-    description?: string;
-}
-
-interface CartItem {
-    product: Product;
-    quantity: number;
-    selected: boolean;
-}
-
-interface Voucher {
-    id: string;
-    label: string;
-    discount: number;
-    minSpend?: number;
-    expiresAt?: string;
-}
-
 export default function RedeemScreen () {
     const { width } = useWindowDimensions();
     const isMobileScreen = width < 680;
     const { userData } = useAuth();
-    const [products, setProducts] = useState<Product[]>([]);
-    const [cartItems, setCartItems] = useState<CartItem[]>([]);
-    const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
+    const [products, setProducts] = useState([]);
+    const [cartItems, setCartItems] = useState([]);
+    const [selectedVoucher, setSelectedVoucher] = useState(null);
     const [productsLoading, setProductsLoading] = useState(true);
     const [cartModalVisible, setCartModalVisible] = useState(false);
     const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
@@ -58,7 +35,7 @@ export default function RedeemScreen () {
     const [checkingOut, setCheckingOut] = useState(false);
     const toast = useToast();
 
-    const vouchers: Voucher[] = [
+    const vouchers = [
         { id: "10OFF", label: "10% Off", discount: 0.1 },
         { id: "20OFF", label: "20% Off", discount: 0.2, minSpend: 100 },
         { id: "30OFF", label: "30% Off", discount: 0.3, minSpend: 250, expiresAt: "Dec 31" },
@@ -69,7 +46,7 @@ export default function RedeemScreen () {
     }, []);
 
     const fetchProducts = async () => {
-        const dummyProducts: Product[] = [
+        const dummyProducts = [
             {
                 id: "1",
                 itemName: "Camera Tripod",
@@ -136,7 +113,7 @@ export default function RedeemScreen () {
         setProductsLoading(false);
     };
 
-    const handleAddToCart = (product: Product) => {
+    const handleAddToCart = (product) => {
         setCartItems((prev) => {
             const existing = prev.find(
                 (item) => item.product.id === product.id
