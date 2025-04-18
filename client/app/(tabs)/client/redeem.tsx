@@ -264,7 +264,7 @@ export default function RedeemScreen () {
                             borderBottomColor: "#E2E8F0",
                         }}
                     >
-                        <VStack>
+                        <VStack style={{ marginTop: isMobileScreen ? 0 : 30, marginBottom: isMobileScreen ? 0 : 30 }}>
                             <Heading size="lg" style={{ color: "#166534" }}>
                                 Equipment Redemption
                             </Heading>
