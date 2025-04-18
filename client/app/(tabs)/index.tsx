@@ -469,7 +469,7 @@ export default function HomepageScreen() {
                                     fontSize: isMobileScreen ? 28 : 36,
                                     fontWeight: "bold",
                                     textAlign: "center",
-                                    paddingTop: 30
+                                    paddingTop: isMobileScreen ? 30 : 0
                                 }}>
                                     {getGreeting()}, {userData?.username}!
                                 </Text>
