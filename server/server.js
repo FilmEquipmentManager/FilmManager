@@ -75,22 +75,140 @@ app.get('/api/user', authMiddleware, async (req, res) => {
     }
 });
 
-app.put('/api/updateUserPoints', authMiddleware, async (req, res) => {
+app.get('/api/vouchers', authMiddleware, async (req, res) => {
     try {
-        const { username, points } = req.body;
+        const vouchers = DM.peek(['Vouchers']) || {};
+        const userVouchers = Object.values(vouchers).filter(
+            voucher => voucher.userId === req.user.uid && !voucher.used
+        );
         
-        DM['Users'][req.user.uid] = {
-            ...DM.peek(['Users', req.user.uid]),
-            username,
-            points: parseInt(points) || 0
+        res.json(userVouchers);
+    } catch (error) {
+        console.log(`\n[API] - FAILED: /api/vouchers GET - ${error.stack || error}\n`);
+        res.status(500).json({ error: 'ERROR: Failed to fetch vouchers' });
+    }
+});
+
+// Create voucher (for testing/admin purposes)
+app.post('/api/vouchers', authMiddleware, async (req, res) => {
+    try {
+        const { code, discount, minSpend, expiresAt } = req.body;
+        
+        if (!code || !discount) {
+            return res.status(400).json({ error: 'UERROR: Missing required fields' });
+        }
+        
+        const newVoucher = {
+            id: code,
+            userId: req.user.uid,
+            code,
+            discount: parseFloat(discount),
+            minSpend: minSpend ? parseInt(minSpend) : null,
+            expiresAt: expiresAt || null,
+            used: false,
+            createdAt: new Date().toISOString()
         };
         
+        DM['Vouchers'][code] = newVoucher;
+        await DM.save();
+        
+        res.json(newVoucher);
+    } catch (error) {
+        console.log(`\n[API] - FAILED: /api/vouchers POST - ${error.stack || error}\n`);
+        res.status(500).json({ error: 'ERROR: Failed to create voucher' });
+    }
+});
+
+// Redeem endpoint
+app.post('/api/redeem', authMiddleware, async (req, res) => {
+    try {
+        const { items, voucherCode } = req.body;
+        const user = DM.peek(['Users', req.user.uid]);
+        
+        if (!user) {
+            return res.status(404).json({ error: 'UERROR: User not found' });
+        }
+
+        // Validate items
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ error: 'UERROR: Invalid cart items' });
+        }
+
+        // Calculate total points
+        let subtotal = 0;
+        const validatedItems = [];
+
+        for (const item of items) {
+            const product = DM.peek(['Barcodes', item.productId]);
+            if (!product) {
+                return res.status(400).json({ error: `UERROR: Product ${item.productId} not found` });
+            }
+            if (product.totalCount < item.quantity) {
+                return res.status(400).json({ error: `UERROR: Insufficient stock for ${product.itemName}` });
+            }
+            subtotal += product.pointsToRedeem * item.quantity;
+            validatedItems.push({
+                productId: item.productId,
+                quantity: item.quantity,
+                pointsPerItem: product.pointsToRedeem
+            });
+        }
+
+        // Validate voucher
+        let voucher = null;
+        if (voucherCode) {
+            voucher = DM.peek(['Vouchers', voucherCode]);
+            if (!voucher || voucher.userId !== req.user.uid) {
+                return res.status(400).json({ error: 'UERROR: Invalid voucher' });
+            }
+            if (voucher.used) {
+                return res.status(400).json({ error: 'UERROR: Voucher already used' });
+            }
+            if (voucher.expiresAt && new Date(voucher.expiresAt) < new Date()) {
+                return res.status(400).json({ error: 'UERROR: Voucher has expired' });
+            }
+            if (voucher.minSpend && subtotal < voucher.minSpend) {
+                return res.status(400).json({ error: `UERROR: Voucher requires minimum ${voucher.minSpend} points` });
+            }
+        }
+
+        const discount = voucher ? subtotal * voucher.discount : 0;
+        const total = subtotal - discount;
+
+        if (total > user.points) {
+            return res.status(400).json({ error: 'UERROR: Insufficient points' });
+        }
+
+        // Deduct points
+        user.points -= total;
+        DM['Users'][req.user.uid] = user;
+
+        // Mark voucher as used
+        if (voucher) {
+            voucher.used = true;
+            DM['Vouchers'][voucherCode] = voucher;
+        }
+
+        // Update product stock
+        for (const item of validatedItems) {
+            const product = DM.peek(['Barcodes', item.productId]);
+            product.totalCount -= item.quantity;
+            DM['Barcodes'][item.productId] = product;
+        }
+
         await DM.save();
 
-        res.json({ success: true });
+        res.json({ 
+            success: true,
+            subtotal,
+            discount,
+            total,
+            newBalance: user.points
+        });
+
     } catch (error) {
-        console.log(`\n[API] - FAILED: /api/updateUserPoints PUT - ${error.stack || error}\n`);
-        res.status(500).json({ error: 'ERROR: Failed to update user points' });
+        console.log(`\n[API] - FAILED: /api/redeem POST - ${error.stack || error}\n`);
+        res.status(500).json({ error: 'ERROR: Checkout failed' });
     }
 });
 

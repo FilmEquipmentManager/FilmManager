@@ -1,56 +1,54 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { getDatabase, ref, onValue, off } from "firebase/database";
+import { useAuth } from "@/contexts/AuthContext";
 
-// Define the shape of your global data
 export type DataContextType = {
-  barcodes: any | null;
-  // add other data slices here, e.g. products, settings, etc.
-  loading: boolean;
+    barcodes: any | null;
+    loading: boolean;
 };
 
-// Create context with default values
 const DataContext = createContext<DataContextType>({
-  barcodes: null,
-  loading: true,
+    barcodes: null,
+    loading: true,
 });
 
-// Provider to wrap your app
 export function DataProvider({ children }: { children: React.ReactNode }) {
-  const [barcodes, setBarcodes] = useState<any | null>(null);
-  // add other useState hooks for additional data
-  const [loading, setLoading] = useState(true);
+    const [barcodes, setBarcodes] = useState<any | null>(null);
+    const { user, loading: authLoading } = useAuth();
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const db = getDatabase();
-    const barcodesRef = ref(db, "Barcodes");
-    // create refs for other paths similarly
+    useEffect(() => {
+        if (authLoading) return;
+        if (!user) {
+            setLoading(false);
+            return;
+        }
 
-    // Subscribe to Barcodes updates
-    onValue(
-      barcodesRef,
-      (snapshot) => {
-        setBarcodes(snapshot.val());
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Realtime DB error (Barcodes):", error);
-        setLoading(false);
-      }
+        const db = getDatabase();
+        const barcodesRef = ref(db, "Barcodes");
+
+        const unsubscribeBarcodes = onValue(
+            barcodesRef,
+            (snap) => {
+                setBarcodes(snap.val());
+                setLoading(false);
+            },
+            (err) => {
+                console.error("DB error (Barcodes):", err);
+                setLoading(false);
+            }
+        );
+
+        return () => {
+            unsubscribeBarcodes();
+        };
+    }, [user, authLoading]);
+
+    return (
+        <DataContext.Provider value={{ barcodes, loading }}>
+            {children}
+        </DataContext.Provider>
     );
-
-    // return cleanup function to unsubscribe all listeners
-    return () => {
-      off(barcodesRef);
-      // off(otherRefs) for each additional listener
-    };
-  }, []);
-
-  return (
-    <DataContext.Provider value={{ barcodes, loading }}>
-      {children}
-    </DataContext.Provider>
-  );
 }
 
-// Hook to consume DataContext
 export const useData = () => useContext(DataContext);

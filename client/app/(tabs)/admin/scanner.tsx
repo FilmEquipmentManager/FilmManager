@@ -82,6 +82,10 @@ export default function ScannerScreen() {
         setCurrentMode(initialMode);
     }, [initialMode]);
 
+    useEffect(() => {
+        console.log(barcodes)
+    }, [barcodes])
+
     const groupLabels = { camera: "Camera", lighting: "Lighting", audio: "Audio", lenses: "Lenses", accessories: "Accessories", grip: "Grip Equipment", power: "Power Supply", cables: "Cables", misc: "Miscellaneous", others: "Others" };
 
     const scanInputRef = useRef<any>(null)
