@@ -83,84 +83,53 @@ app.post('/api/redeem', authMiddleware, async (req, res) => {
         const user = DM.peek(['Users', req.user.uid]);
         
         if (!user) {
-            return res.status(404).json({ error: 'UERROR: User not found' });
+            return res.status(404).json({ error: 'UERROR: User not found. Please try logging in again.' });
         }
 
-        // Validate items
-        if (!items || !Array.isArray(items) || items.length === 0) {
-            return res.status(400).json({ error: 'UERROR: Invalid cart items' });
+        if (items.length === 0) {
+            return res.status(400).json({ error: 'UERROR: No items checked-out for purchase.' });
         }
 
-        // Calculate total points
-        let subtotal = 0;
+        let total = 0;
         const validatedItems = [];
 
         for (const item of items) {
-            const product = DM.peek(['Barcodes', item.productId]);
+            const product = DM.peek(['Barcodes', item.id]);
+
             if (!product) {
-                return res.status(400).json({ error: `UERROR: Product ${item.productId} not found` });
+                return res.status(400).json({ error: `UERROR: One or more items could not found.` });
             }
+
             if (product.totalCount < item.quantity) {
-                return res.status(400).json({ error: `UERROR: Insufficient stock for ${product.itemName}` });
+                return res.status(400).json({ error: `UERROR: Insufficient stock.` });
             }
-            subtotal += product.pointsToRedeem * item.quantity;
+
+            total += product.pointsToRedeem * item.quantity;
             validatedItems.push({
-                productId: item.productId,
+                productId: item.id,
                 quantity: item.quantity,
                 pointsPerItem: product.pointsToRedeem
             });
         }
 
-        // Validate voucher
-        let voucher = null;
-        if (voucherCode) {
-            voucher = DM.peek(['Vouchers', voucherCode]);
-            if (!voucher || voucher.userId !== req.user.uid) {
-                return res.status(400).json({ error: 'UERROR: Invalid voucher' });
-            }
-            if (voucher.used) {
-                return res.status(400).json({ error: 'UERROR: Voucher already used' });
-            }
-            if (voucher.expiresAt && new Date(voucher.expiresAt) < new Date()) {
-                return res.status(400).json({ error: 'UERROR: Voucher has expired' });
-            }
-            if (voucher.minSpend && subtotal < voucher.minSpend) {
-                return res.status(400).json({ error: `UERROR: Voucher requires minimum ${voucher.minSpend} points` });
-            }
-        }
-
-        const discount = voucher ? subtotal * voucher.discount : 0;
-        const total = subtotal - discount;
-
         if (total > user.points) {
-            return res.status(400).json({ error: 'UERROR: Insufficient points' });
+            return res.status(400).json({ error: 'UERROR: Insufficient points to complete purchase.' });
         }
 
-        // Deduct points
         user.points -= total;
         DM['Users'][req.user.uid] = user;
 
-        // Mark voucher as used
-        if (voucher) {
-            voucher.used = true;
-            DM['Vouchers'][voucherCode] = voucher;
-        }
-
-        // Update product stock
         for (const item of validatedItems) {
             const product = DM.peek(['Barcodes', item.productId]);
             product.totalCount -= item.quantity;
-            DM['Barcodes'][item.productId] = product;
+            DM['Barcodes'][item.id] = product;
         }
 
         await DM.save();
 
-        res.json({ 
-            success: true,
-            subtotal,
-            discount,
-            total,
-            newBalance: user.points
+        res.status(200).json({ 
+            message: "SUCCESS: Registration successful.", 
+            result: user.points
         });
 
     } catch (error) {
@@ -232,6 +201,7 @@ app.post('/api/register', async (req, res) => {
             email,
             role: "User",
             points: 0,
+            redemptions: [],
             createdAt: Date.now()
         };
         

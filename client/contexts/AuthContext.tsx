@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
-import { User, onAuthStateChanged } from "firebase/auth";
+import { User, onAuthStateChanged, onIdTokenChanged } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
 import { getDatabase, ref, onValue, off } from "firebase/database";
 import server from "@/networking";
@@ -22,9 +22,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [userData, setUserData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
-	const toast = useToast();
-
-	const showToast = (title: string, description: string) => {
+    const toast = useToast();
+    const showToast = (title: string, description: string) => {
         const newId = Math.random();
         toast.show({
             id: newId.toString(),
@@ -44,37 +43,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         let userRefCleanup: (() => void) | null = null;
-    
-        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-            setUser(user);
-            if (user) {
-                user.getIdToken().then((token) => {
-                    console.log("Token:", token);
-                });
-                
+
+        const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+            setUser(firebaseUser);
+
+            if (firebaseUser) {
                 const db = getDatabase();
-                const userRef = ref(db, `Users/${user.uid}`);
-    
+                const userRef = ref(db, `Users/${firebaseUser.uid}`);
                 userRefCleanup = () => off(userRef);
-    
-                onValue(userRef, (snapshot) => {
-                    const data = snapshot.val();
-                    setUserData(data);
-                    setLoading(false);
-                }, (error) => {
-                    showToast("Uh-oh!", "Failed to load user data.");
-                    console.error("Realtime DB error:", error);
-                    setLoading(false);
-                });
+
+                onValue(
+                    userRef,
+                    (snapshot) => {
+                        setUserData(snapshot.val());
+                        setLoading(false);
+                    },
+                    (error) => {
+                        showToast("Uh‑oh!", "Failed to load user data.");
+                        console.error("Realtime DB error:", error);
+                        setLoading(false);
+                    }
+                );
             } else {
                 setUserData(null);
                 setLoading(false);
             }
         });
-    
+
         return () => {
             unsubscribeAuth();
             if (userRefCleanup) userRefCleanup();
+        };
+    }, []);
+
+    useEffect(() => {
+        const unsubscribeToken = onIdTokenChanged(auth, async (firebaseUser) => {
+            if (firebaseUser) {
+                const freshToken = await firebaseUser.getIdToken();
+                server.defaults.headers.common["Authorization"] = `Bearer ${freshToken}`;
+                console.log("Token set:", freshToken);
+            } else {
+                delete server.defaults.headers.common["Authorization"];
+            }
+        });
+
+        return () => {
+            unsubscribeToken();
         };
     }, []);
 

@@ -40,8 +40,6 @@ export default function RedeemScreen () {
     const [loaded, setLoaded] = useState(false);
     const toast = useToast();
 
-    const { userData } = useAuth();
-
     const mapBarcodeToProduct = (b: any): Product => ({
         id: b.id,
         itemName: b.itemName,
@@ -148,20 +146,15 @@ export default function RedeemScreen () {
         return cartItems.reduce((sum, item) => sum + item.quantity, 0);
     };
 
-    const handleCheckout = async (userData) => {
+    const handleCheckout = async () => {
         setCheckingOut(true)
 
-        const { total } = calculateTotal();
-
-        if (total > (userData?.points || 0)) {
-            showToast("Error", "Insufficient points");
-            return;
-        }
-
         try {
-            await server.put("/api/updateUserPoints", {
-                username: userData?.username,
-                points: (userData?.points || 0) - total,
+            await server.post("/api/redeem", {
+                items: selectedItems.map((item) => ({
+                    id: item.product.id,
+                    quantity: item.quantity,
+                }))
             });
 
             setCartItems([]);
@@ -170,7 +163,24 @@ export default function RedeemScreen () {
             setCheckoutModalVisible(false)
             showToast("Success", "Redemption successful!");
         } catch (error) {
-            showToast("Error", "Checkout failed");
+            if (
+                error.response &&
+                error.response.data &&
+                error.response.data.error &&
+                typeof error.response.data.error === "string"
+            ) {
+                if (error.response.data.error.startsWith("UERROR")) {
+                    showToast(
+                        "Uh-oh!",
+                        error.response.data.error.substring("UERROR:".length)
+                    );
+                } else {
+                    showToast(
+                        "Uh-oh!",
+                        error.response.data.error.substring("ERROR:".length)
+                    );
+                }
+            }
         } finally {
             setCheckingOut(false)
         }
@@ -195,10 +205,8 @@ export default function RedeemScreen () {
     }, [productsLoading]);
 
     useEffect(() => {
-        if (userData) {
-            fetchBarcodes()
-        }
-    }, [userData])
+        fetchBarcodes()
+    }, [])
 
     if (loaded) return (
         <ProtectedRoute>
@@ -1192,7 +1200,7 @@ export default function RedeemScreen () {
                                                     flex: 1,
                                                     backgroundColor: "#10B981",
                                                 }}
-                                                onPress={() => handleCheckout(userData)}
+                                                onPress={() => handleCheckout()}
                                             >
                                                 {checkingOut ? (
                                                     <Spinner size="small" color={"white"} />
