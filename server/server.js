@@ -77,50 +77,9 @@ app.get('/api/user', authMiddleware, async (req, res) => {
     }
 });
 
-app.get('/api/vouchers', authMiddleware, async (req, res) => {
-    try {
-        const vouchers = DM.peek(['Vouchers']) || {};
-        
-        res.json(Object.values(vouchers));
-    } catch (error) {
-        console.log(`\n[API] - FAILED: /api/vouchers GET - ${error.stack || error}\n`);
-        res.status(500).json({ error: 'ERROR: Failed to fetch vouchers' });
-    }
-});
-
-app.post('/api/vouchers', authMiddleware, async (req, res) => {
-    try {
-        const { code, label, discount, minSpend, expiresAt } = req.body;
-        
-        if (!code || !label || !discount) {
-            return res.status(400).json({ error: 'UERROR: Missing required fields' });
-        }
-        
-        const newVoucher = {
-            id: code,
-            code: code.trim(),
-            label: label,
-            discount: parseFloat(discount),
-            minSpend: minSpend ? parseInt(minSpend) : 0,
-            expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
-            used: false,
-            createdAt: new Date().toISOString()
-        };
-        
-        DM['Vouchers'][code] = newVoucher;
-        await DM.save();
-        
-        res.json(newVoucher);
-    } catch (error) {
-        console.log(`\n[API] - FAILED: /api/vouchers POST - ${error.stack || error}\n`);
-        res.status(500).json({ error: 'ERROR: Failed to create voucher' });
-    }
-});
-
-// Redeem endpoint
 app.post('/api/redeem', authMiddleware, async (req, res) => {
     try {
-        const { items, voucherCode } = req.body;
+        const { items } = req.body;
         const user = DM.peek(['Users', req.user.uid]);
         
         if (!user) {

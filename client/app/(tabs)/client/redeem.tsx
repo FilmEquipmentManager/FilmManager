@@ -31,14 +31,10 @@ export default function RedeemScreen () {
     const { width } = useWindowDimensions();
     const isMobileScreen = width < 680;
     const [products, setProducts] = useState([]);
-    const [vouchers, setVouchers] = useState([]);
     const [cartItems, setCartItems] = useState([]);
-    const [selectedVoucher, setSelectedVoucher] = useState(null);
     const [productsLoading, setProductsLoading] = useState(false);
-    const [vouchersLoading, setVouchersLoading] = useState(false);
     const [cartModalVisible, setCartModalVisible] = useState(false);
     const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
-    const [voucherModalVisible, setVoucherModalVisible] = useState(false);
     const [confirmCheckoutModalVisible, setConfirmCheckoutModalVisible] = useState(false);
     const [checkingOut, setCheckingOut] = useState(false);
     const [loaded, setLoaded] = useState(false);
@@ -85,39 +81,6 @@ export default function RedeemScreen () {
             setProductsLoading(false)
         }
     };
-
-    const fetchVouchers = async () => {
-        try {
-            setVouchersLoading(true)
-            const response = await server.get("/api/vouchers")
-            if (response.status === 200) {
-                const vouchers = response.data;
-                console.log("Vouchers:", vouchers);
-                setVouchers(vouchers);
-            }
-        } catch (error) {
-            if (
-                error.response &&
-                error.response.data &&
-                error.response.data.error &&
-                typeof error.response.data.error === "string"
-            ) {
-                if (error.response.data.error.startsWith("UERROR")) {
-                    showToast(
-                        "Uh-oh!",
-                        error.response.data.error.substring("UERROR:".length)
-                    );
-                } else {
-                    showToast(
-                        "Uh-oh!",
-                        error.response.data.error.substring("ERROR:".length)
-                    );
-                }
-            }
-        } finally {
-            setVouchersLoading(false)
-        }
-    }
 
     const handleAddToCart = (product) => {
         setCartItems((prev) => {
@@ -170,7 +133,7 @@ export default function RedeemScreen () {
     };
 
     const calculateTotal = () => {
-        const subtotal = cartItems
+        const total = cartItems
             .filter((item) => item.selected)
             .reduce(
                 (sum, item) =>
@@ -178,14 +141,9 @@ export default function RedeemScreen () {
                 0
             );
 
-        const discount = selectedVoucher
-            ? subtotal * selectedVoucher.discount
-            : 0;
-
-        return { subtotal, discount, total: subtotal - discount };
+        return total;
     };
 
-    // Calculate total number of items (sum of all quantities)
     const getTotalItemsCount = () => {
         return cartItems.reduce((sum, item) => sum + item.quantity, 0);
     };
@@ -207,7 +165,6 @@ export default function RedeemScreen () {
             });
 
             setCartItems([]);
-            setSelectedVoucher(null);
             setCartModalVisible(false);
             setConfirmCheckoutModalVisible(false);
             setCheckoutModalVisible(false)
@@ -232,15 +189,14 @@ export default function RedeemScreen () {
     };
 
     useEffect(() => {
-        if (!productsLoading && !vouchersLoading) {
+        if (!productsLoading) {
             setLoaded(true);
         }
-    }, [productsLoading, vouchersLoading]);
+    }, [productsLoading]);
 
     useEffect(() => {
         if (userData) {
             fetchBarcodes()
-            fetchVouchers()
         }
     }, [userData])
 
@@ -775,7 +731,7 @@ export default function RedeemScreen () {
                                                                 alignSelf: "center"
                                                             }}
                                                         >
-                                                            <Icon as={Trash2} size="md" style={{ color: "#6B7280" }} />
+                                                            <Icon as={Trash2} size="md" style={{ color: "#AF531F" }} />
                                                         </Pressable>
                                                     </HStack>
                                                 ))}
@@ -803,7 +759,7 @@ export default function RedeemScreen () {
                                                                 color: "#111827",
                                                             }}
                                                         >
-                                                            Subtotal:
+                                                            Total:
                                                         </Text>
                                                         <Text
                                                             style={{
@@ -812,8 +768,7 @@ export default function RedeemScreen () {
                                                                 fontSize: 16,
                                                             }}
                                                         >
-                                                            {calculateTotal().total}{" "}
-                                                            pts
+                                                            {calculateTotal()}{" "}pts
                                                         </Text>
                                                     </HStack>
                                                 </VStack>
@@ -983,105 +938,6 @@ export default function RedeemScreen () {
                                                 ))}
                                             </VStack>
 
-                                            {/* Voucher Section */}
-                                            <Card
-                                                style={{
-                                                    padding: 12,
-                                                    borderRadius: 12,
-                                                    backgroundColor: selectedVoucher
-                                                        ? "#F0F9FF"
-                                                        : "#F9FAFB",
-                                                    borderWidth: 1,
-                                                    borderColor: selectedVoucher
-                                                        ? "#0EA5E9"
-                                                        : "#E5E7EB",
-                                                    marginBottom: 16,
-                                                }}
-                                            >
-                                                <HStack
-                                                    style={{
-                                                        justifyContent:
-                                                            "space-between",
-                                                        alignItems: "center",
-                                                    }}
-                                                >
-                                                    <HStack
-                                                        space="sm"
-                                                        style={{
-                                                            alignItems: "center",
-                                                        }}
-                                                    >
-                                                        <Icon
-                                                            as={TagIcon}
-                                                            size="sm"
-                                                            style={{
-                                                                color: selectedVoucher
-                                                                    ? "#0EA5E9"
-                                                                    : "#6B7280",
-                                                            }}
-                                                        />
-
-                                                        <VStack>
-                                                            {selectedVoucher ? (
-                                                                <Text
-                                                                    style={{
-                                                                        fontWeight:
-                                                                        "medium",
-                                                                        color: "#0EA5E9",
-                                                                    }}
-                                                                >
-                                                                    {(
-                                                                        selectedVoucher.discount *
-                                                                        100
-                                                                    ).toFixed(0)}
-                                                                    % off
-                                                                </Text>
-                                                            ) : (
-                                                                <Text
-                                                                    style={{
-                                                                        color: "#6B7280",
-                                                                    }}
-                                                                >
-                                                                    Apply a voucher
-                                                                </Text>
-                                                            )}
-                                                        </VStack>
-                                                    </HStack>
-
-                                                    <Button
-                                                        onPress={() =>
-                                                            setVoucherModalVisible(
-                                                                true
-                                                            )
-                                                        }
-                                                        variant={
-                                                            selectedVoucher
-                                                                ? "solid"
-                                                                : "outline"
-                                                        }
-                                                        style={{
-                                                            backgroundColor:
-                                                                selectedVoucher
-                                                                    ? "#0EA5E9"
-                                                                    : "transparent",
-                                                            borderColor: "#0EA5E9",
-                                                        }}
-                                                    >
-                                                        <Text
-                                                            style={{
-                                                                color: selectedVoucher
-                                                                    ? "white"
-                                                                    : "#0EA5E9",
-                                                            }}
-                                                        >
-                                                            {selectedVoucher
-                                                                ? "Change"
-                                                                : "Browse"}
-                                                        </Text>
-                                                    </Button>
-                                                </HStack>
-                                            </Card>
-
                                             {/* Order Summary */}
                                             <Card
                                                 style={{
@@ -1102,51 +958,6 @@ export default function RedeemScreen () {
                                                 </Text>
 
                                                 <VStack space="sm">
-                                                    <HStack
-                                                        style={{
-                                                            justifyContent:
-                                                                "space-between",
-                                                        }}
-                                                    >
-                                                        <Text
-                                                            style={{
-                                                                color: "#6B7280",
-                                                            }}
-                                                        >
-                                                            Subtotal:
-                                                        </Text>
-                                                        <Text>
-                                                            {
-                                                                calculateTotal()
-                                                                    .subtotal
-                                                            }{" "}
-                                                            pts
-                                                        </Text>
-                                                    </HStack>
-
-                                                    {calculateTotal().discount > 0 && (
-                                                        <HStack
-                                                            style={{
-                                                                justifyContent: "space-between",
-                                                            }}
-                                                        >
-                                                            <Text
-                                                                style={{
-                                                                    color: "#6B7280",
-                                                                }}
-                                                            >
-                                                                Discount:
-                                                            </Text>
-                                                            <Text
-                                                                style={{
-                                                                    color: "#DC2626",
-                                                                }}
-                                                            >
-                                                                -{calculateTotal().discount} pts
-                                                            </Text>
-                                                        </HStack>
-                                                    )}
-
                                                     <Box
                                                         style={{
                                                             height: 1,
@@ -1177,7 +988,7 @@ export default function RedeemScreen () {
                                                                 fontSize: 16,
                                                             }}
                                                         >
-                                                            {calculateTotal().total}{" "}
+                                                            {calculateTotal()}{" "}
                                                             pts
                                                         </Text>
                                                     </HStack>
@@ -1191,7 +1002,7 @@ export default function RedeemScreen () {
                                                         marginTop: 12,
                                                         padding: 8,
                                                         backgroundColor:
-                                                            calculateTotal().total >
+                                                            calculateTotal() >
                                                             (userData?.points || 0)
                                                                 ? "#FEF2F2"
                                                                 : "#F0FDF4",
@@ -1200,7 +1011,7 @@ export default function RedeemScreen () {
                                                 >
                                                     <Icon
                                                         as={
-                                                            calculateTotal().total >
+                                                            calculateTotal() >
                                                             (userData?.points || 0)
                                                                 ? AlertCircle
                                                                 : CheckCircle2
@@ -1219,8 +1030,7 @@ export default function RedeemScreen () {
                                                     <Text
                                                         style={{
                                                             color:
-                                                                calculateTotal()
-                                                                    .total >
+                                                                calculateTotal() >
                                                                 (userData?.points ||
                                                                     0)
                                                                     ? "#DC2626"
@@ -1228,7 +1038,7 @@ export default function RedeemScreen () {
                                                             fontSize: 13,
                                                         }}
                                                     >
-                                                        {calculateTotal().total >
+                                                        {calculateTotal() >
                                                         (userData?.points || 0)
                                                             ? `Insufficient points (${
                                                                 userData?.points ||
@@ -1273,7 +1083,7 @@ export default function RedeemScreen () {
                                                 style={{
                                                     flex: 1,
                                                     backgroundColor:
-                                                        calculateTotal().total >
+                                                        calculateTotal() >
                                                         (userData?.points || 0)
                                                             ? "#9CA3AF"
                                                             : "#10B981",
@@ -1282,7 +1092,7 @@ export default function RedeemScreen () {
                                                     setConfirmCheckoutModalVisible(true)
                                                 }
                                                 disabled={
-                                                    calculateTotal().total >
+                                                    calculateTotal() >
                                                     (userData?.points || 0)
                                                 }
                                             >
@@ -1298,238 +1108,6 @@ export default function RedeemScreen () {
                                         </HStack>
                                     </ModalFooter>
                                 )}
-                            </ModalContent>
-                        </Modal>
-
-                        {/* Voucher Modal */}
-                        <Modal
-                            isOpen={voucherModalVisible}
-                            onClose={() => setVoucherModalVisible(false)}
-                            size={isMobileScreen ? "lg" : "md"}
-                        >
-                            <ModalBackdrop />
-                            <ModalContent>
-                                <ModalBody>
-                                    <VStack space="md">
-                                        {vouchers.length > 0 ? (
-                                            vouchers.map((voucher) => {
-                                                const isSelected =
-                                                    selectedVoucher?.id === voucher.id;
-                                                const isEligible =
-                                                    !voucher.minSpend ||
-                                                    calculateTotal().subtotal >=
-                                                        voucher.minSpend;
-        
-                                                return (
-                                                    <Card
-                                                        key={voucher.id}
-                                                        style={{
-                                                            padding: 12,
-                                                            borderRadius: 12,
-                                                            backgroundColor: isSelected
-                                                                ? "#F0F9FF"
-                                                                : "white",
-                                                            borderWidth: 1,
-                                                            borderColor: isSelected
-                                                                ? "#0EA5E9"
-                                                                : "#E5E7EB",
-                                                            opacity: isEligible
-                                                                ? 1
-                                                                : 0.6,
-                                                        }}
-                                                    >
-                                                        <HStack
-                                                            space="md"
-                                                            style={{
-                                                                alignItems: "center",
-                                                            }}
-                                                        >
-                                                            <LinearGradient
-                                                                colors={
-                                                                    isSelected
-                                                                        ? [
-                                                                            "#0EA5E9",
-                                                                            "#38BDF8",
-                                                                        ]
-                                                                        : [
-                                                                            "#64748B",
-                                                                            "#94A3B8",
-                                                                        ]
-                                                                }
-                                                                style={{
-                                                                    width: 48,
-                                                                    height: 48,
-                                                                    borderRadius: 12,
-                                                                    justifyContent:
-                                                                        "center",
-                                                                    alignItems:
-                                                                        "center",
-                                                                }}
-                                                            >
-                                                                <Text
-                                                                    style={{
-                                                                        color: "white",
-                                                                        fontWeight:
-                                                                            "bold",
-                                                                        fontSize: 16,
-                                                                    }}
-                                                                >
-                                                                    {(
-                                                                        voucher.discount *
-                                                                        100
-                                                                    ).toFixed(0)}
-                                                                    %
-                                                                </Text>
-                                                            </LinearGradient>
-        
-                                                            <VStack style={{ flex: 1 }}>
-                                                                <Text
-                                                                    style={{
-                                                                        fontWeight:
-                                                                            "bold",
-                                                                        color: "#111827",
-                                                                    }}
-                                                                >
-                                                                    {(voucher.discount *
-                                                                        100
-                                                                    ).toFixed(0)}
-                                                                    % off
-                                                                </Text>
-        
-                                                                <HStack
-                                                                    space="xs"
-                                                                    style={{
-                                                                        alignItems:
-                                                                            "center",
-                                                                        marginTop: 2,
-                                                                    }}
-                                                                >
-                                                                    {voucher.expiresAt && (
-                                                                        <Text
-                                                                            style={{
-                                                                                color: "#6B7280",
-                                                                                fontSize: 13,
-                                                                            }}
-                                                                        >
-                                                                            Expires{" "}
-                                                                            {
-                                                                                new Date(voucher.expiresAt).toLocaleDateString("en-GB")
-                                                                            }
-                                                                        </Text>
-                                                                    )}
-                                                                </HStack>
-        
-                                                                {!isEligible && (
-                                                                    <Text
-                                                                        style={{
-                                                                            color: "#DC2626",
-                                                                            fontSize: 12,
-                                                                            marginTop: 2,
-                                                                        }}
-                                                                    >
-                                                                        Need{" "}
-                                                                        {
-                                                                            voucher.minSpend
-                                                                        }{" "}
-                                                                        pts minimum to
-                                                                        use this voucher
-                                                                    </Text>
-                                                                )}
-                                                            </VStack>
-        
-                                                            <Button
-                                                                onPress={() => {
-                                                                    if (isEligible) {
-                                                                        setSelectedVoucher(
-                                                                            isSelected
-                                                                                ? null
-                                                                                : voucher
-                                                                        );
-                                                                        setVoucherModalVisible(
-                                                                            false
-                                                                        );
-                                                                    }
-                                                                }}
-                                                                variant={
-                                                                    isSelected
-                                                                        ? "solid"
-                                                                        : "outline"
-                                                                }
-                                                                style={{
-                                                                    backgroundColor:
-                                                                        isSelected
-                                                                            ? "#0EA5E9"
-                                                                            : "transparent",
-                                                                    borderColor:
-                                                                        "#0EA5E9",
-                                                                }}
-                                                                disabled={!isEligible}
-                                                            >
-                                                                <Text
-                                                                    style={{
-                                                                        color: isSelected
-                                                                            ? "white"
-                                                                            : "#0EA5E9",
-                                                                    }}
-                                                                >
-                                                                    {isSelected
-                                                                        ? "Applied"
-                                                                        : "Apply"}
-                                                                </Text>
-                                                            </Button>
-                                                        </HStack>
-                                                    </Card>
-                                                );
-                                            })
-                                        ) : (
-                                            <VStack
-                                                space="md"
-                                                style={{
-                                                    alignItems: "center",
-                                                    paddingTop: 24,
-                                                }}
-                                            >
-                                                <Text
-                                                    style={{
-                                                        color: "#6B7280",
-                                                        textAlign: "center",
-                                                    }}
-                                                >
-                                                    You have no vouchers available
-                                                </Text>
-                                                <Button
-                                                    onPress={() =>
-                                                        setVoucherModalVisible(false)
-                                                    }
-                                                    style={{ marginTop: 8, backgroundColor: "#10B981" }}
-                                                >
-                                                    <Text style={{ color: "white" }}>Go back</Text>
-                                                </Button>
-                                            </VStack>
-                                        )}
-                                    </VStack>
-                                    {vouchers.length > 0 && (
-                                        <ModalFooter style={{ marginTop: 20 }}>
-                                            <HStack
-                                                space="md"
-                                                style={{ width: "100%" }}
-                                            >
-                                                <Button
-                                                    variant="outline"
-                                                    style={{
-                                                        flex: 1,
-                                                        borderColor: "#6B7280",
-                                                    }}
-                                                    onPress={() => setVoucherModalVisible(false)}
-                                                >
-                                                    <Text style={{ color: "#6B7280" }}>
-                                                        Go back
-                                                    </Text>
-                                                </Button>
-                                            </HStack>
-                                        </ModalFooter>
-                                    )}
-                                </ModalBody>
                             </ModalContent>
                         </Modal>
 
@@ -1566,7 +1144,7 @@ export default function RedeemScreen () {
                                                     color: "#059669",
                                                 }}
                                             >
-                                                {calculateTotal().total} points.
+                                                {calculateTotal()} points.
                                             </Text>
                                         </Text>
 
@@ -1580,7 +1158,7 @@ export default function RedeemScreen () {
                                             After redemption, you will have{" "}
                                             <Text style={{ fontWeight: "bold" }}>
                                                 {(userData?.points || 0) -
-                                                    calculateTotal().total}{" "}
+                                                    calculateTotal()}{" "}
                                                 points
                                             </Text>{" "}
                                             remaining.
