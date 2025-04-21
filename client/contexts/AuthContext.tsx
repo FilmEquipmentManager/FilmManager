@@ -48,6 +48,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
             setUser(user);
             if (user) {
+                user.getIdToken().then((token) => {
+                    console.log("Token:", token);
+                });
+                
                 const db = getDatabase();
                 const userRef = ref(db, `Users/${user.uid}`);
     
@@ -72,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             unsubscribeAuth();
             if (userRefCleanup) userRefCleanup();
         };
-    }, []);        
+    }, []);
 
     return (
         <AuthContext.Provider value={{ user, userData, loading }}>

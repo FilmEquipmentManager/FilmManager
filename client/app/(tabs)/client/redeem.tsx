@@ -16,16 +16,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Checkbox, CheckboxIndicator, CheckboxIcon } from "@/components/ui/checkbox";
 import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
 import { ShoppingCart, X, Check, Minus, Plus, TagIcon, Disc, Camera, AlertCircle, CheckCircle2 } from "lucide-react-native";
+import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
 import server from "../../../networking";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface Product {
     id: string;
     itemName: string;
-    variant: string;
+    itemDescription: string;
     pointsToRedeem: number;
-    description?: string;
 }
 
 export default function RedeemScreen () {
@@ -42,16 +41,16 @@ export default function RedeemScreen () {
     const [voucherModalVisible, setVoucherModalVisible] = useState(false);
     const [confirmCheckoutModalVisible, setConfirmCheckoutModalVisible] = useState(false);
     const [checkingOut, setCheckingOut] = useState(false);
+    const [loaded, setLoaded] = useState(false);
     const toast = useToast();
 
     const { userData } = useAuth();
 
-    const mapBarcodeToProduct = (b): Product => ({
+    const mapBarcodeToProduct = (b: any): Product => ({
         id: b.id,
         itemName: b.itemName,
-        variant: b.group,
+        itemDescription: b.itemDescription,
         pointsToRedeem: b.pointsToRedeem,
-        description: b.itemDescription,
     });
 
     const fetchBarcodes = async () => {
@@ -92,7 +91,8 @@ export default function RedeemScreen () {
             setVouchersLoading(true)
             const response = await server.get("/api/vouchers")
             if (response.status === 200) {
-                const vouchers = response.data.result;
+                const vouchers = response.data;
+                console.log("Vouchers:", vouchers);
                 setVouchers(vouchers);
             }
         } catch (error) {
@@ -232,13 +232,19 @@ export default function RedeemScreen () {
     };
 
     useEffect(() => {
+        if (!productsLoading && !vouchersLoading) {
+            setLoaded(true);
+        }
+    }, [productsLoading, vouchersLoading]);
+
+    useEffect(() => {
         if (userData) {
             fetchBarcodes()
             fetchVouchers()
         }
     }, [userData])
 
-    return (
+    if (loaded) return (
         <ProtectedRoute>
             {(userData) => (
                 <LinearGradient
@@ -442,8 +448,7 @@ export default function RedeemScreen () {
                                                                 marginTop: 4,
                                                             }}
                                                         >
-                                                            {product.description ||
-                                                                "High-quality equipment for film production"}
+                                                            {product.itemDescription}
                                                         </Text>
                                                     </VStack>
 
@@ -700,6 +705,8 @@ export default function RedeemScreen () {
                                                                 <CheckboxIndicator
                                                                     style={{
                                                                         marginRight: 8,
+                                                                        borderColor: item.selected ? "#10B981" : "gray",
+                                                                        backgroundColor: item.selected ? "#10B981" : "white",
                                                                     }}
                                                                 >
                                                                     <CheckboxIcon
@@ -743,17 +750,6 @@ export default function RedeemScreen () {
                                                                     {
                                                                         item.product
                                                                             .itemName
-                                                                    }
-                                                                </Text>
-                                                                <Text
-                                                                    style={{
-                                                                        color: "#6B7280",
-                                                                        fontSize: 12,
-                                                                    }}
-                                                                >
-                                                                    {
-                                                                        item.product
-                                                                            .variant
                                                                     }
                                                                 </Text>
 
@@ -904,6 +900,64 @@ export default function RedeemScreen () {
                                                         </Text>
                                                     </HStack>
                                                 </VStack>
+
+                                                {/* Available points indicator */}
+                                                <HStack
+                                                    space="xs"
+                                                    style={{
+                                                        alignItems: "center",
+                                                        marginTop: 12,
+                                                        padding: 8,
+                                                        backgroundColor:
+                                                            calculateTotal().total >
+                                                            (userData?.points || 0)
+                                                                ? "#FEF2F2"
+                                                                : "#F0FDF4",
+                                                        borderRadius: 8,
+                                                    }}
+                                                >
+                                                    <Icon
+                                                        as={
+                                                            calculateTotal().total >
+                                                            (userData?.points || 0)
+                                                                ? AlertCircle
+                                                                : CheckCircle2
+                                                        }
+                                                        size="sm"
+                                                        style={{
+                                                            color:
+                                                                calculateTotal()
+                                                                    .total >
+                                                                (userData?.points ||
+                                                                    0)
+                                                                    ? "#DC2626"
+                                                                    : "#10B981",
+                                                        }}
+                                                    />
+                                                    <Text
+                                                        style={{
+                                                            color:
+                                                                calculateTotal()
+                                                                    .total >
+                                                                (userData?.points ||
+                                                                    0)
+                                                                    ? "#DC2626"
+                                                                    : "#10B981",
+                                                            fontSize: 13,
+                                                        }}
+                                                    >
+                                                        {calculateTotal().total >
+                                                        (userData?.points || 0)
+                                                            ? `Insufficient points (${
+                                                                userData?.points ||
+                                                                0
+                                                            } available)`
+                                                            : `You have enough points (${
+                                                                userData?.points ||
+                                                                0
+                                                            } available)`}
+                                                    </Text>
+                                                </HStack>
                                             </Card>
                                         </>
                                     )}
@@ -1018,15 +1072,9 @@ export default function RedeemScreen () {
                                                         style={{
                                                             padding: 12,
                                                             borderRadius: 12,
-                                                            backgroundColor:
-                                                                item.selected
-                                                                    ? "#ECFDF5"
-                                                                    : "white",
-                                                            borderWidth: 1,
-                                                            borderColor:
-                                                                item.selected
-                                                                    ? "#10B981"
-                                                                    : "#E5E7EB",
+                                                            backgroundColor: "#ECFDF5",
+                                                            borderColor: "#9CA3AF",
+                                                            borderWidth: 1
                                                         }}
                                                     >
                                                         <HStack
@@ -1062,15 +1110,6 @@ export default function RedeemScreen () {
                                                                     }}
                                                                 >
                                                                     {item.product.itemName}
-                                                                </Text>
-
-                                                                <Text
-                                                                    style={{
-                                                                        color: "#6B7280",
-                                                                        fontSize: 12,
-                                                                    }}
-                                                                >
-                                                                    {item.product.variant}
                                                                 </Text>
                                                             </VStack>
 
@@ -1129,23 +1168,11 @@ export default function RedeemScreen () {
                                                         />
 
                                                         <VStack>
-                                                            <Text
-                                                                style={{
-                                                                    fontWeight:
-                                                                        "medium",
-                                                                    color: selectedVoucher
-                                                                        ? "#0EA5E9"
-                                                                        : "#111827",
-                                                                }}
-                                                            >
-                                                                {selectedVoucher
-                                                                    ? selectedVoucher.label
-                                                                    : "Add a Voucher"}
-                                                            </Text>
-                                                            {selectedVoucher && (
+                                                            {selectedVoucher ? (
                                                                 <Text
                                                                     style={{
-                                                                        fontSize: 12,
+                                                                        fontWeight:
+                                                                        "medium",
                                                                         color: "#0EA5E9",
                                                                     }}
                                                                 >
@@ -1154,6 +1181,14 @@ export default function RedeemScreen () {
                                                                         100
                                                                     ).toFixed(0)}
                                                                     % off
+                                                                </Text>
+                                                            ) : (
+                                                                <Text
+                                                                    style={{
+                                                                        color: "#6B7280",
+                                                                    }}
+                                                                >
+                                                                    Apply a voucher
                                                                 </Text>
                                                             )}
                                                         </VStack>
@@ -1360,7 +1395,7 @@ export default function RedeemScreen () {
                                     )}
                                 </ModalBody>
 
-                                {cartItems.length > 0 && (
+                                {selectedItems.length > 0 && (
                                     <ModalFooter style={{ paddingRight: 10, marginLeft: 10 }}>
                                         <HStack
                                             space="md"
@@ -1505,7 +1540,10 @@ export default function RedeemScreen () {
                                                                         color: "#111827",
                                                                     }}
                                                                 >
-                                                                    {voucher.label}
+                                                                    {(voucher.discount *
+                                                                        100
+                                                                    ).toFixed(0)}
+                                                                    % off
                                                                 </Text>
         
                                                                 <HStack
@@ -1516,44 +1554,18 @@ export default function RedeemScreen () {
                                                                         marginTop: 2,
                                                                     }}
                                                                 >
-                                                                    {voucher.minSpend && (
+                                                                    {voucher.expiresAt && (
                                                                         <Text
                                                                             style={{
                                                                                 color: "#6B7280",
                                                                                 fontSize: 13,
                                                                             }}
                                                                         >
-                                                                            Min.{" "}
+                                                                            Expires{" "}
                                                                             {
-                                                                                voucher.minSpend
-                                                                            }{" "}
-                                                                            pts
+                                                                                new Date(voucher.expiresAt).toLocaleDateString("en-GB")
+                                                                            }
                                                                         </Text>
-                                                                    )}
-        
-                                                                    {voucher.expiresAt && (
-                                                                        <>
-                                                                            {voucher.minSpend && (
-                                                                                <Text
-                                                                                    style={{
-                                                                                        color: "#CBD5E1",
-                                                                                    }}
-                                                                                >
-                                                                                    •
-                                                                                </Text>
-                                                                            )}
-                                                                            <Text
-                                                                                style={{
-                                                                                    color: "#6B7280",
-                                                                                    fontSize: 13,
-                                                                                }}
-                                                                            >
-                                                                                Expires{" "}
-                                                                                {
-                                                                                    voucher.expiresAt
-                                                                                }
-                                                                            </Text>
-                                                                        </>
                                                                     )}
                                                                 </HStack>
         
