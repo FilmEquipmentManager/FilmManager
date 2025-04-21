@@ -65,6 +65,7 @@ export default function ScannerScreen() {
     const [showReceiveModal, setShowReceiveModal] = useState(false);
     const [showDispatchModal, setShowDispatchModal] = useState(false);
     const [showUnknownEditModal, setShowUnknownEditModal] = useState(false);
+    const [isSelectOpen, setIsSelectOpen] = useState(false)
     const [currentMode, setCurrentMode] = useState("");
     const [isFocused, setIsFocused] = useState(false);
     const { width, height } = useWindowDimensions();
@@ -94,16 +95,17 @@ export default function ScannerScreen() {
     useEffect(() => {
         const interval = setInterval(() => {
             if (
-                typeof document !== "undefined" &&
                 scanInputRef.current &&
-                document.activeElement !== scanInputRef.current
+                document.activeElement !== scanInputRef.current &&
+                document.activeElement !== inputRef.current &&
+                !isSelectOpen
             ) {
-                scanInputRef.current.focus();
+                scanInputRef.current.focus()
             }
-        }, 1000);
+        }, 1000)
 
-        return () => clearInterval(interval);
-    }, []);
+        return () => clearInterval(interval)
+    }, [isSelectOpen])
 
     const toast = useToast();
     const [toastId, setToastId] = useState(0);
@@ -371,7 +373,7 @@ export default function ScannerScreen() {
         const knownItemsToReceive = pendingItems.filter(item => selectedIds.has(item.id));
         const unknownItemsToReceive = pendingUnknownItems.filter(item => selectedIds.has(item.id));
 
-        const selectedBarcodes = new Set( [...knownItemsToReceive, ...unknownItemsToReceive].map(item => item.barcode));
+        const selectedBarcodes = new Set([...knownItemsToReceive, ...unknownItemsToReceive].map(item => item.barcode));
 
         try {
             // Update known items (PUT)
@@ -439,17 +441,17 @@ export default function ScannerScreen() {
         const selectedUnknownItems = pendingUnknownItems.filter(item =>
             selectedIds.has(item.id)
         );
-        
+
         if (selectedUnknownItems.length > 0) {
             showToast("Dispatch Error", "You need to receive unknown items first before dispatching.");
             setIsLoading(false);
             return;
         }
-        
+
         const dispatchableItems = pendingItems.filter(item =>
             selectedIds.has(item.id) && item.totalCount >= item.sessionCount
         );
-        
+
         if (dispatchableItems.length === 0) {
             showToast("Dispatch Error", "Selected items have insufficient stock to dispatch.");
             setIsLoading(false);
@@ -1750,7 +1752,17 @@ export default function ScannerScreen() {
                                     <FormControlLabel>
                                         <FormControlLabelText>Item Group</FormControlLabelText>
                                     </FormControlLabel>
-                                    <Select isDisabled={isLoading} selectedValue={editingItemGroup} onValueChange={setEditingItemGroup}>
+                                    <Select isDisabled={isLoading} selectedValue={editingItemGroup} onValueChange={(value) => { setEditingItemGroup(value); setIsSelectOpen(false); }}
+                                        onOpen={() => {
+                                            if (!isSelectOpen) {
+                                                setIsSelectOpen(true);
+                                            }
+                                        }}
+                                        onClose={() => {
+                                            if (isSelectOpen) {
+                                                setIsSelectOpen(false);
+                                            }
+                                        }}>
                                         <SelectTrigger variant="outline" size="md">
                                             <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
                                             <SelectIcon className="mr-3" as={ChevronDownIcon} />
@@ -1869,7 +1881,17 @@ export default function ScannerScreen() {
                                     <FormControlLabel>
                                         <FormControlLabelText>Item Group</FormControlLabelText>
                                     </FormControlLabel>
-                                    <Select isDisabled={isLoading} selectedValue={editingItemGroup} onValueChange={setEditingItemGroup}>
+                                    <Select isDisabled={isLoading} selectedValue={editingItemGroup} onValueChange={(value) => { setEditingItemGroup(value); setIsSelectOpen(false); }} 
+                                        onOpen={() => {
+                                            if (!isSelectOpen) {
+                                                setIsSelectOpen(true);
+                                            }
+                                        }}
+                                        onClose={() => {
+                                            if (isSelectOpen) {
+                                                setIsSelectOpen(false);
+                                            }
+                                        }}>
                                         <SelectTrigger variant="outline" size="md">
                                             <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
                                             <SelectIcon className="mr-3" as={ChevronDownIcon} />
