@@ -11,7 +11,7 @@ import { Heading } from "@/components/ui/heading";
 import { Modal, ModalBackdrop, ModalContent, ModalCloseButton, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { Checkbox, CheckboxIndicator, CheckboxIcon } from "@/components/ui/checkbox"
 import { Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem } from '@/components/ui/select';
-import { FormControl, FormControlLabel, FormControlLabelText } from "@/components/ui/form-control"
+import { FormControl, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText } from "@/components/ui/form-control"
 import { Icon, CloseIcon, CheckIcon, ChevronDownIcon } from "@/components/ui/icon";
 import { Image } from "@/components/ui/image";
 import Constants from "expo-constants";
@@ -68,6 +68,14 @@ export default function ScannerScreen() {
     const [isSelectOpen, setIsSelectOpen] = useState(false)
     const [currentMode, setCurrentMode] = useState("");
     const [isFocused, setIsFocused] = useState(false);
+    const [validationErrors, setValidationErrors] = useState({
+        barcode: false,
+        itemName: false,
+        itemDescription: false,
+        location: false,
+        itemCount: false,
+        pointsToRedeem: false,
+    });
     const { width, height } = useWindowDimensions();
     const isMediumLaptop = width < 1400;
     const isSmallLaptop = width < 1024;
@@ -91,6 +99,21 @@ export default function ScannerScreen() {
 
     const scanInputRef = useRef<any>(null)
     const inputRef = useRef<any>(null);
+
+    const validateInputs = () => {
+        const alphanumeric = /^[a-zA-Z0-9 ]*$/;
+        const numeric = /^[0-9]+$/;
+        const locationPattern = /^[0-9-]*$/;
+
+        return {
+            barcode: editingBarcode.length > 100 || !alphanumeric.test(editingBarcode),
+            itemName: editingItemName.length > 100 || !alphanumeric.test(editingItemName),
+            itemDescription: editingItemDescription.length > 250 || !alphanumeric.test(editingItemDescription),
+            location: editingItemLocation.length > 20 || !locationPattern.test(editingItemLocation),
+            itemCount: editingItemCount.length > 6 || !numeric.test(editingItemCount),
+            pointsToRedeem: editingItemPointsToRedeem.length > 6 || !numeric.test(editingItemPointsToRedeem),
+        };
+    };
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -558,8 +581,14 @@ export default function ScannerScreen() {
     //     setCurrentScan("");
     // };
 
+    const handleValidation = () => {
+        const errors = validateInputs();
+        setValidationErrors(errors);
+        return !Object.values(errors).some(Boolean);
+    };
+
     const saveEditedBarcode = async () => {
-        if (!editingItem) return;
+        if (!editingItem || !handleValidation()) return;
         setIsLoading(true);
         const updatedTotalCount = parseInt(editingItemCount) || 0;
 
@@ -629,7 +658,7 @@ export default function ScannerScreen() {
     };
 
     const saveEditedUnknownItem = () => {
-        if (!editingItem) return;
+        if (!editingItem || !handleValidation()) return;
         setIsLoading(true);
         const updatedItem: ScannedItem = {
             ...editingItem,
@@ -654,10 +683,33 @@ export default function ScannerScreen() {
         setIsLoading(false);
     };
 
+    const hasValidationErrors = Object.values(validationErrors).some(Boolean);
+
     const handleCancelUnknownItem = () => {
         setEditingItem(null);
+        setValidationErrors({
+            barcode: false,
+            itemName: false,
+            itemDescription: false,
+            location: false,
+            itemCount: false,
+            pointsToRedeem: false,
+          });
         setShowUnknownEditModal(false);
     };
+
+    const handleCancelKnownItem =() => {
+        setEditingItem(null);
+        setValidationErrors({
+            barcode: false,
+            itemName: false,
+            itemDescription: false,
+            location: false,
+            itemCount: false,
+            pointsToRedeem: false,
+          });
+        setShowEditModal(false) 
+    }
 
     const selectedInsufficientStock = [...pendingItems, ...pendingUnknownItems].filter(item => selectedIds.has(item.id)).some(item => item.totalCount < 1 || item.sessionCount > item.totalCount);
 
@@ -1711,187 +1763,73 @@ export default function ScannerScreen() {
                         <ModalBackdrop />
                         <ModalContent>
                             <ModalHeader>
-                                <Heading size="md" className="text-typography-950" >Edit Items</Heading>
+                                <Heading size="md" className="text-typography-950">Edit Items</Heading>
                                 <ModalCloseButton style={{ backgroundColor: "transparent" }}>
-                                    <Icon
-                                        as={CloseIcon}
-                                        size="md"
-                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
-                                    />
+                                    <Icon as={CloseIcon} size="md" className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900" />
                                 </ModalCloseButton>
                             </ModalHeader>
+
                             <ModalBody>
-                                <FormControl style={{ marginBottom: 12 }}>
+                                {/* Barcode */}
+                                <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.barcode}>
                                     <FormControlLabel>
                                         <FormControlLabelText>Barcode</FormControlLabelText>
                                     </FormControlLabel>
                                     <Input isDisabled={isLoading}>
                                         <InputField ref={inputRef} value={editingBarcode} onChangeText={setEditingBarcode} placeholder="Enter Item's Barcode" style={{ height: 40, width: "100%" }} />
                                     </Input>
+                                    {validationErrors.barcode && (
+                                        <FormControlHelper>
+                                            <FormControlHelperText style={{ color: "red" }}>* Barcode must be alphanumeric and ≤ 100 characters.</FormControlHelperText>
+                                        </FormControlHelper>
+                                    )}
                                 </FormControl>
 
-                                <FormControl style={{ marginBottom: 12 }}>
+                                {/* Item Name */}
+                                <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.itemName}>
                                     <FormControlLabel>
                                         <FormControlLabelText>Item Name</FormControlLabelText>
                                     </FormControlLabel>
                                     <Input isDisabled={isLoading}>
                                         <InputField ref={inputRef} value={editingItemName} onChangeText={setEditingItemName} placeholder="Enter Item Name" style={{ height: 40, width: "100%" }} />
                                     </Input>
+                                    {validationErrors.itemName && (
+                                        <FormControlHelper>
+                                            <FormControlHelperText style={{ color: "red" }}>* Item Name must be alphanumeric and ≤ 100 characters.</FormControlHelperText>
+                                        </FormControlHelper>
+                                    )}
                                 </FormControl>
 
-                                <FormControl style={{ marginBottom: 12 }}>
+                                {/* Item Description */}
+                                <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.itemDescription}>
                                     <FormControlLabel>
                                         <FormControlLabelText>Item Description</FormControlLabelText>
                                     </FormControlLabel>
                                     <Input isDisabled={isLoading}>
                                         <InputField ref={inputRef} value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder="Enter Item Description" style={{ height: 40, width: "100%" }} />
                                     </Input>
+                                    {validationErrors.itemDescription && (
+                                        <FormControlHelper>
+                                            <FormControlHelperText style={{ color: "red" }}>* Description must be alphanumeric and ≤ 250 characters.</FormControlHelperText>
+                                        </FormControlHelper>
+                                    )}
                                 </FormControl>
 
+                                {/* Item Group (no validation needed) */}
                                 <FormControl style={{ marginBottom: 12 }}>
                                     <FormControlLabel>
                                         <FormControlLabelText>Item Group</FormControlLabelText>
                                     </FormControlLabel>
-                                    <Select isDisabled={isLoading} selectedValue={editingItemGroup} onValueChange={(value) => { setEditingItemGroup(value); setIsSelectOpen(false); }}
-                                        onOpen={() => {
-                                            if (!isSelectOpen) {
-                                                setIsSelectOpen(true);
-                                            }
-                                        }}
-                                        onClose={() => {
-                                            if (isSelectOpen) {
-                                                setIsSelectOpen(false);
-                                            }
-                                        }}>
-                                        <SelectTrigger variant="outline" size="md">
-                                            <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
-                                            <SelectIcon className="mr-3" as={ChevronDownIcon} />
-                                        </SelectTrigger>
-                                        <SelectPortal>
-                                            <SelectBackdrop />
-                                            <SelectContent >
-                                                <SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
-                                                {Object.entries(groupLabels).map(([value, label]) => (
-                                                    <SelectItem key={value} label={label} value={value} />
-                                                ))}
-                                            </SelectContent>
-                                        </SelectPortal>
-                                    </Select>
-                                </FormControl>
-
-                                <FormControl style={{ marginBottom: 12 }}>
-                                    <FormControlLabel>
-                                        <FormControlLabelText>Location</FormControlLabelText>
-                                    </FormControlLabel>
-                                    <Input isDisabled={isLoading}>
-                                        <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder="Enter Item Warehouse Location" style={{ height: 40, width: "100%" }} />
-                                    </Input>
-                                </FormControl>
-
-                                <FormControl style={{ marginBottom: 12 }}>
-                                    <FormControlLabel>
-                                        <FormControlLabelText>Item Count</FormControlLabelText>
-                                    </FormControlLabel>
-                                    <Input isDisabled={isLoading}>
-                                        <InputField ref={inputRef} value={editingItemCount} onChangeText={setEditingItemCount} placeholder="Enter Item Stock Count" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
-                                    </Input>
-                                </FormControl>
-
-                                <FormControl>
-                                    <FormControlLabel>
-                                        <FormControlLabelText>Points to Redeem</FormControlLabelText>
-                                    </FormControlLabel>
-                                    <Input isDisabled={isLoading}>
-                                        <InputField ref={inputRef} value={editingItemPointsToRedeem} onChangeText={setEditingItemPointsToRedeem} placeholder="Enter Points To Redeem For Item" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
-                                    </Input>
-                                </FormControl>
-                            </ModalBody>
-                            <ModalFooter>
-                                <HStack space="md" style={{ width: "100%" }}>
-                                    <Button
-                                        variant="outline"
-                                        style={{ flex: 1, borderColor: "#6B7280" }}
-                                        onPress={() => setShowEditModal(false)}
+                                    <Select
                                         isDisabled={isLoading}
-                                    >
-                                        <Text style={{ color: "#6B7280" }}>Cancel</Text>
-                                    </Button>
-                                    <Button
-                                        style={{ flex: 1, backgroundColor: "#1B9CFF" }}
-                                        onPress={saveEditedBarcode}
-                                        isDisabled={isLoading || !hasChanges}
-                                    >
-                                        <Text style={{ color: "white", fontWeight: "bold" }}>Save</Text>
-                                    </Button>
-                                </HStack>
-                            </ModalFooter>
-                        </ModalContent>
-                    </Modal>
-
-
-                    {/* Unknown Items Editing Modal */}
-                    <Modal
-                        isOpen={showUnknownEditModal}
-                        onClose={() => setShowUnknownEditModal(false)}
-                        size="lg"
-                    >
-                        <ModalBackdrop />
-                        <ModalContent>
-                            <ModalHeader>
-                                <Heading size="md" className="text-typography-950">
-                                    Add New Item
-                                </Heading>
-                                <ModalCloseButton style={{ backgroundColor: "transparent" }}>
-                                    <Icon
-                                        as={CloseIcon}
-                                        size="md"
-                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
-                                    />
-                                </ModalCloseButton>
-                            </ModalHeader>
-                            <ModalBody>
-                                <FormControl style={{ marginBottom: 12 }}>
-                                    <FormControlLabel>
-                                        <FormControlLabelText>Barcode</FormControlLabelText>
-                                    </FormControlLabel>
-                                    <Input isDisabled={isLoading}>
-                                        <InputField ref={inputRef} value={editingBarcode} onChangeText={setEditingBarcode} placeholder="Enter Item's Barcode" style={{ height: 40, width: "100%" }} />
-                                    </Input>
-                                </FormControl>
-
-                                <FormControl style={{ marginBottom: 12 }}>
-                                    <FormControlLabel>
-                                        <FormControlLabelText>Item Name</FormControlLabelText>
-                                    </FormControlLabel>
-                                    <Input isDisabled={isLoading}>
-                                        <InputField ref={inputRef} value={editingItemName} onChangeText={setEditingItemName} placeholder="Enter Item Name" style={{ height: 40, width: "100%" }} />
-                                    </Input>
-                                </FormControl>
-
-                                <FormControl style={{ marginBottom: 12 }}>
-                                    <FormControlLabel>
-                                        <FormControlLabelText>Item Description</FormControlLabelText>
-                                    </FormControlLabel>
-                                    <Input isDisabled={isLoading}>
-                                        <InputField ref={inputRef} value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder="Enter Item Description" style={{ height: 40, width: "100%" }} />
-                                    </Input>
-                                </FormControl>
-
-                                <FormControl style={{ marginBottom: 12 }}>
-                                    <FormControlLabel>
-                                        <FormControlLabelText>Item Group</FormControlLabelText>
-                                    </FormControlLabel>
-                                    <Select isDisabled={isLoading} selectedValue={editingItemGroup} onValueChange={(value) => { setEditingItemGroup(value); setIsSelectOpen(false); }} 
-                                        onOpen={() => {
-                                            if (!isSelectOpen) {
-                                                setIsSelectOpen(true);
-                                            }
+                                        selectedValue={editingItemGroup}
+                                        onValueChange={(value) => {
+                                            setEditingItemGroup(value);
+                                            setIsSelectOpen(false);
                                         }}
-                                        onClose={() => {
-                                            if (isSelectOpen) {
-                                                setIsSelectOpen(false);
-                                            }
-                                        }}>
+                                        onOpen={() => setIsSelectOpen(true)}
+                                        onClose={() => setIsSelectOpen(false)}
+                                    >
                                         <SelectTrigger variant="outline" size="md">
                                             <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
                                             <SelectIcon className="mr-3" as={ChevronDownIcon} />
@@ -1908,48 +1846,201 @@ export default function ScannerScreen() {
                                     </Select>
                                 </FormControl>
 
-                                <FormControl style={{ marginBottom: 12 }}>
+                                {/* Location */}
+                                <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.location}>
                                     <FormControlLabel>
-                                        <FormControlLabelText>Item Warehouse Location</FormControlLabelText>
+                                        <FormControlLabelText>Location</FormControlLabelText>
                                     </FormControlLabel>
                                     <Input isDisabled={isLoading}>
                                         <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder="Enter Item Warehouse Location" style={{ height: 40, width: "100%" }} />
                                     </Input>
+                                    {validationErrors.location && (
+                                        <FormControlHelper>
+                                            <FormControlHelperText style={{ color: "red" }}>* Location can only include numbers and dashes, ≤ 20 characters.</FormControlHelperText>
+                                        </FormControlHelper>
+                                    )}
                                 </FormControl>
 
-                                <FormControl style={{ marginBottom: 12 }}>
+                                {/* Item Count */}
+                                <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.itemCount}>
                                     <FormControlLabel>
                                         <FormControlLabelText>Item Count</FormControlLabelText>
                                     </FormControlLabel>
                                     <Input isDisabled={isLoading}>
                                         <InputField ref={inputRef} value={editingItemCount} onChangeText={setEditingItemCount} placeholder="Enter Item Stock Count" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
                                     </Input>
+                                    {validationErrors.itemCount && (
+                                        <FormControlHelper>
+                                            <FormControlHelperText style={{ color: "red" }}>* Count must be numeric and ≤ 6 digits.</FormControlHelperText>
+                                        </FormControlHelper>
+                                    )}
                                 </FormControl>
 
-                                <FormControl>
+                                {/* Points to Redeem */}
+                                <FormControl isInvalid={validationErrors.pointsToRedeem}>
                                     <FormControlLabel>
                                         <FormControlLabelText>Points to Redeem</FormControlLabelText>
                                     </FormControlLabel>
                                     <Input isDisabled={isLoading}>
                                         <InputField ref={inputRef} value={editingItemPointsToRedeem} onChangeText={setEditingItemPointsToRedeem} placeholder="Enter Points To Redeem For Item" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
                                     </Input>
+                                    {validationErrors.pointsToRedeem && (
+                                        <FormControlHelper>
+                                            <FormControlHelperText style={{ color: "red" }}>* Points must be numeric and ≤ 6 digits.</FormControlHelperText>
+                                        </FormControlHelper>
+                                    )}
                                 </FormControl>
                             </ModalBody>
+
                             <ModalFooter>
                                 <HStack space="md" style={{ width: "100%" }}>
                                     <Button
                                         variant="outline"
                                         style={{ flex: 1, borderColor: "#6B7280" }}
-                                        onPress={handleCancelUnknownItem}
+                                        onPress={handleCancelKnownItem}
                                         isDisabled={isLoading}
                                     >
                                         <Text style={{ color: "#6B7280" }}>Cancel</Text>
                                     </Button>
                                     <Button
                                         style={{ flex: 1, backgroundColor: "#1B9CFF" }}
-                                        onPress={saveEditedUnknownItem}
-                                        isDisabled={isLoading || !hasChanges}
+                                        onPress={saveEditedBarcode}
+                                        isDisabled={isLoading || !hasChanges || hasValidationErrors}
                                     >
+                                        <Text style={{ color: "white", fontWeight: "bold" }}>Save</Text>
+                                    </Button>
+                                </HStack>
+                            </ModalFooter>
+                        </ModalContent>
+                    </Modal>
+
+                    {/* Unknown Items Editing Modal */}
+                    <Modal isOpen={showUnknownEditModal} onClose={() => setShowUnknownEditModal(false)} size="lg">
+                        <ModalBackdrop />
+                        <ModalContent>
+                            <ModalHeader>
+                                <Heading size="md" className="text-typography-950">Add New Item</Heading>
+                                <ModalCloseButton style={{ backgroundColor: "transparent" }}>
+                                    <Icon
+                                        as={CloseIcon}
+                                        size="md"
+                                        className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900"
+                                    />
+                                </ModalCloseButton>
+                            </ModalHeader>
+
+                            <ModalBody>
+                                {/* Barcode */}
+                                <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.barcode}>
+                                    <FormControlLabel><FormControlLabelText>Barcode</FormControlLabelText></FormControlLabel>
+                                    <Input isDisabled={isLoading}>
+                                        <InputField ref={inputRef} value={editingBarcode} onChangeText={setEditingBarcode} placeholder="Enter Item's Barcode" style={{ height: 40, width: "100%" }} />
+                                    </Input>
+                                    {validationErrors.barcode && (
+                                        <FormControlHelper>
+                                            <FormControlHelperText style={{ color: "red" }}>* Barcode must be alphanumeric and ≤ 100 characters.</FormControlHelperText>
+                                        </FormControlHelper>
+                                    )}
+                                </FormControl>
+
+                                {/* Item Name */}
+                                <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.itemName}>
+                                    <FormControlLabel><FormControlLabelText>Item Name</FormControlLabelText></FormControlLabel>
+                                    <Input isDisabled={isLoading}>
+                                        <InputField ref={inputRef} value={editingItemName} onChangeText={setEditingItemName} placeholder="Enter Item Name" style={{ height: 40, width: "100%" }} />
+                                    </Input>
+                                    {validationErrors.itemName && (
+                                        <FormControlHelper>
+                                            <FormControlHelperText style={{ color: "red" }}>* Item Name must be alphanumeric and ≤ 100 characters.</FormControlHelperText>
+                                        </FormControlHelper>
+                                    )}
+                                </FormControl>
+
+                                {/* Item Description */}
+                                <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.itemDescription}>
+                                    <FormControlLabel><FormControlLabelText>Item Description</FormControlLabelText></FormControlLabel>
+                                    <Input isDisabled={isLoading}>
+                                        <InputField ref={inputRef} value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder="Enter Item Description" style={{ height: 40, width: "100%" }} />
+                                    </Input>
+                                    {validationErrors.itemDescription && (
+                                        <FormControlHelper>
+                                            <FormControlHelperText style={{ color: "red" }}>* Description must be alphanumeric and ≤ 250 characters.</FormControlHelperText>
+                                        </FormControlHelper>
+                                    )}
+                                </FormControl>
+
+                                {/* Item Group */}
+                                <FormControl style={{ marginBottom: 12 }}>
+                                    <FormControlLabel><FormControlLabelText>Item Group</FormControlLabelText></FormControlLabel>
+                                    <Select
+                                        isDisabled={isLoading}
+                                        selectedValue={editingItemGroup}
+                                        onValueChange={(value) => { setEditingItemGroup(value); setIsSelectOpen(false); }}
+                                        onOpen={() => setIsSelectOpen(true)}
+                                        onClose={() => setIsSelectOpen(false)}
+                                    >
+                                        <SelectTrigger variant="outline" size="md">
+                                            <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
+                                            <SelectIcon className="mr-3" as={ChevronDownIcon} />
+                                        </SelectTrigger>
+                                        <SelectPortal>
+                                            <SelectBackdrop />
+                                            <SelectContent>
+                                                <SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
+                                                {Object.entries(groupLabels).map(([value, label]) => (
+                                                    <SelectItem key={value} label={label} value={value} />
+                                                ))}
+                                            </SelectContent>
+                                        </SelectPortal>
+                                    </Select>
+                                </FormControl>
+
+                                {/* Item Location */}
+                                <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.location}>
+                                    <FormControlLabel><FormControlLabelText>Item Warehouse Location</FormControlLabelText></FormControlLabel>
+                                    <Input isDisabled={isLoading}>
+                                        <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder="Enter Item Warehouse Location" style={{ height: 40, width: "100%" }} />
+                                    </Input>
+                                    {validationErrors.location && (
+                                        <FormControlHelper>
+                                            <FormControlHelperText style={{ color: "red" }}>* Location can only include numbers and dashes, ≤ 20 characters.</FormControlHelperText>
+                                        </FormControlHelper>
+                                    )}
+                                </FormControl>
+
+                                {/* Item Count */}
+                                <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.itemCount}>
+                                    <FormControlLabel><FormControlLabelText>Item Count</FormControlLabelText></FormControlLabel>
+                                    <Input isDisabled={isLoading}>
+                                        <InputField ref={inputRef} value={editingItemCount} onChangeText={setEditingItemCount} placeholder="Enter Item Stock Count" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
+                                    </Input>
+                                    {validationErrors.itemCount && (
+                                        <FormControlHelper>
+                                            <FormControlHelperText style={{ color: "red" }}>* Count must be a number and ≤ 9999.</FormControlHelperText>
+                                        </FormControlHelper>
+                                    )}
+                                </FormControl>
+
+                                {/* Points to Redeem */}
+                                <FormControl isInvalid={validationErrors.pointsToRedeem}>
+                                    <FormControlLabel><FormControlLabelText>Points to Redeem</FormControlLabelText></FormControlLabel>
+                                    <Input isDisabled={isLoading}>
+                                        <InputField ref={inputRef} value={editingItemPointsToRedeem} onChangeText={setEditingItemPointsToRedeem} placeholder="Enter Points To Redeem For Item" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
+                                    </Input>
+                                    {validationErrors.pointsToRedeem && (
+                                        <FormControlHelper>
+                                            <FormControlHelperText style={{ color: "red" }}>* Points must be a number and ≤ 9999.</FormControlHelperText>
+                                        </FormControlHelper>
+                                    )}
+                                </FormControl>
+                            </ModalBody>
+
+                            <ModalFooter>
+                                <HStack space="md" style={{ width: "100%" }}>
+                                    <Button variant="outline" style={{ flex: 1, borderColor: "#6B7280" }} onPress={handleCancelUnknownItem} isDisabled={isLoading}>
+                                        <Text style={{ color: "#6B7280" }}>Cancel</Text>
+                                    </Button>
+                                    <Button style={{ flex: 1, backgroundColor: "#1B9CFF" }} onPress={saveEditedUnknownItem} isDisabled={isLoading || !hasChanges || hasValidationErrors}>
                                         <Text style={{ color: "white", fontWeight: "bold" }}>Save</Text>
                                     </Button>
                                 </HStack>
