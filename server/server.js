@@ -117,12 +117,23 @@ app.post('/api/redeem', authMiddleware, async (req, res) => {
         }
 
         user.points -= total;
+
+        user.redemptions = user.redemptions || {};
+
+        for (const item of validatedItems) {
+            if (user.redemptions[item.productId]) {
+                user.redemptions[item.productId].quantity += item.quantity;
+            } else {
+                user.redemptions[item.productId] = { ...item };
+            }
+        }
+
         DM['Users'][req.user.uid] = user;
 
         for (const item of validatedItems) {
             const product = DM.peek(['Barcodes', item.productId]);
             product.totalCount -= item.quantity;
-            DM['Barcodes'][item.id] = product;
+            DM['Barcodes'][item.productId] = product;
         }
 
         await DM.save();

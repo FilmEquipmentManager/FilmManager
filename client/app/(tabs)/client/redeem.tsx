@@ -313,268 +313,291 @@ export default function RedeemScreen () {
                                         Loading available equipment...
                                     </Text>
                                 </Box>
-                            ) : (
-                                <VStack space="lg">
-                                    {products.map((product) => (
-                                        <Card
-                                            key={product.id}
-                                            style={{
-                                                padding: 16,
-                                                borderRadius: 16,
-                                                backgroundColor: "white",
-                                                shadowColor: "#000",
-                                                shadowOffset: {
-                                                    width: 0,
-                                                    height: 2,
-                                                },
-                                                shadowOpacity: 0.05,
-                                                shadowRadius: 4,
-                                                elevation: 2,
-                                                borderWidth: 1,
-                                                borderColor: cartItems.some((i) => i.product.id === product.id) ? "#10B981" : "white",
-                                            }}
-                                        >
-                                            <HStack space="md">
-                                                {/* Product Image */}
-                                                <Box
-                                                    style={{
-                                                        width: 100,
-                                                        height: 100,
-                                                        borderRadius: 8,
-                                                        backgroundColor: "#F9FAFB",
-                                                        justifyContent: "center",
-                                                        alignItems: "center",
-                                                        overflow: "hidden",
-                                                    }}
-                                                >
-                                                    {product.image ? (
-                                                        <Avatar
-                                                            size="xl"
-                                                            style={{
-                                                                width: 100,
-                                                                height: 100,
-                                                            }}
-                                                        >
-                                                            <AvatarImage
+                            ) : products.length > 0 ? (
+                                    <VStack space="lg">
+                                        {products.map((product) => (
+                                            <Card
+                                                key={product.id}
+                                                style={{
+                                                    padding: 16,
+                                                    borderRadius: 16,
+                                                    backgroundColor: "white",
+                                                    shadowColor: "#000",
+                                                    shadowOffset: {
+                                                        width: 0,
+                                                        height: 2,
+                                                    },
+                                                    shadowOpacity: 0.05,
+                                                    shadowRadius: 4,
+                                                    elevation: 2,
+                                                    borderWidth: 1,
+                                                    borderColor: cartItems.some((i) => i.product.id === product.id) ? "#10B981" : "white",
+                                                }}
+                                            >
+                                                <HStack space="md">
+                                                    {/* Product Image */}
+                                                    <Box
+                                                        style={{
+                                                            width: 100,
+                                                            height: 100,
+                                                            borderRadius: 8,
+                                                            backgroundColor: "#F9FAFB",
+                                                            justifyContent: "center",
+                                                            alignItems: "center",
+                                                            overflow: "hidden",
+                                                        }}
+                                                    >
+                                                        {product.image ? (
+                                                            <Avatar
+                                                                size="xl"
                                                                 style={{
                                                                     width: 100,
                                                                     height: 100,
                                                                 }}
-                                                                source={{
-                                                                    uri: `/api/placeholder/100/100`,
+                                                            >
+                                                                <AvatarImage
+                                                                    style={{
+                                                                        width: 100,
+                                                                        height: 100,
+                                                                    }}
+                                                                    source={{
+                                                                        uri: `/api/placeholder/100/100`,
+                                                                    }}
+                                                                    alt={`${product.itemName} image`}
+                                                                />
+                                                            </Avatar>
+                                                        ) : (
+                                                            <Icon
+                                                                as={Camera}
+                                                                size="xl"
+                                                                style={{
+                                                                    color: "#9CA3AF",
                                                                 }}
-                                                                alt={`${product.itemName} image`}
                                                             />
-                                                        </Avatar>
-                                                    ) : (
-                                                        <Icon
-                                                            as={Camera}
-                                                            size="xl"
-                                                            style={{
-                                                                color: "#9CA3AF",
-                                                            }}
-                                                        />
-                                                    )}
-                                                </Box>
+                                                        )}
+                                                    </Box>
 
-                                                {/* Product Info */}
-                                                <VStack
-                                                    space="xs"
-                                                    style={{
-                                                        flex: 1,
-                                                        justifyContent:
-                                                            "space-between",
-                                                    }}
-                                                >
-                                                    <VStack>
+                                                    {/* Product Info */}
+                                                    <VStack
+                                                        space="xs"
+                                                        style={{
+                                                            flex: 1,
+                                                            justifyContent:
+                                                                "space-between",
+                                                        }}
+                                                    >
+                                                        <VStack>
+                                                            <HStack
+                                                                space="xs"
+                                                                style={{
+                                                                    alignItems:
+                                                                        "center",
+                                                                }}
+                                                            >
+                                                                <Text
+                                                                    style={{
+                                                                        fontSize: 18,
+                                                                        fontWeight:
+                                                                            "bold",
+                                                                        color: "#111827",
+                                                                    }}
+                                                                >
+                                                                    {product.itemName}
+                                                                </Text>
+                                                            </HStack>
+
+                                                            <Text
+                                                                style={{
+                                                                    color: "#4B5563",
+                                                                    marginTop: 4,
+                                                                }}
+                                                            >
+                                                                {product.itemDescription}
+                                                            </Text>
+                                                        </VStack>
+
                                                         <HStack
-                                                            space="xs"
                                                             style={{
-                                                                alignItems:
-                                                                    "center",
+                                                                justifyContent:
+                                                                    "space-between",
+                                                                alignItems: "center",
+                                                                marginTop: 8,
                                                             }}
                                                         >
                                                             <Text
                                                                 style={{
-                                                                    fontSize: 18,
-                                                                    fontWeight:
-                                                                        "bold",
-                                                                    color: "#111827",
+                                                                    fontSize: 16,
+                                                                    fontWeight: "bold",
+                                                                    color: "#059669",
                                                                 }}
                                                             >
-                                                                {product.itemName}
+                                                                {product.pointsToRedeem}{" "}
+                                                                points
                                                             </Text>
-                                                        </HStack>
 
-                                                        <Text
-                                                            style={{
-                                                                color: "#4B5563",
-                                                                marginTop: 4,
-                                                            }}
-                                                        >
-                                                            {product.itemDescription}
-                                                        </Text>
-                                                    </VStack>
-
-                                                    <HStack
-                                                        style={{
-                                                            justifyContent:
-                                                                "space-between",
-                                                            alignItems: "center",
-                                                            marginTop: 8,
-                                                        }}
-                                                    >
-                                                        <Text
-                                                            style={{
-                                                                fontSize: 16,
-                                                                fontWeight: "bold",
-                                                                color: "#059669",
-                                                            }}
-                                                        >
-                                                            {product.pointsToRedeem}{" "}
-                                                            points
-                                                        </Text>
-
-                                                        {cartItems.some(
-                                                            (i) =>
-                                                                i.product.id ===
-                                                                product.id
-                                                        ) ? (
-                                                            <HStack
-                                                                space="md"
-                                                                style={{
-                                                                    alignItems:
-                                                                        "center",
-                                                                    backgroundColor:
-                                                                        "#F3F4F6",
-                                                                    borderRadius: 8,
-                                                                    padding: 4,
-                                                                }}
-                                                            >
-                                                                <Pressable
-                                                                    onPress={() =>
-                                                                        updateQuantity(
-                                                                            product.id,
-                                                                            -1
-                                                                        )
-                                                                    }
-                                                                    style={{
-                                                                        width: 32,
-                                                                        height: 32,
-                                                                        borderRadius: 16,
-                                                                        padding: 0,
-                                                                        justifyContent:
-                                                                            "center",
-                                                                        alignItems:
-                                                                            "center",
-                                                                    }}
-                                                                >
-                                                                    <Icon
-                                                                        as={Minus}
-                                                                        size="sm"
-                                                                        style={{
-                                                                            color: "#6B7280",
-                                                                        }}
-                                                                    />
-                                                                </Pressable>
-
-                                                                <Text
-                                                                    style={{
-                                                                        fontWeight:
-                                                                            "medium",
-                                                                        width: 24,
-                                                                        textAlign:
-                                                                            "center",
-                                                                    }}
-                                                                >
-                                                                    {
-                                                                        cartItems.find(
-                                                                            (i) =>
-                                                                                i
-                                                                                    .product
-                                                                                    .id ===
-                                                                                product.id
-                                                                        )?.quantity
-                                                                    }
-                                                                </Text>
-
-                                                                <Pressable
-                                                                    onPress={() =>
-                                                                        updateQuantity(
-                                                                            product.id,
-                                                                            1
-                                                                        )
-                                                                    }
-                                                                    style={{
-                                                                        width: 32,
-                                                                        height: 32,
-                                                                        borderRadius: 16,
-                                                                        padding: 0,
-                                                                        justifyContent:
-                                                                            "center",
-                                                                        alignItems:
-                                                                            "center",
-                                                                    }}
-                                                                >
-                                                                    <Icon
-                                                                        as={Plus}
-                                                                        size="sm"
-                                                                        style={{
-                                                                            color: "#6B7280",
-                                                                        }}
-                                                                    />
-                                                                </Pressable>
-                                                            </HStack>
-                                                        ) : (
-                                                            <Button
-                                                                onPress={() =>
-                                                                    handleAddToCart(
-                                                                        product
-                                                                    )
-                                                                }
-                                                                style={{
-                                                                    backgroundColor:
-                                                                        "#10B981",
-                                                                    borderRadius: 8,
-                                                                    paddingHorizontal: 16,
-                                                                }}
-                                                            >
+                                                            {cartItems.some(
+                                                                (i) =>
+                                                                    i.product.id ===
+                                                                    product.id
+                                                            ) ? (
                                                                 <HStack
-                                                                    space="xs"
+                                                                    space="md"
                                                                     style={{
                                                                         alignItems:
                                                                             "center",
+                                                                        backgroundColor:
+                                                                            "#F3F4F6",
+                                                                        borderRadius: 8,
+                                                                        padding: 4,
                                                                     }}
                                                                 >
-                                                                    <Icon
-                                                                        as={
-                                                                            ShoppingCart
+                                                                    <Pressable
+                                                                        onPress={() =>
+                                                                            updateQuantity(
+                                                                                product.id,
+                                                                                -1
+                                                                            )
                                                                         }
-                                                                        size="sm"
                                                                         style={{
-                                                                            color: "white",
-                                                                        }}
-                                                                    />
-                                                                    <Text
-                                                                        style={{
-                                                                            color: "white",
-                                                                            fontWeight:
-                                                                                "medium",
-                                                                            marginLeft: 3
+                                                                            width: 32,
+                                                                            height: 32,
+                                                                            borderRadius: 16,
+                                                                            padding: 0,
+                                                                            justifyContent:
+                                                                                "center",
+                                                                            alignItems:
+                                                                                "center",
                                                                         }}
                                                                     >
-                                                                        Add to Cart
+                                                                        <Icon
+                                                                            as={Minus}
+                                                                            size="sm"
+                                                                            style={{
+                                                                                color: "#6B7280",
+                                                                            }}
+                                                                        />
+                                                                    </Pressable>
+
+                                                                    <Text
+                                                                        style={{
+                                                                            fontWeight:
+                                                                                "medium",
+                                                                            width: 24,
+                                                                            textAlign:
+                                                                                "center",
+                                                                        }}
+                                                                    >
+                                                                        {
+                                                                            cartItems.find(
+                                                                                (i) =>
+                                                                                    i
+                                                                                        .product
+                                                                                        .id ===
+                                                                                    product.id
+                                                                            )?.quantity
+                                                                        }
                                                                     </Text>
+
+                                                                    <Pressable
+                                                                        onPress={() =>
+                                                                            updateQuantity(
+                                                                                product.id,
+                                                                                1
+                                                                            )
+                                                                        }
+                                                                        style={{
+                                                                            width: 32,
+                                                                            height: 32,
+                                                                            borderRadius: 16,
+                                                                            padding: 0,
+                                                                            justifyContent:
+                                                                                "center",
+                                                                            alignItems:
+                                                                                "center",
+                                                                        }}
+                                                                    >
+                                                                        <Icon
+                                                                            as={Plus}
+                                                                            size="sm"
+                                                                            style={{
+                                                                                color: "#6B7280",
+                                                                            }}
+                                                                        />
+                                                                    </Pressable>
                                                                 </HStack>
-                                                            </Button>
-                                                        )}
-                                                    </HStack>
-                                                </VStack>
-                                            </HStack>
-                                        </Card>
-                                    ))}
-                                </VStack>
-                            )}
+                                                            ) : (
+                                                                <Button
+                                                                    onPress={() =>
+                                                                        handleAddToCart(
+                                                                            product
+                                                                        )
+                                                                    }
+                                                                    style={{
+                                                                        backgroundColor:
+                                                                            "#10B981",
+                                                                        borderRadius: 8,
+                                                                        paddingHorizontal: 16,
+                                                                    }}
+                                                                >
+                                                                    <HStack
+                                                                        space="xs"
+                                                                        style={{
+                                                                            alignItems:
+                                                                                "center",
+                                                                        }}
+                                                                    >
+                                                                        <Icon
+                                                                            as={
+                                                                                ShoppingCart
+                                                                            }
+                                                                            size="sm"
+                                                                            style={{
+                                                                                color: "white",
+                                                                            }}
+                                                                        />
+                                                                        <Text
+                                                                            style={{
+                                                                                color: "white",
+                                                                                fontWeight:
+                                                                                    "medium",
+                                                                                marginLeft: 3
+                                                                            }}
+                                                                        >
+                                                                            Add to Cart
+                                                                        </Text>
+                                                                    </HStack>
+                                                                </Button>
+                                                            )}
+                                                        </HStack>
+                                                    </VStack>
+                                                </HStack>
+                                            </Card>
+                                        ))}
+                                    </VStack>
+                                ) : (
+                                    <VStack
+                                        space="md"
+                                        style={{
+                                            alignItems: "center",
+                                            padding: 24,
+                                        }}
+                                    >
+                                        <Icon
+                                            as={Camera}
+                                            size="xl"
+                                            style={{ color: "#D1D5DB" }}
+                                        />
+                                        <Text
+                                            style={{
+                                                color: "#6B7280",
+                                                textAlign: "center",
+                                            }}
+                                        >
+                                            No equipment available
+                                        </Text>
+                                    </VStack>
+                                )
+                            }
                         </ScrollView>
 
                         {/* Cart Modal */}
