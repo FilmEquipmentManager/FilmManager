@@ -1124,32 +1124,28 @@ export default function RedeemScreen () {
                                                         </Text>
                                                     </HStack>
 
-                                                    <HStack
-                                                        style={{
-                                                            justifyContent:
-                                                                "space-between",
-                                                        }}
-                                                    >
-                                                        <Text
+                                                    {calculateTotal().discount > 0 && (
+                                                        <HStack
                                                             style={{
-                                                                color: "#6B7280",
+                                                                justifyContent: "space-between",
                                                             }}
                                                         >
-                                                            Discount:
-                                                        </Text>
-                                                        <Text
-                                                            style={{
-                                                                color: "#DC2626",
-                                                            }}
-                                                        >
-                                                            -
-                                                            {
-                                                                calculateTotal()
-                                                                    .discount
-                                                            }{" "}
-                                                            pts
-                                                        </Text>
-                                                    </HStack>
+                                                            <Text
+                                                                style={{
+                                                                    color: "#6B7280",
+                                                                }}
+                                                            >
+                                                                Discount:
+                                                            </Text>
+                                                            <Text
+                                                                style={{
+                                                                    color: "#DC2626",
+                                                                }}
+                                                            >
+                                                                -{calculateTotal().discount} pts
+                                                            </Text>
+                                                        </HStack>
+                                                    )}
 
                                                     <Box
                                                         style={{
