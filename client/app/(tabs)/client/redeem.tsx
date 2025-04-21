@@ -1088,9 +1088,10 @@ export default function RedeemScreen () {
                                                             ? "#9CA3AF"
                                                             : "#10B981",
                                                 }}
-                                                onPress={() =>
+                                                onPress={() => {
+                                                    setCheckoutModalVisible(false)
                                                     setConfirmCheckoutModalVisible(true)
-                                                }
+                                                }}
                                                 disabled={
                                                     calculateTotal() >
                                                     (userData?.points || 0)
@@ -1114,7 +1115,9 @@ export default function RedeemScreen () {
                         {/* Checkout Confirmation Modal */}
                         <Modal
                             isOpen={confirmCheckoutModalVisible}
-                            onClose={() => setConfirmCheckoutModalVisible(false)}
+                            onClose={() => 
+                                setConfirmCheckoutModalVisible(false)
+                            }
                             size="sm"
                         >
                             <ModalBackdrop />
@@ -1174,9 +1177,10 @@ export default function RedeemScreen () {
                                                     flex: 1,
                                                     borderColor: "#6B7280",
                                                 }}
-                                                onPress={() =>
+                                                onPress={() => {
                                                     setConfirmCheckoutModalVisible(false)
-                                                }
+                                                    setCheckoutModalVisible(true)
+                                                }}
                                             >
                                                 <Text style={{ color: "#6B7280" }}>
                                                     Cancel
