@@ -808,7 +808,7 @@ export default function RedeemScreen () {
                                                         <Text
                                                             style={{
                                                                 fontWeight: "bold",
-                                                                color: "#ee4d2d",
+                                                                color: "black",
                                                                 fontSize: 16,
                                                             }}
                                                         >
@@ -1177,7 +1177,7 @@ export default function RedeemScreen () {
                                                         <Text
                                                             style={{
                                                                 fontWeight: "bold",
-                                                                color: "#059669",
+                                                                color: "black",
                                                                 fontSize: 16,
                                                             }}
                                                         >
