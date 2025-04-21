@@ -10,6 +10,8 @@ const { Server } = require("socket.io");
 
 const admin = require("firebase-admin");
 
+const Utilities = require("./services/Utilities");
+
 const DM = require("./services/DatabaseManager");
 
 const FirebaseDecoder = require("./services/FirebaseDecoder");
@@ -78,33 +80,29 @@ app.get('/api/user', authMiddleware, async (req, res) => {
 app.get('/api/vouchers', authMiddleware, async (req, res) => {
     try {
         const vouchers = DM.peek(['Vouchers']) || {};
-        const userVouchers = Object.values(vouchers).filter(
-            voucher => voucher.userId === req.user.uid && !voucher.used
-        );
         
-        res.json(userVouchers);
+        res.json(Object.values(vouchers));
     } catch (error) {
         console.log(`\n[API] - FAILED: /api/vouchers GET - ${error.stack || error}\n`);
         res.status(500).json({ error: 'ERROR: Failed to fetch vouchers' });
     }
 });
 
-// Create voucher (for testing/admin purposes)
 app.post('/api/vouchers', authMiddleware, async (req, res) => {
     try {
-        const { code, discount, minSpend, expiresAt } = req.body;
+        const { code, label, discount, minSpend, expiresAt } = req.body;
         
-        if (!code || !discount) {
+        if (!code || !label || !discount) {
             return res.status(400).json({ error: 'UERROR: Missing required fields' });
         }
         
         const newVoucher = {
             id: code,
-            userId: req.user.uid,
-            code,
+            code: code.trim(),
+            label: label,
             discount: parseFloat(discount),
-            minSpend: minSpend ? parseInt(minSpend) : null,
-            expiresAt: expiresAt || null,
+            minSpend: minSpend ? parseInt(minSpend) : 0,
+            expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
             used: false,
             createdAt: new Date().toISOString()
         };
