@@ -26,7 +26,7 @@ export default function HomepageScreen() {
     const [hoverReceive, setHoverReceive] = useState(false);
     const [hoverDispatch, setHoverDispatch] = useState(false);
     const [hoverCheckInfo, setHoverCheckInfo] = useState(false);
-    const [hoverReward, setHoverReward] = useState(false);
+    const [hoverItem, setHoverItem] = useState(false);
     const [hoverUser, setHoverUser] = useState(false);
     const router = useRouter();
     const { width, height } = useWindowDimensions();
@@ -349,8 +349,11 @@ export default function HomepageScreen() {
                                     >
                                         <Button
                                             size="xl"
-                                            onHoverIn={() => setHoverReward(true)}
-                                            onHoverOut={() => setHoverReward(false)}
+                                            onHoverIn={() => setHoverItem(true)}
+                                            onHoverOut={() => setHoverItem(false)}
+                                            onPress={() => {
+                                                router.push("/admin/itemsManagement")
+                                            }}
                                             style={{
                                                 height: isMobileScreen
                                                     ? "auto"
@@ -365,7 +368,7 @@ export default function HomepageScreen() {
                                                 shadowRadius: 4,
                                                 justifyContent: "center",
                                                 alignItems: "center",
-                                                ...getHoverStyle(hoverReward),
+                                                ...getHoverStyle(hoverItem),
                                             }}
                                         >
                                             <VStack
@@ -394,7 +397,7 @@ export default function HomepageScreen() {
                                                         textAlign: "center",
                                                     }}
                                                 >
-                                                    Reward Management
+                                                    Items Management
                                                 </ButtonText>
                                             </VStack>
                                         </Button>
