@@ -817,64 +817,6 @@ export default function RedeemScreen () {
                                                         </Text>
                                                     </HStack>
                                                 </VStack>
-
-                                                {/* Available points indicator */}
-                                                <HStack
-                                                    space="xs"
-                                                    style={{
-                                                        alignItems: "center",
-                                                        marginTop: 12,
-                                                        padding: 8,
-                                                        backgroundColor:
-                                                            calculateTotal().total >
-                                                            (userData?.points || 0)
-                                                                ? "#FEF2F2"
-                                                                : "#F0FDF4",
-                                                        borderRadius: 8,
-                                                    }}
-                                                >
-                                                    <Icon
-                                                        as={
-                                                            calculateTotal().total >
-                                                            (userData?.points || 0)
-                                                                ? AlertCircle
-                                                                : CheckCircle2
-                                                        }
-                                                        size="sm"
-                                                        style={{
-                                                            color:
-                                                                calculateTotal()
-                                                                    .total >
-                                                                (userData?.points ||
-                                                                    0)
-                                                                    ? "#DC2626"
-                                                                    : "#10B981",
-                                                        }}
-                                                    />
-                                                    <Text
-                                                        style={{
-                                                            color:
-                                                                calculateTotal()
-                                                                    .total >
-                                                                (userData?.points ||
-                                                                    0)
-                                                                    ? "#DC2626"
-                                                                    : "#10B981",
-                                                            fontSize: 13,
-                                                        }}
-                                                    >
-                                                        {calculateTotal().total >
-                                                        (userData?.points || 0)
-                                                            ? `Insufficient points (${
-                                                                userData?.points ||
-                                                                0
-                                                            } available)`
-                                                            : `You have enough points (${
-                                                                userData?.points ||
-                                                                0
-                                                            } available)`}
-                                                    </Text>
-                                                </HStack>
                                             </Card>
                                         </>
                                     )}
@@ -902,19 +844,14 @@ export default function RedeemScreen () {
                                             <Button
                                                 style={{
                                                     flex: 1,
-                                                    backgroundColor:
-                                                        cartItems.filter((i) => i.selected).length === 0 ||
-                                                        calculateTotal().total > (userData?.points || 0)
-                                                            ? "#9CA3AF"
-                                                            : "#10B981",
+                                                    backgroundColor: cartItems.filter((i) => i.selected).length === 0 ? "#9CA3AF" : "#10B981",
                                                 }}
                                                 onPress={() => {
                                                     setCartModalVisible(false)
                                                     setCheckoutModalVisible(true)
                                                 }}
                                                 disabled={
-                                                    cartItems.filter((i) => i.selected).length === 0 ||
-                                                    calculateTotal().total > (userData?.points || 0)
+                                                    cartItems.filter((i) => i.selected).length === 0
                                                 }                                                
                                             >
                                                 <Text
