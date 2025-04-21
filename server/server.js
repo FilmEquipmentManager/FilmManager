@@ -358,7 +358,6 @@ app.post("/api/barcodes", authMiddleware, async (req, res) => {
             location: typeof location === "string" ? location.trim() : "Unknown",
             totalCount: typeof count === "number" ? count : 1,
             pointsToRedeem: typeof pointsToRedeem === "number" ? pointsToRedeem : 0,
-            sessionCount: 0,
             createdAt: now,
             updatedAt: now,
             updatedBy,
@@ -451,7 +450,6 @@ app.put("/api/barcodes/:id", authMiddleware, async (req, res) => {
             location: typeof location === "string" ? location.trim() : existingBarcode.location || "",
             pointsToRedeem: typeof pointsToRedeem === "number" ? pointsToRedeem : existingBarcode.pointsToRedeem || 0,
             totalCount: newCount,
-            sessionCount: 0,
             updatedAt: now,
             updatedBy,
         };

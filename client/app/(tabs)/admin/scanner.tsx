@@ -170,7 +170,7 @@ export default function ScannerScreen() {
             const barcodeToScan = currentScan.trim();
 
             try {
-                const barcodesArray = Object.values(barcodes) as ScannedItem[];
+                const barcodesArray = Object.values(barcodes ? barcodes : []) as ScannedItem[];
 
                 const matchedItem = barcodesArray.find(item => item.barcode === barcodeToScan);
                 const isKnown = !!matchedItem;
@@ -371,6 +371,8 @@ export default function ScannerScreen() {
         const knownItemsToReceive = pendingItems.filter(item => selectedIds.has(item.id));
         const unknownItemsToReceive = pendingUnknownItems.filter(item => selectedIds.has(item.id));
 
+        const selectedBarcodes = new Set( [...knownItemsToReceive, ...unknownItemsToReceive].map(item => item.barcode));
+
         try {
             // Update known items (PUT)
             const updatePromises = knownItemsToReceive.map(item =>
@@ -404,8 +406,8 @@ export default function ScannerScreen() {
 
             await Promise.all([...updatePromises, ...createPromises]);
 
-            setPendingItems(prev => prev.filter(item => !selectedIds.has(item.id)));
-            setPendingUnknownItems(prev => prev.filter(item => !selectedIds.has(item.id)));
+            setPendingItems(prev => prev.filter(item => !selectedBarcodes.has(item.barcode)));
+            setPendingUnknownItems(prev => prev.filter(item => !selectedBarcodes.has(item.barcode)));
             setSelectedIds(new Set());
 
             const totalReceived = knownItemsToReceive.length + unknownItemsToReceive.length;
@@ -434,12 +436,22 @@ export default function ScannerScreen() {
 
     const handleDispatch = async () => {
         setIsLoading(true);
+        const selectedUnknownItems = pendingUnknownItems.filter(item =>
+            selectedIds.has(item.id)
+        );
+        
+        if (selectedUnknownItems.length > 0) {
+            showToast("Dispatch Error", "You need to receive unknown items first before dispatching.");
+            setIsLoading(false);
+            return;
+        }
+        
         const dispatchableItems = pendingItems.filter(item =>
             selectedIds.has(item.id) && item.totalCount >= item.sessionCount
         );
-
+        
         if (dispatchableItems.length === 0) {
-            showToast("Dispatch Error", "No selected items have sufficient stock to dispatch.");
+            showToast("Dispatch Error", "Selected items have insufficient stock to dispatch.");
             setIsLoading(false);
             return;
         }
