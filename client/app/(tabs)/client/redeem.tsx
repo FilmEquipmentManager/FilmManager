@@ -661,7 +661,7 @@ export default function RedeemScreen () {
                                     ) : (
                                         <>
                                             <VStack
-                                                space="md"
+                                                space="sm"
                                                 style={{ marginBottom: 16 }}
                                             >
                                                 {cartItems.map((item) => (
