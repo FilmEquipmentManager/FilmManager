@@ -903,8 +903,8 @@ export default function RedeemScreen () {
                                                 style={{
                                                     flex: 1,
                                                     backgroundColor:
-                                                        calculateTotal().total >
-                                                        (userData?.points || 0)
+                                                        cartItems.filter((i) => i.selected).length === 0 ||
+                                                        calculateTotal().total > (userData?.points || 0)
                                                             ? "#9CA3AF"
                                                             : "#10B981",
                                                 }}
@@ -913,9 +913,9 @@ export default function RedeemScreen () {
                                                     setCheckoutModalVisible(true)
                                                 }}
                                                 disabled={
-                                                    calculateTotal().total >
-                                                    (userData?.points || 0)
-                                                }
+                                                    cartItems.filter((i) => i.selected).length === 0 ||
+                                                    calculateTotal().total > (userData?.points || 0)
+                                                }                                                
                                             >
                                                 <Text
                                                     style={{
