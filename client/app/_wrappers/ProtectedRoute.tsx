@@ -16,116 +16,109 @@ import { Input, InputField } from "@/components/ui/input";
 import { Eye, EyeClosed, LogInIcon } from "lucide-react-native";
 import { Platform } from "react-native";
 import server from "../../networking";
+import FirebaseDecoder from "../tools/FirebaseDecoder";
 
 type AuthFormProps = {
-    isRegister: boolean;
-    onSubmit: (
-        email: string,
-        password: string,
-        username?: string
-    ) => Promise<void>;
-    switchForm: () => void;
+	isRegister: boolean;
+	onSubmit: (email: string, password: string, username?: string) => Promise<void>;
+	switchForm: () => void;
 };
 
 const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [username, setUsername] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
+	const [username, setUsername] = useState("");
+	const [showPassword, setShowPassword] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const toast = useToast();
+	const toast = useToast();
 
-    const [emailError, setEmailError] = useState("");
-    const [passwordError, setPasswordError] = useState("");
-    const [usernameError, setUsernameError] = useState("");
-    const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+	const [emailError, setEmailError] = useState("");
+	const [passwordError, setPasswordError] = useState("");
+	const [usernameError, setUsernameError] = useState("");
+	const [attemptedSubmit, setAttemptedSubmit] = useState(false);
 
-    const isWeb = Platform.OS === "web";
+	const isWeb = Platform.OS === "web";
 
-    const showToast = (title: string, description: string) => {
-        const newId = Math.random();
-        toast.show({
-            id: newId.toString(),
-            placement: "top",
-            duration: 3000,
-            render: ({ id }) => {
-                const uniqueToastId = "toast-" + id;
-                return (
-                    <Toast
-                        nativeID={uniqueToastId}
-                        action="muted"
-                        variant="solid"
-                    >
-                        <ToastTitle>{title}</ToastTitle>
-                        <ToastDescription>{description}</ToastDescription>
-                    </Toast>
-                );
-            },
-        });
-    };
+	const showToast = (title: string, description: string) => {
+		const newId = Math.random();
+		toast.show({
+			id: newId.toString(),
+			placement: "top",
+			duration: 3000,
+			render: ({ id }) => {
+				const uniqueToastId = "toast-" + id;
+				return (
+					<Toast nativeID={uniqueToastId} action="muted" variant="solid">
+						<ToastTitle>{title}</ToastTitle>
+						<ToastDescription>{description}</ToastDescription>
+					</Toast>
+				);
+			}
+		});
+	};
 
-    const validateEmail = (email: string) => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!email) {
-            setEmailError("Email is required");
-            return false;
-        } else if (!emailRegex.test(email)) {
-            setEmailError("Invalid email format");
-            return false;
-        } else {
-            setEmailError("");
-            return true;
-        }
-    };
+	const validateEmail = (email: string) => {
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!email) {
+			setEmailError("Email is required");
+			return false;
+		} else if (!emailRegex.test(email)) {
+			setEmailError("Invalid email format");
+			return false;
+		} else {
+			setEmailError("");
+			return true;
+		}
+	};
 
-    const validatePassword = (password: string) => {
-        const errors = [];
+	const validatePassword = (password: string) => {
+		const errors = [];
 
-        if (!password) {
-            errors.push("Password is required");
-        } else {
-            if (password.length < 12) {
-                errors.push("Must be at least 12 characters");
-            }
-            if (!/[A-Z]/.test(password)) {
-                errors.push("Must include an uppercase letter");
-            }
-            if (!/[0-9]/.test(password)) {
-                errors.push("Must include a number");
-            }
-            if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-                errors.push("Must include a special character");
-            }
-        }
+		if (!password) {
+			errors.push("Password is required");
+		} else {
+			if (password.length < 12) {
+				errors.push("Must be at least 12 characters");
+			}
+			if (!/[A-Z]/.test(password)) {
+				errors.push("Must include an uppercase letter");
+			}
+			if (!/[0-9]/.test(password)) {
+				errors.push("Must include a number");
+			}
+			if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+				errors.push("Must include a special character");
+			}
+		}
 
-        if (errors.length > 0) {
-            setPasswordError(errors.join(", "));
-            return false;
-        } else {
-            setPasswordError("");
-            return true;
-        }
-    };
+		if (errors.length > 0) {
+			setPasswordError(errors.join(", "));
+			return false;
+		} else {
+			setPasswordError("");
+			return true;
+		}
+	};
 
-    const validateUsername = (username: string) => {
-        if (isRegister && !username) {
-            setUsernameError("Username is required");
-            return false;
-        } else {
-            setUsernameError("");
-            return true;
-        }
-    };
+	const validateUsername = (username: string) => {
+		if (isRegister && !username) {
+			setUsernameError("Username is required");
+			return false;
+		} else {
+			setUsernameError("");
+			return true;
+		}
+	};
 
-    useEffect(() => {
-        setEmailError("");
-        setPasswordError("");
-        setUsernameError("");
-        setAttemptedSubmit(false);
-    }, [isRegister]);
+	useEffect(() => {
+		setEmailError("");
+		setPasswordError("");
+		setUsernameError("");
+		setAttemptedSubmit(false);
+	}, [isRegister]);
 
-    useEffect(() => {
+	useEffect(() => {
 		if (!isWeb) return;
 
 		const handleKeyDown = (e: KeyboardEvent) => {
@@ -138,39 +131,36 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 		return () => window.removeEventListener("keydown", handleKeyDown);
 	}, [email, password, username, isRegister]);
 
-    const validateForm = () => {
-        const isEmailValid = validateEmail(email.trim());
-        const isPasswordValid = validatePassword(password.trim());
-        const isUsernameValid = validateUsername(username.trim());
+	const validateForm = () => {
+		const isEmailValid = validateEmail(email.trim());
+		const isPasswordValid = validatePassword(password.trim());
+		const isUsernameValid = validateUsername(username.trim());
 
-        return (
-            isEmailValid &&
-            isPasswordValid &&
-            (isRegister ? isUsernameValid : true)
-        );
-    };
+		return isEmailValid && isPasswordValid && (isRegister ? isUsernameValid : true);
+	};
 
-    const handleSubmit = async () => {
-        setAttemptedSubmit(true);
+	const handleSubmit = async () => {
+		setAttemptedSubmit(true);
 
-        const isValid = validateForm();
+		const isValid = validateForm();
 
-        if (!isValid) {
-            showToast("Uh-oh!", "Please check your inputs again.");
-            return;
-        }
+		if (!isValid) {
+			showToast("Uh-oh!", "Please check your inputs again.");
+			return;
+		}
 
-        try {
-            setIsSubmitting(true);
-            await onSubmit(email.trim(), password.trim(), username.trim());
-        } catch (err) {
-            setIsSubmitting(false);
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+		try {
+			setIsSubmitting(true);
+			await onSubmit(email.trim(), password.trim(), username.trim());
+		} catch (err) {
+			showToast("Uh-oh!", err);
+			setIsSubmitting(false);
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
 
-    return (
+	return (
 		<Card
 			style={{
 				backgroundColor: "white",
@@ -293,240 +283,213 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 };
 
 type ProtectedRouteProps = {
-    showAuth?: boolean;
-    children: React.ReactNode | ((userData: any) => React.ReactNode);
+	showAuth?: boolean;
+	children: React.ReactNode | ((userData: any) => React.ReactNode);
 };
 
-export default function ProtectedRoute({
-    showAuth,
-    children,
-}: ProtectedRouteProps) {
-    const [isRegister, setIsRegister] = useState(false);
-    const { userData, loading } = useAuth();
-    const router = useRouter();
-    const isWeb = Platform.OS === "web";
-    const toast = useToast();
+export default function ProtectedRoute({ showAuth, children }: ProtectedRouteProps) {
+	const [isRegister, setIsRegister] = useState(false);
+	const { userData, loading } = useAuth();
+	const router = useRouter();
+	const isWeb = Platform.OS === "web";
+	const toast = useToast();
 
-    const pathname = usePathname();
+	const pathname = usePathname();
 
-    const showToast = (title: string, description: string) => {
-        const newId = Math.random();
-        toast.show({
-            id: newId.toString(),
-            placement: "top",
-            duration: 3000,
-            render: ({ id }) => {
-                const uniqueToastId = "toast-" + id;
-                return (
-                    <Toast
-                        nativeID={uniqueToastId}
-                        action="muted"
-                        variant="solid"
-                    >
-                        <ToastTitle>{title}</ToastTitle>
-                        <ToastDescription>{description}</ToastDescription>
-                    </Toast>
-                );
-            },
-        });
-    };
+	const showToast = (title: string, description: string) => {
+		const newId = Math.random();
+		toast.show({
+			id: newId.toString(),
+			placement: "top",
+			duration: 3000,
+			render: ({ id }) => {
+				const uniqueToastId = "toast-" + id;
+				return (
+					<Toast nativeID={uniqueToastId} action="muted" variant="solid">
+						<ToastTitle>{title}</ToastTitle>
+						<ToastDescription>{description}</ToastDescription>
+					</Toast>
+				);
+			}
+		});
+	};
 
-    const handleAuth = async (
-        email: string,
-        password: string,
-        username?: string
-    ) => {
-        try {
-            if (isRegister && username) {
-                await server.post("/api/register", {
-                    email,
-                    password,
-                    username,
-                });
+	const handleAuth = async (email: string, password: string, username?: string) => {
+		try {
+			if (isRegister && username) {
+				await server.post("/api/register", {
+					email,
+					password,
+					username
+				});
 
+				await signInWithEmailAndPassword(auth, email, password);
+				showToast("Success!", "Logged in successfully.");
+			} else {
                 await signInWithEmailAndPassword(auth, email, password);
-                showToast("Success!", "Logged in successfully.");
+				showToast("Success!", "Logged in successfully.");
+			}
+		} catch (error: any) {
+            if (isRegister) {
+                if (error.response && error.response.data && error.response.data.error && typeof error.response.data.error === "string") {
+					if (error.response.data.error.startsWith("UERROR")) {
+						showToast("Uh-oh!", error.response.data.error.substring("UERROR:".length));
+					} else {
+						showToast("Uh-oh!", error.response.data.error.substring("ERROR:".length));
+					}
+				}
             } else {
-                await signInWithEmailAndPassword(auth, email, password);
-                showToast("Success!", "Logged in successfully.");
+                showToast("Uh-oh!", FirebaseDecoder({ error: error.message }));
             }
-        } catch (error: any) {
-            if (
-                error.response &&
-                error.response.data &&
-                error.response.data.error &&
-                typeof error.response.data.error === "string"
-            ) {
-                if (error.response.data.error.startsWith("UERROR")) {
-                    showToast(
-                        "Uh-oh!",
-                        error.response.data.error.substring("UERROR:".length)
-                    );
-                } else {
-                    showToast(
-                        "Uh-oh!",
-                        error.response.data.error.substring("ERROR:".length)
-                    );
-                }
-            }
-        }
-    };
+		}
+	};
 
-    useEffect(() => {
-        if (pathname) {
-            if (userData) {
-                if (userData.role === "User" && (!pathname.startsWith("/auth") && !pathname.startsWith("/client") && pathname !== "/")) {
-                    router.replace("/auth/account")
-                    showToast("Access unauthorised", "You are not permitted to access this page")
-                }
+	useEffect(() => {
+		if (pathname) {
+			if (userData) {
+				if (userData.role === "User" && !pathname.startsWith("/auth") && !pathname.startsWith("/client") && pathname !== "/") {
+					router.replace("/auth/account");
+					showToast("Access unauthorised", "You are not permitted to access this page");
+				}
 
-                if (userData.role === "Admin" && (!pathname.startsWith("/auth") && !pathname.startsWith("/admin") && pathname !== "/")) {
-                    router.replace("/auth/account")
-                    showToast("Access unauthorised", "You are not permitted to access this page")
-                }
-            }
-        }
-    }, [pathname, userData]);
+				if (userData.role === "Admin" && !pathname.startsWith("/auth") && !pathname.startsWith("/admin") && pathname !== "/") {
+					router.replace("/auth/account");
+					showToast("Access unauthorised", "You are not permitted to access this page");
+				}
+			}
+		}
+	}, [pathname, userData]);
 
-    if (loading) {
-        return (
-            <LinearGradient
-                colors={["#00FFDD", "#1B9CFF"]}
-                style={{
-                    flex: 1,
-                    justifyContent: "center",
-                    alignItems: "center",
-                }}
-            >
-                <Spinner size="large" />
-            </LinearGradient>
-        );
-    }
+	if (loading) {
+		return (
+			<LinearGradient
+				colors={["#00FFDD", "#1B9CFF"]}
+				style={{
+					flex: 1,
+					justifyContent: "center",
+					alignItems: "center"
+				}}
+			>
+				<Spinner size="large" />
+			</LinearGradient>
+		);
+	}
 
-    if (!userData) {
-        if (showAuth) {
-            return (
-                <LinearGradient
-                    colors={["#00FFDD", "#1B9CFF"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 0, y: 1 }}
-                    style={{
-                        flex: 1,
-                        justifyContent: "center",
-                        padding: isWeb ? 40 : 24,
-                        minHeight: isWeb ? "100%" : undefined,
-                    }}
-                >
-                    <AuthForm
-                        isRegister={isRegister}
-                        onSubmit={handleAuth as any}
-                        switchForm={() => setIsRegister(!isRegister)}
-                    />
-                </LinearGradient>
-            );
-        } else {
-            return (
-                <LinearGradient
-                    colors={["#00FFDD", "#1B9CFF"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 0, y: 1 }}
-                    style={{
-                        flex: 1,
-                        justifyContent: "center",
-                        alignItems: "center",
-                        padding: isWeb ? 12 : 16,
-                        minHeight: "100%",
-                    }}
-                >
-                    <Card
-                        style={{
-                            backgroundColor: "rgba(255, 255, 255, 0.95)",
-                            borderRadius: 24,
-                            padding: 24,
-                            width: "90%",
-                            maxWidth: 400,
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 4 },
-                            shadowOpacity: 0.2,
-                            shadowRadius: 8,
-                            elevation: 5,
-                        }}
-                    >
-                        <VStack space="xl" style={{ alignItems: "center" }}>
-                            <HStack
-                                space="xl"
-                                style={{
-                                    alignItems: "center",
-                                    marginTop: 0,
-                                    display: "flex",
-                                    flexDirection: "column",
-                                }}
-                            >
-                                <Text
-                                    style={{
-                                        marginTop: 5,
-                                        fontSize: isWeb ? 20 : 18,
-                                        fontWeight: "800",
-                                        color: "#333",
-                                    }}
-                                >
-                                    Welcome to FilmManager
-                                </Text>
-                            </HStack>
+	if (!userData) {
+		if (showAuth) {
+			return (
+				<LinearGradient
+					colors={["#00FFDD", "#1B9CFF"]}
+					start={{ x: 0, y: 0 }}
+					end={{ x: 0, y: 1 }}
+					style={{
+						flex: 1,
+						justifyContent: "center",
+						padding: isWeb ? 40 : 24,
+						minHeight: isWeb ? "100%" : undefined
+					}}
+				>
+					<AuthForm isRegister={isRegister} onSubmit={handleAuth as any} switchForm={() => setIsRegister(!isRegister)} />
+				</LinearGradient>
+			);
+		} else {
+			return (
+				<LinearGradient
+					colors={["#00FFDD", "#1B9CFF"]}
+					start={{ x: 0, y: 0 }}
+					end={{ x: 0, y: 1 }}
+					style={{
+						flex: 1,
+						justifyContent: "center",
+						alignItems: "center",
+						padding: isWeb ? 12 : 16,
+						minHeight: "100%"
+					}}
+				>
+					<Card
+						style={{
+							backgroundColor: "rgba(255, 255, 255, 0.95)",
+							borderRadius: 24,
+							padding: 24,
+							width: "90%",
+							maxWidth: 400,
+							shadowColor: "#000",
+							shadowOffset: { width: 0, height: 4 },
+							shadowOpacity: 0.2,
+							shadowRadius: 8,
+							elevation: 5
+						}}
+					>
+						<VStack space="xl" style={{ alignItems: "center" }}>
+							<HStack
+								space="xl"
+								style={{
+									alignItems: "center",
+									marginTop: 0,
+									display: "flex",
+									flexDirection: "column"
+								}}
+							>
+								<Text
+									style={{
+										marginTop: 5,
+										fontSize: isWeb ? 20 : 18,
+										fontWeight: "800",
+										color: "#333"
+									}}
+								>
+									Welcome to FilmManager
+								</Text>
+							</HStack>
 
-                            <Text
-                                style={{
-                                    fontSize: isWeb ? 13 : 12,
-                                    textAlign: "center",
-                                    color: "#666",
-                                    marginTop: 2,
-                                    marginBottom: 6,
-                                }}
-                            >
-                                Please log in or create an account to access
-                                your profile and manage your content.
-                            </Text>
+							<Text
+								style={{
+									fontSize: isWeb ? 13 : 12,
+									textAlign: "center",
+									color: "#666",
+									marginTop: 2,
+									marginBottom: 6
+								}}
+							>
+								Please log in or create an account to access your profile and manage your content.
+							</Text>
 
-                            <Button
-                                onPress={() => {
-                                    router.push("/auth/account");
-                                }}
-                                style={{
-                                    backgroundColor: "#1B9CFF",
-                                    borderRadius: 12,
-                                    width: "100%",
-                                    elevation: 3,
-                                }}
-                            >
-                                <HStack
-                                    space="sm"
-                                    style={{
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                    }}
-                                >
-                                    <Icon
-                                        as={LogInIcon}
-                                        size="md"
-                                        color="white"
-                                    />
-                                    <Text
-                                        style={{
-                                            fontSize: 18,
-                                            fontWeight: "600",
-                                            color: "white",
-                                        }}
-                                    >
-                                        Login / Register
-                                    </Text>
-                                </HStack>
-                            </Button>
-                        </VStack>
-                    </Card>
-                </LinearGradient>
-            );
-        }
-    }
+							<Button
+								onPress={() => {
+									router.push("/auth/account");
+								}}
+								style={{
+									backgroundColor: "#1B9CFF",
+									borderRadius: 12,
+									width: "100%",
+									elevation: 3
+								}}
+							>
+								<HStack
+									space="sm"
+									style={{
+										alignItems: "center",
+										justifyContent: "center"
+									}}
+								>
+									<Icon as={LogInIcon} size="md" color="white" />
+									<Text
+										style={{
+											fontSize: 18,
+											fontWeight: "600",
+											color: "white"
+										}}
+									>
+										Login / Register
+									</Text>
+								</HStack>
+							</Button>
+						</VStack>
+					</Card>
+				</LinearGradient>
+			);
+		}
+	}
 
-    return typeof children === "function" ? children(userData) : children;
+	return typeof children === "function" ? children(userData) : children;
 }

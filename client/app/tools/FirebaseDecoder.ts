@@ -1,38 +1,26 @@
 interface FirebaseDecoderProps {
-    error: string;
+	error: string;
 }
 
-function FirebaseDecoder({ error }: FirebaseDecoderProps) {
-    const decodeError = (errorMsg: string): string => {
-        try {
-            const prefix = "Firebase: Error (";
-            const suffix = ")";
-            const startIndex = errorMsg.indexOf(prefix);
-            const endIndex = errorMsg.lastIndexOf(suffix);
+function FirebaseDecoder({ error }: FirebaseDecoderProps): string {
+	const decodeError = (raw: string): string => {
+		// 1) Pull out whatever’s between "auth/" and the closing ")"
+		const match = raw.match(/auth\/([a-z0-9-]+)\)/i);
+		if (!match) {
+			// if it doesn’t fit that pattern, just return the original
+			return raw;
+		}
 
-            if (!(startIndex === -1 || endIndex === -1 || endIndex <= startIndex)) {
-				const extracted = errorMsg.substring(
-					startIndex + prefix.length,
-					endIndex
-				);
-	
-				const withoutAuth = extracted.replace("auth/", "");
-	
-				const withSpaces = withoutAuth.replace(/-/g, " ");
-	
-				const result =
-					withSpaces.charAt(0).toUpperCase() + withSpaces.slice(1);
-	
-				return result;
-            } else {
-				return errorMsg;
-			}
-        } catch {
-            return errorMsg;
-        }
-    };
+		// 2) Turn "too-many-requests" → "too many requests"
+		const withSpaces = match[1].replace(/-/g, " ").toLowerCase();
 
-    return decodeError(error);
+		// 3) Capitalize first letter → "Too many requests"
+		return withSpaces.charAt(0).toUpperCase() + withSpaces.slice(1);
+	};
+
+    console.log("FirebaseDecoder error:", decodeError(error));
+
+	return decodeError(error);
 }
 
 export default FirebaseDecoder;
