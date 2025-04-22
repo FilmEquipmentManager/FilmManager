@@ -107,8 +107,9 @@ app.post('/api/redeem', authMiddleware, async (req, res) => {
             total += product.pointsToRedeem * item.quantity;
             validatedItems.push({
                 productId: item.id,
-                quantity: item.quantity,
-                pointsPerItem: product.pointsToRedeem
+                productName: product.itemName,
+                productGroup: product.group,
+                quantity: item.quantity
             });
         }
 
