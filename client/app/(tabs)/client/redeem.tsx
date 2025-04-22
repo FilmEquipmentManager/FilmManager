@@ -11,12 +11,11 @@ import { Spinner } from "@/components/ui/spinner";
 import { Icon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import { Modal, ModalBackdrop, ModalContent, ModalCloseButton, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
+import { Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Checkbox, CheckboxIndicator, CheckboxIcon } from "@/components/ui/checkbox";
 import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
-import { ShoppingCart, Check, Minus, Plus, TagIcon, Disc, Camera, AlertCircle, CheckCircle2, Trash2 } from "lucide-react-native";
-import { useAuth } from "@/contexts/AuthContext";
+import { ShoppingCart, Check, Minus, Plus, Disc, Camera, AlertCircle, CheckCircle2, Trash2 } from "lucide-react-native";
 import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
 import server from "../../../networking";
 
@@ -80,7 +79,7 @@ export default function RedeemScreen () {
         }
     };
 
-    const handleAddToCart = (product) => {
+    const handleAddToCart = (product: any) => {
         setCartItems((prev) => {
             const existing = prev.find(
                 (item) => item.product.id === product.id
