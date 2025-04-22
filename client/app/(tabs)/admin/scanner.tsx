@@ -118,6 +118,7 @@ export default function ScannerScreen() {
     useEffect(() => {
         const interval = setInterval(() => {
             if (
+                typeof document !== "undefined" &&
                 scanInputRef.current &&
                 document.activeElement !== scanInputRef.current &&
                 document.activeElement !== inputRef.current &&

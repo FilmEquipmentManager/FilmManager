@@ -1,9 +1,12 @@
-import React from 'react'
+import React from 'react';
+import { View, Text } from 'react-native';
 
-function itemsManagement() {
+const ItemsManagement = () => {
   return (
-    <div>This is Items Management Page</div>
-  )
-}
+    <View>
+      <Text>This is Items Management Page</Text>
+    </View>
+  );
+};
 
-export default itemsManagement
+export default ItemsManagement;
