@@ -251,22 +251,25 @@ const ItemsManagement = () => {
         });
     };
 
-    const columnStyles = {
-        image: { width: "10%" },
-        barcode: { width: "15%" },
-        name: { width: "20%" },
-        description: { width: "20%" },
-        location: { width: "10%" },
-        stock: { width: "10%" },
-        points: { width: "10%" },
-        actions: { width: "5%" }
-    };
-
     const isMediumLaptop = width < 1400;
     const isSmallLaptop = width < 1024;
     const isShortScreen = height < 750;
     const isMobileScreen = width < 680;
     const isTinyScreen = width < 375;
+    const isLaptop = width < 1270
+
+    const allColumns = [
+        { key: "image", label: "Image", flex: 1, maxWidth: 48, visible: !isLaptop },
+        { key: "barcode", label: "Barcode", flex: 1.5, maxWidth: 120, visible: true },
+        { key: "itemName", label: "Name", flex: 2, maxWidth: 80, visible: true },
+        { key: "itemDescription", label: "Description", flex: 2, maxWidth: 100, visible: !isSmallLaptop },
+        { key: "location", label: "Location", flex: 1, maxWidth: 60, visible: !isSmallLaptop },
+        { key: "stock", label: "Stock", flex: 0.5, maxWidth: 20, visible: !isMobileScreen },
+        { key: "points", label: "Points", flex: 0.5, maxWidth: 20, visible: !isMobileScreen },
+        { key: "actions", label: "Actions", flex: 0.5, maxWidth: 60, visible: true },
+    ];
+
+    const columns = allColumns.filter(col => col.visible);
 
     return (
         <ProtectedRoute showAuth={true}>
@@ -276,18 +279,23 @@ const ItemsManagement = () => {
                 end={isMobileScreen ? { x: 0, y: 1 } : { x: 1, y: 1 }}
                 style={{ flex: 1 }}
             >
-                <VStack style={{ padding: isMobileScreen ? 4 : 8, width: "90%", alignSelf: "center", gap: 10, marginTop: 20, marginBottom: 14 }} space="xl">
+                <VStack style={{ padding: isMobileScreen ? 4 : 8, width: "90%", alignSelf: "center", gap: 10, marginTop: isMobileScreen ? 60 : 20, marginBottom: 14 }} space="xl">
                     {/* Filter and Search Row */}
                     <HStack space="xl" style={{ alignItems: "center", justifyContent: "space-between", marginBottom: 20, margin: "auto", width: "100%" }}>
                         {/* Category Dropdown */}
-                        <HStack style={{ flex: 1.5 }}>
+                        <HStack style={{ flex: isShortScreen ? 1 : 1.5 }}>
                             <Select onValueChange={(value) => setSelectedGroup(value)}>
                                 <SelectTrigger
                                     variant="outline"
-                                    size="md"
+                                    size={isShortScreen ? "sm" : "md"}
                                     style={{ backgroundColor: "white" }}
                                 >
-                                    <SelectInput placeholder="Category" style={{ color: "black" }} />
+                                    {!isShortScreen && (
+                                        <SelectInput placeholder="Category" style={{ color: "black" }} />
+                                    )}
+                                    {isShortScreen && (
+                                        <Text style={{ color: "black", fontSize: 14, padding: 10 }}>Filter</Text>
+                                    )}
                                     <SelectIcon className="mr-3" as={ChevronDownIcon} />
                                 </SelectTrigger>
                                 <SelectPortal>
@@ -310,22 +318,32 @@ const ItemsManagement = () => {
                         </HStack>
 
                         {/* Search Input */}
-                        <Input style={{ flex: 0.4, backgroundColor: "white" }}>
-                            <InputField
-                                placeholder="Find an item..."
-                                value={searchQuery}
-                                onChangeText={(text) => setSearchQuery(text)}
-                                style={{ color: "black" }}
-                            />
+                        <Input style={{ flex: isMobileScreen ? isShortScreen ? 1 : 1.2 : isMediumLaptop ? 0.6 : 0.4, backgroundColor: "white" }} size={isShortScreen ? "sm" : "md"}>
+                            {!isShortScreen && (
+                                <InputField
+                                    placeholder="Find an item..."
+                                    value={searchQuery}
+                                    onChangeText={(text) => setSearchQuery(text)}
+                                    style={{ color: "black" }}
+                                />
+                            )}
+                            {isShortScreen && (
+                                <InputField
+                                    placeholder="Search"
+                                    value={searchQuery}
+                                    onChangeText={(text) => setSearchQuery(text)}
+                                    style={{ color: "black" }}
+                                />
+                            )}
                             <InputSlot style={{ paddingRight: 4 }}>
-                                <Icon as={SearchIcon} size="md" style={{ color: "gray" }} />
+                                <Icon as={SearchIcon} size="md" style={{ color: "gray", display: isMobileScreen ? "none" : "flex"}} />
                             </InputSlot>
                         </Input>
                     </HStack>
 
                     {/* Items List */}
-                    <ScrollView style={{ flex: 1, paddingRight: 20, paddingTop: 10 }}>
-                        <VStack space="2xl">
+                    <ScrollView style={{ flex: 1, paddingRight: isMobileScreen ? 0 : 20, paddingTop: 10 }}>
+                        <VStack space="2xl" style={{ flex: 1, paddingRight: isMobileScreen ? 0 : 20, paddingTop: 10 }}>
                             {Object.entries(groupedItems).map(([groupKey, items]) => (
                                 <VStack
                                     key={groupKey}
@@ -333,7 +351,7 @@ const ItemsManagement = () => {
                                     style={{
                                         backgroundColor: "white",
                                         borderRadius: 24,
-                                        padding: 16,
+                                        padding: isMobileScreen ? 10 : 16,
                                         shadowColor: "#000",
                                         shadowOffset: { width: 0, height: 2 },
                                         shadowOpacity: 0.05,
@@ -361,7 +379,7 @@ const ItemsManagement = () => {
                                     </HStack>
 
                                     {/* Table Structure */}
-                                    <Table className="w-full">
+                                    <Table style={{ width: "100%" }}>
                                         <TableHeader style={{
                                             backgroundColor: "#f8fafc",
                                             borderRadius: 12,
@@ -371,151 +389,185 @@ const ItemsManagement = () => {
                                                 shadowColor: "transparent",
                                                 borderBottomWidth: 0
                                             }}>
-                                                <TableHead style={{ width: "10%", paddingVertical: 14, paddingHorizontal: 10, backgroundColor: "#4f46e5", borderTopLeftRadius: 12 }}>
-                                                    <Text style={{ color: "white", fontWeight: "800", letterSpacing: 0.5, textTransform: "uppercase" }}>Image</Text>
-                                                </TableHead>
-                                                <TableHead style={{ width: "15%", paddingVertical: 14, paddingHorizontal: 10, backgroundColor: "#4f46e5" }}>
-                                                    <Text style={{ color: "white", fontWeight: "800", letterSpacing: 0.5, textTransform: "uppercase" }}>Barcode</Text>
-                                                </TableHead>
-                                                <TableHead style={{ width: "20%", paddingVertical: 14, paddingHorizontal: 10, backgroundColor: "#4f46e5" }}>
-                                                    <Text style={{ color: "white", fontWeight: "800", letterSpacing: 0.5, textTransform: "uppercase" }}>Name</Text>
-                                                </TableHead>
-                                                <TableHead style={{ width: "20%", paddingVertical: 14, paddingHorizontal: 10, backgroundColor: "#4f46e5" }}>
-                                                    <Text style={{ color: "white", fontWeight: "800", letterSpacing: 0.5, textTransform: "uppercase" }}>Description</Text>
-                                                </TableHead>
-                                                <TableHead style={{ width: "10%", paddingVertical: 14, paddingHorizontal: 10, backgroundColor: "#4f46e5" }}>
-                                                    <Text style={{ color: "white", fontWeight: "800", letterSpacing: 0.5, textTransform: "uppercase" }}>Location</Text>
-                                                </TableHead>
-                                                <TableHead style={{ width: "10%", paddingVertical: 14, paddingHorizontal: 10, backgroundColor: "#4f46e5" }}>
-                                                    <Text style={{ color: "white", fontWeight: "800", letterSpacing: 0.5, textTransform: "uppercase" }}>Stock</Text>
-                                                </TableHead>
-                                                <TableHead style={{ width: "10%", paddingVertical: 14, paddingHorizontal: 10, backgroundColor: "#4f46e5" }}>
-                                                    <Text style={{ color: "white", fontWeight: "800", letterSpacing: 0.5, textTransform: "uppercase" }}>Points</Text>
-                                                </TableHead>
-                                                <TableHead style={{ width: "5%", paddingVertical: 14, paddingHorizontal: 10, backgroundColor: "#4f46e5", borderTopRightRadius: 12 }}>
-                                                    <Text style={{ color: "white", fontWeight: "800", letterSpacing: 0.5, textTransform: "uppercase" }}>Actions</Text>
-                                                </TableHead>
+                                                {columns
+                                                .filter(col => col.visible)
+                                                .map((col, index, visibleCols) => {
+                                                    const isFirstCol = index === 0;
+                                                    const isLastCol = index === visibleCols.length - 1;
+
+                                                    return (
+                                                    <TableHead
+                                                        key={col.key}
+                                                        style={{
+                                                        width: col.maxWidth,
+                                                        maxWidth: col.maxWidth,
+                                                        flexShrink: 1,
+                                                        flexGrow: 0,
+                                                        paddingVertical: isTinyScreen ? 8 : isMobileScreen ? 10 : 14,
+                                                        paddingHorizontal: isTinyScreen ? 6 : 10,
+                                                        backgroundColor: "#4f46e5",
+                                                        borderTopLeftRadius: isFirstCol ? 12 : 0,
+                                                        borderTopRightRadius: isLastCol ? 12 : 0,
+                                                        }}
+                                                    >{/* Move text-specific styles inside the Text component */}
+                                                    <Text
+                                                        style={{
+                                                            color: "white",
+                                                            fontWeight: "800",
+                                                            letterSpacing: 0.5,
+                                                            textTransform: "uppercase",
+                                                            fontSize: isTinyScreen ? 10 : isMobileScreen ? 12 : 14
+                                                        }}
+                                                    >
+                                                        {col.label}
+                                                    </Text>
+                                                    </TableHead>
+                                                    );
+                                                })}
                                             </TableRow>
                                         </TableHeader>
 
                                         <TableBody>
                                             {items.map(item => (
                                                 <TableRow key={item.id}>
-                                                    {/* Item Image */}
-                                                    <TableData>
-                                                        <Image
-                                                            style={{ width: 48, height: 48, borderRadius: 8 }}
-                                                            source={{
-                                                                uri: item.imageUrl || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s'
-                                                            }}
-                                                            alt="item image"
-                                                        />
-                                                    </TableData>
+                                                    {columns.map(col => {
+                                                        // common style object for each cell
+                                                        const cellStyle = { flex: col.flex, minWidth: col.maxWidth, justifyContent: col.key === "image" || col.key === "actions" ? "center" : undefined };
 
-                                                    {/* Item Data */}
-                                                    <TableData><Text isTruncated={true}>{item.barcode}</Text></TableData>
-                                                    <TableData><Text isTruncated={true}>{item.itemName || "Unnamed"}</Text></TableData>
-                                                    <TableData numberOfLines={1}><Text isTruncated={true}>{item.itemDescription || "No description"}</Text></TableData>
-                                                    <TableData><Text isTruncated={true}>{item.location || "Unknown"}</Text></TableData>
-                                                    <TableData>
-                                                        <Badge
-                                                            style={{
-                                                                backgroundColor:
-                                                                    item.totalCount <= 10
-                                                                        ? "#fef2f2"
-                                                                        : item.totalCount <= 100
-                                                                            ? "#fefce8"
-                                                                            : "#f0fdf4",
-                                                                borderRadius: 10,
-                                                                paddingVertical: 4,
-                                                                paddingHorizontal: 8,
-                                                                flexDirection: "row",
-                                                                alignItems: "center",
-                                                                gap: 6,
-                                                                width: "100%"
-                                                            }}
-                                                        >
-                                                            <Box
-                                                                style={{
-                                                                    width: 8,
-                                                                    height: 8,
-                                                                    borderRadius: 4,
-                                                                    backgroundColor:
-                                                                        item.totalCount <= 10
-                                                                            ? "#dc2626"
-                                                                            : item.totalCount <= 100
-                                                                                ? "#eab308"
-                                                                                : "#16a34a"
-                                                                }}
-                                                            />
-                                                            <Text
-                                                                style={{
-                                                                    fontWeight: "700",
-                                                                    fontSize: 12,
-                                                                    color:
-                                                                        item.totalCount <= 10
-                                                                            ? "#991b1b"
-                                                                            : item.totalCount <= 100
-                                                                                ? "#854d0e"
-                                                                                : "#166534"
-                                                                }}
-                                                            >
-                                                                {item.totalCount}
-                                                            </Text>
-                                                        </Badge>
-                                                    </TableData>
-                                                    <TableData>
-                                                        <Badge
-                                                            style={{
-                                                                backgroundColor: "rgba(234, 179, 8, 0.1)",
-                                                                borderRadius: 10,
-                                                                paddingVertical: 4,
-                                                                paddingHorizontal: 8,
-                                                                flexDirection: "row",
-                                                                alignItems: "center",
-                                                                gap: 6,
-                                                                width: "100%"
-                                                            }}
-                                                        >
-                                                            <SparklesIcon size={14} color="#eab308" />
-                                                            <Text
-                                                                style={{
-                                                                    fontWeight: "700",
-                                                                    fontSize: 12,
-                                                                    color: "#854d0e"
-                                                                }}
-                                                            >
-                                                                {item.pointsToRedeem}
-                                                            </Text>
-                                                        </Badge>
-                                                    </TableData>
-
-                                                    {/* Action Buttons */}
-                                                    <TableData>
-                                                        <HStack space="md" style={{ width: 60 }}>
-                                                            <Button
-                                                                size="sm"
-                                                                action="secondary"
-                                                                onPress={() => handleEdit(item)}
-                                                                isDisabled={isLoading}
-                                                                style={{ padding: 4, backgroundColor: "transparent" }}
-                                                            >
-                                                                <PencilIcon size={16} color="#4f46e5" />
-                                                            </Button>
-                                                            <Button
-                                                                size="sm"
-                                                                action="secondary"
-                                                                onPress={() => {
-                                                                    setDeleteItemId(item.id);
-                                                                    setShowDeleteModal(true);
-                                                                }}
-                                                                isDisabled={isLoading}
-                                                                style={{ padding: 4, backgroundColor: "transparent" }}
-                                                            >
-                                                                <Trash2Icon size={16} color="#dc2626" />
-                                                            </Button>
-                                                        </HStack>
-                                                    </TableData>
+                                                        switch (col.key) {
+                                                            case "image":
+                                                                return (
+                                                                    <TableData key={col.key} style={{ ...cellStyle, justifyContent: "center" }}>
+                                                                        <Image
+                                                                            style={{ width: isTinyScreen ? 36 : 48, height: isTinyScreen ? 36 : 48, borderRadius: 8 }}
+                                                                            source={{ uri: item.imageUrl || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s' }}
+                                                                            alt="item image"
+                                                                        />
+                                                                    </TableData>
+                                                                );
+                                                            case "stock":
+                                                                return (
+                                                                    <TableData key={col.key} style={{ ...cellStyle, justifyContent: "center" }}>
+                                                                        <Badge
+                                                                            style={{
+                                                                                backgroundColor:
+                                                                                    item.totalCount <= 10
+                                                                                        ? "#fef2f2"
+                                                                                        : item.totalCount <= 100
+                                                                                            ? "#fefce8"
+                                                                                            : "#f0fdf4",
+                                                                                borderRadius: 10,
+                                                                                paddingVertical: isTinyScreen ? 2 : 4,
+                                                                                paddingHorizontal: isTinyScreen ? 4 : 8,
+                                                                                flexDirection: "row",
+                                                                                alignItems: "center",
+                                                                                gap: isTinyScreen ? 4 : 6,
+                                                                                width: "100%"
+                                                                            }}
+                                                                        >
+                                                                            <Box
+                                                                                style={{
+                                                                                    width: isTinyScreen ? 6 : 8,
+                                                                                    height: isTinyScreen ? 6 : 8,
+                                                                                    borderRadius: 4,
+                                                                                    backgroundColor:
+                                                                                        item.totalCount <= 10
+                                                                                            ? "#dc2626"
+                                                                                            : item.totalCount <= 100
+                                                                                                ? "#eab308"
+                                                                                                : "#16a34a"
+                                                                                }}
+                                                                            />
+                                                                            <Text
+                                                                                style={{
+                                                                                    fontWeight: "700",
+                                                                                    fontSize: isTinyScreen ? 10 : 12,
+                                                                                    color:
+                                                                                        item.totalCount <= 10
+                                                                                            ? "#991b1b"
+                                                                                            : item.totalCount <= 100
+                                                                                                ? "#854d0e"
+                                                                                                : "#166534"
+                                                                                }}
+                                                                            >
+                                                                                {item.totalCount}
+                                                                            </Text>
+                                                                        </Badge>
+                                                                    </TableData>
+                                                                );
+                                                            case "points":
+                                                                return (
+                                                                    <TableData key={col.key} style={{ ...cellStyle, justifyContent: "center" }}>
+                                                                        <Badge
+                                                                            style={{
+                                                                                backgroundColor: "rgba(234, 179, 8, 0.1)",
+                                                                                borderRadius: 10,
+                                                                                paddingVertical: 4,
+                                                                                paddingHorizontal: 8,
+                                                                                flexDirection: "row",
+                                                                                alignItems: "center",
+                                                                                gap: 6,
+                                                                                width: "100%"
+                                                                            }}
+                                                                        >
+                                                                            <SparklesIcon size={isTinyScreen ? 12 : 14} color="#eab308" />
+                                                                            <Text
+                                                                                style={{
+                                                                                    fontWeight: "700",
+                                                                                    fontSize: isTinyScreen ? 10 : 12,
+                                                                                    color: "#854d0e"
+                                                                                }}
+                                                                            >
+                                                                                {item.pointsToRedeem}
+                                                                            </Text>
+                                                                        </Badge>
+                                                                    </TableData>
+                                                                );
+                                                            case "actions":
+                                                                return (
+                                                                    <TableData key={col.key} style={{ ...cellStyle, justifyContent: "center" }}>
+                                                                        <HStack space="md" style={{ width: isTinyScreen ? 44 : 60 }}>
+                                                                            <Button
+                                                                                size="sm"
+                                                                                action="secondary"
+                                                                                onPress={() => handleEdit(item)}
+                                                                                isDisabled={isLoading}
+                                                                                style={{ padding: 4, backgroundColor: "transparent" }}
+                                                                            >
+                                                                                <PencilIcon size={isTinyScreen ? 12 : 16} color="#4f46e5" />
+                                                                            </Button>
+                                                                            <Button
+                                                                                size="sm"
+                                                                                action="secondary"
+                                                                                onPress={() => {
+                                                                                    setDeleteItemId(item.id);
+                                                                                    setShowDeleteModal(true);
+                                                                                }}
+                                                                                isDisabled={isLoading}
+                                                                                style={{ padding: 4, backgroundColor: "transparent" }}
+                                                                            >
+                                                                                <Trash2Icon size={isTinyScreen ? 12 : 16} color="#dc2626" />
+                                                                            </Button>
+                                                                        </HStack>
+                                                                    </TableData>
+                                                                );
+                                                            default:
+                                                                const text = item[col.key as keyof BarcodeItem] ?? "";
+                                                                return (
+                                                                    <TableData key={col.key} style={{ ...cellStyle, justifyContent: "center", maxWidth: col.maxWidth }}>
+                                                                        <Text
+                                                                            style={{
+                                                                            fontSize: isTinyScreen ? 10 : isMobileScreen ? 12 : 14,
+                                                                            maxWidth: col.maxWidth,
+                                                                            flexWrap: "wrap",
+                                                                            }}
+                                                                        >
+                                                                            {text}
+                                                                        </Text>
+                                                                    </TableData>
+                                                                );
+                                                        }
+                                                    })}
                                                 </TableRow>
                                             ))}
                                         </TableBody>
