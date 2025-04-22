@@ -383,15 +383,6 @@ export default function ScannerScreen() {
         setShowUnknownEditModal(true);
     };
 
-    const hasChanges =
-        editingBarcode.trim() !== editingItem?.barcode.trim() ||
-        editingItemName.trim() !== originalItemName.trim() ||
-        editingItemDescription.trim() !== originalItemDescription.trim() ||
-        editingItemCount.trim() !== originalItemCount.trim() ||
-        editingItemLocation.trim() !== originalItemLocation.trim() ||
-        editingItemPointsToRedeem.trim() !== originalItemPointsToRedeem.trim() ||
-        editingItemGroup.trim() !== originalItemGroup.trim();
-
     const handleReceive = async () => {
         setIsLoading(true);
         const knownItemsToReceive = pendingItems.filter(item => selectedIds.has(item.id));
@@ -684,8 +675,6 @@ export default function ScannerScreen() {
         setIsLoading(false);
     };
 
-    const hasValidationErrors = Object.values(validationErrors).some(Boolean);
-
     const handleCancelUnknownItem = () => {
         setEditingItem(null);
         setValidationErrors({
@@ -757,8 +746,7 @@ export default function ScannerScreen() {
     // );
 
     return (
-        <ProtectedRoute showAuth={false}>
-            {(userData) => (
+        <ProtectedRoute showAuth={true}>
                 <LinearGradient
                     colors={isMobileScreen ? ['#00FFDD', '#1B9CFF'] : ['#1B9CFF', '#00FFDD']}
                     start={isMobileScreen ? { x: 0, y: 0 } : { x: 0, y: 0 }}
@@ -930,7 +918,7 @@ export default function ScannerScreen() {
                                     }}
                                 >
                                     <VStack style={{ flex: 1, width: "100%" }}>
-                                        <ScrollView style={{ flex: 1, width: "100%" }}>
+                                        <ScrollView style={{ flex: 1, width: "100%", padding: 0 }}>
                                             <VStack style={{ gap: 16 }}>
                                                 {Object.entries(groupedItems).length > 0 ? (
                                                     Object.entries(groupedItems).map(([group, items]) => (
@@ -1382,7 +1370,7 @@ export default function ScannerScreen() {
                                     }}
                                 >
                                     <VStack style={{ width: "100%" }}>
-                                        <ScrollView style={{ flex: 1, width: "100%" }}>
+                                        <ScrollView style={{ flex: 1, width: "100%", padding: 10 }}>
                                             <VStack style={{ gap: 16 }}>
                                                 {Object.entries(groupedItems).length > 0 ? (
                                                     Object.entries(groupedItems).map(([group, items]) => (
@@ -1906,7 +1894,7 @@ export default function ScannerScreen() {
                                     <Button
                                         style={{ flex: 1, backgroundColor: "#1B9CFF" }}
                                         onPress={saveEditedBarcode}
-                                        isDisabled={isLoading || !hasChanges || hasValidationErrors}
+                                        isDisabled={isLoading}
                                     >
                                         <Text style={{ color: "white", fontWeight: "bold" }}>Save</Text>
                                     </Button>
@@ -2041,7 +2029,7 @@ export default function ScannerScreen() {
                                     <Button variant="outline" style={{ flex: 1, borderColor: "#6B7280" }} onPress={handleCancelUnknownItem} isDisabled={isLoading}>
                                         <Text style={{ color: "#6B7280" }}>Cancel</Text>
                                     </Button>
-                                    <Button style={{ flex: 1, backgroundColor: "#1B9CFF" }} onPress={saveEditedUnknownItem} isDisabled={isLoading || !hasChanges || hasValidationErrors}>
+                                    <Button style={{ flex: 1, backgroundColor: "#1B9CFF" }} onPress={saveEditedUnknownItem} isDisabled={isLoading}>
                                         <Text style={{ color: "white", fontWeight: "bold" }}>Save</Text>
                                     </Button>
                                 </HStack>
@@ -2196,7 +2184,6 @@ export default function ScannerScreen() {
                         </ModalContent>
                     </Modal>
                 </LinearGradient>
-            )}
         </ProtectedRoute>
     );
 }
