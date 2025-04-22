@@ -125,6 +125,19 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
         setAttemptedSubmit(false);
     }, [isRegister]);
 
+    useEffect(() => {
+		if (!isWeb) return;
+
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === "Enter") {
+				handleSubmit();
+			}
+		};
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [email, password, username, isRegister]);
+
     const validateForm = () => {
         const isEmailValid = validateEmail(email.trim());
         const isPasswordValid = validatePassword(password.trim());
@@ -158,170 +171,125 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
     };
 
     return (
-        <Card
-            style={{
-                backgroundColor: "white",
-                borderRadius: 20,
-                padding: isWeb ? 24 : 16,
-                width: "100%",
-                maxWidth: isWeb ? 480 : "100%",
-                alignSelf: "center",
-                boxShadow: isWeb
-                    ? "0px 4px 20px rgba(0, 0, 0, 0.1)"
-                    : undefined,
-            }}
-        >
-            <VStack space="md" style={{ padding: isWeb ? 24 : 16 }}>
-                <Text
-                    style={{
-                        fontSize: 24,
-                        fontWeight: "800",
-                        textAlign: "center",
-                        padding: 10,
-                        color: "#333",
-                    }}
-                >
-                    {isRegister ? "Register" : "Login"}
-                </Text>
+		<Card
+			style={{
+				backgroundColor: "white",
+				borderRadius: 20,
+				padding: isWeb ? 24 : 16,
+				width: "100%",
+				maxWidth: isWeb ? 480 : "100%",
+				alignSelf: "center",
+				boxShadow: isWeb ? "0px 4px 20px rgba(0, 0, 0, 0.1)" : undefined
+			}}
+		>
+			<VStack space="md" style={{ padding: isWeb ? 24 : 16 }}>
+				<Text
+					style={{
+						fontSize: 24,
+						fontWeight: "800",
+						textAlign: "center",
+						padding: 10,
+						color: "#333"
+					}}
+				>
+					{isRegister ? "Register" : "Login"}
+				</Text>
 
-                {isRegister && (
-                    <VStack style={{ marginBottom: isWeb ? 16 : 8 }}>
-                        <Text style={{ color: "#A0A0A0", fontWeight: "500" }}>
-                            Username
-                        </Text>
-                        <Input variant="underlined" style={{ marginTop: 4 }}>
-                            <InputField
-                                value={username}
-                                onChangeText={setUsername}
-                                placeholder="Enter username (Min. 3 char)"
-                                autoCapitalize="none"
-                                style={{ fontSize: isWeb ? 16 : 14 }}
-                            />
-                        </Input>
-                        {attemptedSubmit && usernameError ? (
-                            <Text
-                                style={{
-                                    color: "red",
-                                    fontSize: 12,
-                                    marginTop: 4,
-                                }}
-                            >
-                                {usernameError}
-                            </Text>
-                        ) : null}
-                    </VStack>
-                )}
+				{isRegister && (
+					<VStack style={{ marginBottom: isWeb ? 16 : 8 }}>
+						<Text style={{ color: "#A0A0A0", fontWeight: "500" }}>Username</Text>
+						<Input variant="underlined" style={{ marginTop: 4 }}>
+							<InputField value={username} onChangeText={setUsername} placeholder="Enter username (Min. 3 char)" autoCapitalize="none" style={{ fontSize: isWeb ? 16 : 14 }} />
+						</Input>
+						{attemptedSubmit && usernameError ? (
+							<Text
+								style={{
+									color: "red",
+									fontSize: 12,
+									marginTop: 4
+								}}
+							>
+								{usernameError}
+							</Text>
+						) : null}
+					</VStack>
+				)}
 
-                <VStack style={{ marginBottom: isWeb ? 16 : 8 }}>
-                    <Text style={{ color: "#A0A0A0", fontWeight: "500" }}>
-                        Email
-                    </Text>
-                    <Input variant="underlined" style={{ marginTop: 4 }}>
-                        <InputField
-                            value={email.trim()}
-                            onChangeText={setEmail}
-                            placeholder="Enter email"
-                            autoCapitalize="none"
-                            keyboardType="email-address"
-                            style={{ fontSize: isWeb ? 16 : 14 }}
-                        />
-                    </Input>
-                    {attemptedSubmit && emailError ? (
-                        <Text
-                            style={{ color: "red", fontSize: 12, marginTop: 4 }}
-                        >
-                            {emailError}
-                        </Text>
-                    ) : null}
-                </VStack>
+				<VStack style={{ marginBottom: isWeb ? 16 : 8 }}>
+					<Text style={{ color: "#A0A0A0", fontWeight: "500" }}>Email</Text>
+					<Input variant="underlined" style={{ marginTop: 4 }}>
+						<InputField value={email.trim()} onChangeText={setEmail} placeholder="Enter email" autoCapitalize="none" keyboardType="email-address" style={{ fontSize: isWeb ? 16 : 14 }} onSubmitEditing={handleSubmit} />
+					</Input>
+					{attemptedSubmit && emailError ? <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>{emailError}</Text> : null}
+				</VStack>
 
-                <VStack style={{ marginBottom: isWeb ? 24 : 16 }}>
-                    <Text style={{ color: "#A0A0A0", fontWeight: "500" }}>
-                        Password
-                    </Text>
-                    <HStack style={{ alignItems: "center", marginTop: 4 }}>
-                        <Input variant="underlined" style={{ flex: 1 }}>
-                            <InputField
-                                value={password.trim()}
-                                onChangeText={setPassword}
-                                placeholder="Enter password (Min. 12 char)"
-                                secureTextEntry={!showPassword}
-                                style={{ fontSize: isWeb ? 16 : 14 }}
-                            />
-                        </Input>
-                        <Button
-                            onPress={() => setShowPassword(!showPassword)}
-                            style={{
-                                backgroundColor: "transparent",
-                                ...(isWeb && { cursor: "pointer" }),
-                            }}
-                        >
-                            <Icon
-                                as={showPassword ? EyeClosed : Eye}
-                                size="md"
-                                color="#000"
-                            />
-                        </Button>
-                    </HStack>
-                    {attemptedSubmit && passwordError ? (
-                        <Text
-                            style={{ color: "red", fontSize: 12, marginTop: 4 }}
-                        >
-                            {passwordError}
-                        </Text>
-                    ) : null}
-                </VStack>
+				<VStack style={{ marginBottom: isWeb ? 24 : 16 }}>
+					<Text style={{ color: "#A0A0A0", fontWeight: "500" }}>Password</Text>
+					<HStack style={{ alignItems: "center", marginTop: 4 }}>
+						<Input variant="underlined" style={{ flex: 1 }}>
+							<InputField value={password.trim()} onChangeText={setPassword} placeholder="Enter password (Min. 12 char)" secureTextEntry={!showPassword} style={{ fontSize: isWeb ? 16 : 14 }} onSubmitEditing={handleSubmit} />
+						</Input>
+						<Button
+							onPress={() => setShowPassword(!showPassword)}
+							style={{
+								backgroundColor: "transparent",
+								...(isWeb && { cursor: "pointer" })
+							}}
+						>
+							<Icon as={showPassword ? EyeClosed : Eye} size="md" color="#000" />
+						</Button>
+					</HStack>
+					{attemptedSubmit && passwordError ? <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>{passwordError}</Text> : null}
+				</VStack>
 
-                <Button
-                    onPress={handleSubmit}
-                    style={{
-                        backgroundColor: "#1B9CFF",
-                        borderRadius: 8,
-                        paddingVertical: isWeb ? 12 : 8,
-                        marginTop: 8,
-                        ...(isWeb && { cursor: "pointer" }),
-                    }}
-                    disabled={isSubmitting}
-                >
-                    {isSubmitting ? (
-                        <Spinner size="small" color={"white"} />
-                    ) : (
-                        <Text
-                            style={{
-                                color: "white",
-                                fontWeight: "700",
-                                fontSize: isWeb ? 16 : 14,
-                            }}
-                        >
-                            {isRegister ? "Register" : "Login"}
-                        </Text>
-                    )}
-                </Button>
+				<Button
+					onPress={handleSubmit}
+					style={{
+						backgroundColor: "#1B9CFF",
+						borderRadius: 8,
+						paddingVertical: isWeb ? 12 : 8,
+						marginTop: 8,
+						...(isWeb && { cursor: "pointer" })
+					}}
+					disabled={isSubmitting}
+				>
+					{isSubmitting ? (
+						<Spinner size="small" color={"white"} />
+					) : (
+						<Text
+							style={{
+								color: "white",
+								fontWeight: "700",
+								fontSize: isWeb ? 16 : 14
+							}}
+						>
+							{isRegister ? "Register" : "Login"}
+						</Text>
+					)}
+				</Button>
 
-                <Button
-                    variant="link"
-                    onPress={switchForm}
-                    style={{
-                        marginTop: 16,
-                        marginBottom: 8,
-                        ...(isWeb && { cursor: "pointer" }),
-                    }}
-                >
-                    <Text
-                        style={{
-                            color: "#1B9CFF",
-                            textAlign: "center",
-                            fontSize: isWeb ? 15 : 14,
-                        }}
-                    >
-                        {isRegister
-                            ? "Already have an account? Login"
-                            : "Don't have an account? Register"}
-                    </Text>
-                </Button>
-            </VStack>
-        </Card>
-    );
+				<Button
+					variant="link"
+					onPress={switchForm}
+					style={{
+						marginTop: 16,
+						marginBottom: 8,
+						...(isWeb && { cursor: "pointer" })
+					}}
+				>
+					<Text
+						style={{
+							color: "#1B9CFF",
+							textAlign: "center",
+							fontSize: isWeb ? 15 : 14
+						}}
+					>
+						{isRegister ? "Already have an account? Login" : "Don't have an account? Register"}
+					</Text>
+				</Button>
+			</VStack>
+		</Card>
+	);
 };
 
 type ProtectedRouteProps = {
