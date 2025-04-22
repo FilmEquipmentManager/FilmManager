@@ -14,7 +14,7 @@ import { Package, StampIcon, Zap } from "lucide-react-native";
 export default function RewardsScreen() {
 	return (
 		<ProtectedRoute>
-			{(userData) => {
+			{userData => {
 				type Redemption = {
 					productId: string;
 					productName: string;
@@ -25,12 +25,7 @@ export default function RewardsScreen() {
 				const redemptions: Redemption[] = userData?.redemptions ? (Object.values(userData.redemptions) as Redemption[]) : [];
 
 				return (
-					<LinearGradient
-						colors={["#F0FDF4", "#ECFEFF"]}
-						start={{ x: 0, y: 0 }}
-						end={{ x: 1, y: 1 }}
-						style={{ flex: 1 }}
-					>
+					<LinearGradient colors={["#F0FDF4", "#ECFEFF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }}>
 						<SafeAreaView style={{ flex: 1 }}>
 							<HStack
 								style={{
@@ -38,35 +33,28 @@ export default function RewardsScreen() {
 									alignItems: "center",
 									padding: 16,
 									borderBottomWidth: 1,
-									borderBottomColor: "#E2E8F0",
+									borderBottomColor: "#E2E8F0"
 								}}
 							>
 								<VStack>
-									<Heading
-										size="lg"
-										style={{ color: "#166534" }}
-									>
+									<Heading size="lg" style={{ color: "#166534" }}>
 										My Rewards
 									</Heading>
 									<HStack
 										space="xs"
 										style={{
 											alignItems: "center",
-											marginTop: 4,
+											marginTop: 4
 										}}
 									>
-										<Icon
-											as={Zap}
-											size="sm"
-											style={{ color: "#059669" }}
-										/>
+										<Icon as={Zap} size="sm" style={{ color: "#059669" }} />
 										<Text
 											style={{
 												color: "#059669",
-												fontWeight: "medium",
+												fontWeight: "medium"
 											}}
 										>
-											Available Points:{" "}{userData?.points || 0}
+											Available Points: {userData?.points || 0}
 										</Text>
 									</HStack>
 								</VStack>
@@ -78,18 +66,14 @@ export default function RewardsScreen() {
 										space="md"
 										style={{
 											alignItems: "center",
-											padding: 24,
+											padding: 24
 										}}
 									>
-										<Icon
-											as={Package}
-											size="xl"
-											style={{ color: "#D1D5DB" }}
-										/>
+										<Icon as={Package} size="xl" style={{ color: "#D1D5DB" }} />
 										<Text
 											style={{
 												color: "#6B7280",
-												textAlign: "center",
+												textAlign: "center"
 											}}
 										>
 											No rewards redeemed yet. Start redeeming amazing items!
@@ -97,7 +81,7 @@ export default function RewardsScreen() {
 									</VStack>
 								) : (
 									<VStack space="lg">
-										{redemptions.map((redemption) => (
+										{redemptions.map(redemption => (
 											<Card
 												key={redemption.productId}
 												style={{
@@ -107,19 +91,19 @@ export default function RewardsScreen() {
 													shadowColor: "#000",
 													shadowOffset: {
 														width: 0,
-														height: 2,
+														height: 2
 													},
 													shadowOpacity: 0.05,
 													shadowRadius: 4,
 													elevation: 2,
 													borderWidth: 1,
-													borderColor: "#E5E7EB",
+													borderColor: "#E5E7EB"
 												}}
 											>
 												<HStack
 													space="md"
 													style={{
-														alignItems: "center",
+														alignItems: "center"
 													}}
 												>
 													<Box
@@ -129,14 +113,14 @@ export default function RewardsScreen() {
 															borderRadius: 8,
 															backgroundColor: "#ECFDF5",
 															justifyContent: "center",
-															alignItems: "center",
+															alignItems: "center"
 														}}
 													>
 														<Icon
 															as={StampIcon}
 															size="md"
 															style={{
-																color: "#10B981",
+																color: "#10B981"
 															}}
 														/>
 													</Box>
@@ -146,7 +130,7 @@ export default function RewardsScreen() {
 															style={{
 																fontSize: 16,
 																fontWeight: "bold",
-																color: "#111827",
+																color: "#111827"
 															}}
 														>
 															{redemption.productName}
@@ -154,25 +138,25 @@ export default function RewardsScreen() {
 														<HStack
 															style={{
 																justifyContent: "space-between",
-																marginTop: 8,
+																marginTop: 8
 															}}
 														>
 															<VStack space="xs">
 																<Text
 																	style={{
 																		color: "#4B5563",
-																		fontSize: 14,
+																		fontSize: 14
 																	}}
 																>
-																	Group:{" "}{redemption.productGroup}
+																	Group: {redemption.productGroup}
 																</Text>
 																<Text
 																	style={{
 																		color: "#4B5563",
-																		fontSize: 14,
+																		fontSize: 14
 																	}}
 																>
-																	Quantity:{" "}{redemption.quantity}
+																	Quantity: {redemption.quantity}
 																</Text>
 															</VStack>
 															<Box
@@ -181,14 +165,14 @@ export default function RewardsScreen() {
 																	paddingHorizontal: 12,
 																	paddingVertical: 6,
 																	borderRadius: 8,
-																	alignSelf: "flex-start",
+																	alignSelf: "flex-start"
 																}}
 															>
 																<Text
 																	style={{
 																		color: "#059669",
 																		fontWeight: "bold",
-																		fontSize: 14,
+																		fontSize: 14
 																	}}
 																>
 																	Redeemed
