@@ -9,7 +9,7 @@ import { Icon } from "@/components/ui/icon";
 import { Card } from "@/components/ui/card";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
-import { Package, StampIcon, Zap } from "lucide-react-native";
+import { Package, Gift, Zap } from "lucide-react-native";
 
 export default function RewardsScreen() {
 	return (
@@ -27,159 +27,102 @@ export default function RewardsScreen() {
 				return (
 					<LinearGradient colors={["#F0FDF4", "#ECFEFF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }}>
 						<SafeAreaView style={{ flex: 1 }}>
-							<HStack
+							{/* Header Section */}
+							<VStack space="sm" style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: "#E2E8F0" }}>
+								<Heading size="lg" style={{ color: "#166534" }}>
+									My Rewards
+								</Heading>
+								<HStack space="xs" style={{ alignItems: "center" }}>
+									<Icon as={Zap} size="sm" style={{ color: "#059669" }} />
+									<Text style={{ color: "#059669", fontWeight: "medium" }}>Available Points: {userData?.points || 0}</Text>
+								</HStack>
+							</VStack>
+
+							{/* Table Header */}
+							<Card
 								style={{
-									justifyContent: "space-between",
-									alignItems: "center",
+									margin: 16,
+									marginBottom: 8,
 									padding: 16,
-									borderBottomWidth: 1,
-									borderBottomColor: "#E2E8F0"
+									backgroundColor: "#E3F9EF",
+									borderColor: "#E3F9EF",
+									borderRadius: 8
 								}}
 							>
-								<VStack>
-									<Heading size="lg" style={{ color: "#166534" }}>
-										My Rewards
-									</Heading>
-									<HStack
-										space="xs"
-										style={{
-											alignItems: "center",
-											marginTop: 4
-										}}
-									>
-										<Icon as={Zap} size="sm" style={{ color: "#059669" }} />
-										<Text
-											style={{
-												color: "#059669",
-												fontWeight: "medium"
-											}}
-										>
-											Available Points: {userData?.points || 0}
-										</Text>
-									</HStack>
-								</VStack>
-							</HStack>
+								<HStack style={{ alignItems: "center" }}>
+									<Text style={{ flex: 3, fontSize: 14, fontWeight: "600", color: "#64748B" }}>ITEM</Text>
+									<Text style={{ flex: 2, fontSize: 14, fontWeight: "600", color: "#64748B" }}>GROUP</Text>
+									<Text style={{ flex: 1, fontSize: 14, fontWeight: "600", color: "#64748B", textAlign: "right" }}>QTY</Text>
+								</HStack>
+							</Card>
 
-							<ScrollView contentContainerStyle={{ padding: 16 }}>
+							{/* Rewards List */}
+							<ScrollView contentContainerStyle={{ paddingHorizontal: 16 }}>
 								{redemptions.length === 0 ? (
-									<VStack
-										space="md"
-										style={{
-											alignItems: "center",
-											padding: 24
-										}}
-									>
+									<VStack space="md" style={{ alignItems: "center", padding: 24 }}>
 										<Icon as={Package} size="xl" style={{ color: "#D1D5DB" }} />
-										<Text
-											style={{
-												color: "#6B7280",
-												textAlign: "center"
-											}}
-										>
-											No rewards redeemed yet. Start redeeming amazing items!
-										</Text>
+										<Text style={{ color: "#6B7280", textAlign: "center" }}>No rewards redeemed yet. Start redeeming amazing items!</Text>
 									</VStack>
 								) : (
-									<VStack space="lg">
+									<VStack space="sm">
 										{redemptions.map(redemption => (
 											<Card
 												key={redemption.productId}
 												style={{
 													padding: 16,
-													borderRadius: 16,
+													borderRadius: 8,
 													backgroundColor: "white",
+													borderColor: "#E2E8F0",
 													shadowColor: "#000",
-													shadowOffset: {
-														width: 0,
-														height: 2
-													},
+													shadowOffset: { width: 0, height: 1 },
 													shadowOpacity: 0.05,
-													shadowRadius: 4,
-													elevation: 2,
-													borderWidth: 1,
-													borderColor: "#E5E7EB"
+													shadowRadius: 2,
+													elevation: 1
 												}}
 											>
-												<HStack
-													space="md"
-													style={{
-														alignItems: "center"
-													}}
-												>
-													<Box
-														style={{
-															width: 50,
-															height: 50,
-															borderRadius: 8,
-															backgroundColor: "#ECFDF5",
-															justifyContent: "center",
-															alignItems: "center"
-														}}
-													>
-														<Icon
-															as={StampIcon}
-															size="md"
+												<HStack style={{ alignItems: "center" }}>
+													{/* Item Column */}
+													<HStack space="md" style={{ flex: 3, alignItems: "center" }}>
+														<Box
 															style={{
-																color: "#10B981"
+																width: 40,
+																height: 40,
+																borderRadius: 6,
+																backgroundColor: "#ECFDF5",
+																justifyContent: "center",
+																alignItems: "center"
 															}}
-														/>
-													</Box>
-
-													<VStack style={{ flex: 1 }}>
+														>
+															<Icon as={Gift} size="md" style={{ color: "#10B981" }} />
+														</Box>
 														<Text
 															style={{
-																fontSize: 16,
-																fontWeight: "bold",
-																color: "#111827"
+																fontSize: 14,
+																fontWeight: "500",
+																color: "#1E293B",
+																maxWidth: "80%"
 															}}
+															numberOfLines={1}
 														>
 															{redemption.productName}
 														</Text>
-														<HStack
-															style={{
-																justifyContent: "space-between",
-																marginTop: 8
-															}}
-														>
-															<VStack space="xs">
-																<Text
-																	style={{
-																		color: "#4B5563",
-																		fontSize: 14
-																	}}
-																>
-																	Group: {redemption.productGroup}
-																</Text>
-																<Text
-																	style={{
-																		color: "#4B5563",
-																		fontSize: 14
-																	}}
-																>
-																	Quantity: {redemption.quantity}
-																</Text>
-															</VStack>
-															<Box
-																style={{
-																	backgroundColor: "#ECFDF5",
-																	paddingHorizontal: 12,
-																	paddingVertical: 6,
-																	borderRadius: 8,
-																	alignSelf: "flex-start"
-																}}
-															>
-																<Text
-																	style={{
-																		color: "#059669",
-																		fontWeight: "bold",
-																		fontSize: 14
-																	}}
-																>
-																	Redeemed
-																</Text>
-															</Box>
-														</HStack>
-													</VStack>
+													</HStack>
+
+													{/* Group Column */}
+													<Text style={{ flex: 2, fontSize: 14, color: "#64748B" }}>{redemption.productGroup}</Text>
+
+													{/* Quantity Column */}
+													<Text
+														style={{
+															flex: 1,
+															fontSize: 14,
+															color: "#1E293B",
+															textAlign: "right",
+															fontWeight: "500"
+														}}
+													>
+														{redemption.quantity}
+													</Text>
 												</HStack>
 											</Card>
 										))}
