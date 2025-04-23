@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Checkbox, CheckboxIndicator, CheckboxIcon } from "@/components/ui/checkbox";
 import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
 import { ShoppingCart, Check, Minus, Plus, Disc, Camera, AlertCircle, CheckCircle2, Trash2 } from "lucide-react-native";
+import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
 import server from "../../../networking";
 
@@ -36,8 +37,9 @@ export default function RedeemScreen() {
 	const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
 	const [confirmCheckoutModalVisible, setConfirmCheckoutModalVisible] = useState(false);
 	const [checkingOut, setCheckingOut] = useState(false);
-	const [loaded, setLoaded] = useState(false);
 	const toast = useToast();
+
+    const { userData } = useAuth();
 
 	const mapBarcodeToProduct = (b: any): Product => ({
 		id: b.id,
@@ -158,16 +160,12 @@ export default function RedeemScreen() {
 	};
 
 	useEffect(() => {
-		if (!productsLoading) {
-			setLoaded(true);
-		}
-	}, [productsLoading]);
+        if (userData) {
+            fetchBarcodes();
+        }
+	}, [userData]);
 
-	useEffect(() => {
-		fetchBarcodes();
-	}, []);
-
-	if (loaded) return (
+	if (!productsLoading) return (
         <ProtectedRoute>
             {userData => (
                 <LinearGradient colors={["#F0FDF4", "#ECFEFF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }}>
@@ -182,7 +180,7 @@ export default function RedeemScreen() {
                                 borderBottomColor: "#E2E8F0"
                             }}
                         >
-                            <VStack style={{ marginTop: isMobileScreen ? 0 : 30, marginBottom: isMobileScreen ? 0 : 30 }}>
+                            <VStack>
                                 <Heading size="lg" style={{ color: "#166534" }}>
                                     Equipment Redemption
                                 </Heading>
