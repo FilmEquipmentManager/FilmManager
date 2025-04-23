@@ -81,7 +81,7 @@ app.post('/api/redeem', authMiddleware, async (req, res) => {
     try {
         const { items } = req.body;
         const user = DM.peek(['Users', req.user.uid]);
-        
+
         if (!user) {
             return res.status(404).json({ error: 'UERROR: User not found. Please try logging in again.' });
         }
@@ -139,8 +139,8 @@ app.post('/api/redeem', authMiddleware, async (req, res) => {
 
         await DM.save();
 
-        res.status(200).json({ 
-            message: "SUCCESS: Registration successful.", 
+        res.status(200).json({
+            message: "SUCCESS: Registration successful.",
             result: user.points
         });
 
@@ -150,45 +150,98 @@ app.post('/api/redeem', authMiddleware, async (req, res) => {
     }
 });
 
+app.get('/api/users', authMiddleware, async (req, res) => {
+    try {
+        // Verify admin privileges
+        const requestingUser = DM.peek(['Users', req.user.uid]);
+        if (!requestingUser || requestingUser.role !== 'Admin') {
+            return res.status(403).json({ error: 'UERROR: Unauthorized access.' });
+        }
+
+        const users = DM.peek(['Users']) || {};
+        const userList = Object.values(users).filter(user => user.role !== 'Admin');
+
+        res.status(200).json({
+            message: "SUCCESS: Users fetched successfully.",
+            result: userList
+        });
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({ error: 'ERROR: Failed to fetch users.' });
+    }
+});
+
+app.delete('/api/users/:id', authMiddleware, async (req, res) => {
+    try {
+        // Verify admin privileges
+        const requestingUser = DM.peek(['Users', req.user.uid]);
+        if (!requestingUser || requestingUser.role !== 'Admin') {
+            return res.status(403).json({ error: 'UERROR: Unauthorized access.' });
+        }
+
+        const userId = req.params.id;
+        const userToDelete = DM.peek(['Users', userId]);
+
+        if (!userToDelete) {
+            return res.status(404).json({ error: 'UERROR: User not found.' });
+        }
+
+        if (userToDelete.role === 'Admin') {
+            return res.status(403).json({ error: 'UERROR: Cannot delete admin users.' });
+        }
+
+        // Delete from Firebase Auth
+        await admin.auth().deleteUser(userId);
+        // Delete from database
+        DM.destroy(['Users', userId]);
+        await DM.save();
+
+        res.status(200).json({ message: 'SUCCESS: User deleted successfully.' });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({ error: 'ERROR: Failed to delete user.' });
+    }
+});
+
 app.post('/api/register', async (req, res) => {
     const { email, password, username } = req.body;
-    
+
     if (!email || !password || !username) {
-        return res.status(400).json({ 
-            error: 'UERROR: Please fill in all required fields.' 
+        return res.status(400).json({
+            error: 'UERROR: Please fill in all required fields.'
         });
     }
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        return res.status(400).json({ 
-            error: 'UERROR: Please enter a valid email address.' 
+        return res.status(400).json({
+            error: 'UERROR: Please enter a valid email address.'
         });
     }
 
     const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>]).{12,}$/;
     if (!passwordRegex.test(password)) {
-        return res.status(400).json({ 
-            error: 'UERROR: Password must be at least 12 characters long and contain at least one uppercase letter, one number, and one special character.' 
+        return res.status(400).json({
+            error: 'UERROR: Password must be at least 12 characters long and contain at least one uppercase letter, one number, and one special character.'
         });
     }
-    
+
     const users = DM.peek(['Users']);
 
     if (users) {
         const existingUserWithUsername = Object.values(users).find(
             (user) => user.username && user.username.toLowerCase() === username.toLowerCase()
         );
-        
+
         if (existingUserWithUsername) {
-            return res.status(400).json({ 
-                error: 'UERROR: Username already taken.' 
+            return res.status(400).json({
+                error: 'UERROR: Username already taken.'
             });
         }
     }
-    
+
     let existingUser = null;
-    
+
     try {
         existingUser = await admin.auth().getUserByEmail(email);
     } catch (error) {
@@ -200,7 +253,7 @@ app.post('/api/register', async (req, res) => {
             error: 'UERROR: Email already taken.'
         });
     }
-    
+
     try {
         const userRecord = await admin.auth().createUser({
             email,
@@ -216,14 +269,14 @@ app.post('/api/register', async (req, res) => {
             redemptions: [],
             createdAt: Date.now()
         };
-        
+
         await DM.save();
-        
-        res.status(200).json({ 
-            message: "SUCCESS: Registration successful.", 
-            result: userRecord.uid 
+
+        res.status(200).json({
+            message: "SUCCESS: Registration successful.",
+            result: userRecord.uid
         });
-        
+
     } catch (error) {
         console.log("ERROR: " + FirebaseDecoder(error.message));
         return res.status(500).json({
@@ -321,7 +374,7 @@ app.post("/api/barcodes", authMiddleware, async (req, res) => {
 app.put("/api/barcodes/:id", authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
-        const operation = req.body.operation || "edit"; 
+        const operation = req.body.operation || "edit";
         const {
             barcode,
             itemName,

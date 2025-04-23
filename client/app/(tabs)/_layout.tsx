@@ -93,68 +93,74 @@ export default function TabLayout() {
     };
 
     return (
-        <Tabs
-            screenOptions={{
-                tabBarStyle: isLargeScreen
-                    ? { display: "none" }
-                    : {
-                        backgroundColor: "#fff",
-                        borderTopColor: "#ccc",
-                    },
-                tabBarActiveTintColor: "#e11d48",
-                tabBarShowLabel: true,
-                tabBarLabelStyle: {
-                    fontSize: 12,
-                    fontWeight: "bold",
-                    textTransform: "capitalize",
-                },
-                headerStyle: {
-                    backgroundColor: "#fff",
-                    borderBottomColor: "#ccc",
-                },
-                headerTintColor: "#000",
-                headerShown: isLargeScreen,
-                header: () => <CustomHeader />,
-            }}
-        >
-            <Tabs.Screen
-                name="index"
-                options={{
-                    title: "Home",
-                    tabBarIcon: ({ color }) => <Icon as={HouseIcon as any} color={color} />,
-                }}
-            />
-            <Tabs.Screen
-                name="auth/account"
-                options={{
-                    title: "Profile",
-                    tabBarIcon: ({ color }) => <Icon as={User2 as any} color={color} />,
-                }}
-            />
-            <Tabs.Screen
-                name="admin/scanner"
-                options={{
-                    href: null,
-                }}
-            />
-            <Tabs.Screen
-                name="client/redeem"
-                options={{
-                    href: null,
-                }}
-            />
-            <Tabs.Screen
-                name="client/rewards"
-                options={{
-                    href: null,
-                }}
-            />
-            <Tabs.Screen
-                name="admin/itemsManagement"
-                options={{
-                    href: null,
-                }}
-            />
-        </Tabs>
-    );
+		<Tabs
+			screenOptions={{
+				tabBarStyle: isLargeScreen
+					? { display: "none" }
+					: {
+							backgroundColor: "#fff",
+							borderTopColor: "#ccc"
+						},
+				tabBarActiveTintColor: "#e11d48",
+				tabBarShowLabel: true,
+				tabBarLabelStyle: {
+					fontSize: 12,
+					fontWeight: "bold",
+					textTransform: "capitalize"
+				},
+				headerStyle: {
+					backgroundColor: "#fff",
+					borderBottomColor: "#ccc"
+				},
+				headerTintColor: "#000",
+				headerShown: isLargeScreen,
+				header: () => <CustomHeader />
+			}}
+		>
+			<Tabs.Screen
+				name="index"
+				options={{
+					title: "Home",
+					tabBarIcon: ({ color }) => <Icon as={HouseIcon as any} color={color} />
+				}}
+			/>
+			<Tabs.Screen
+				name="auth/account"
+				options={{
+					title: "Profile",
+					tabBarIcon: ({ color }) => <Icon as={User2 as any} color={color} />
+				}}
+			/>
+			<Tabs.Screen
+				name="admin/scanner"
+				options={{
+					href: null
+				}}
+			/>
+			<Tabs.Screen
+				name="client/redeem"
+				options={{
+					href: null
+				}}
+			/>
+			<Tabs.Screen
+				name="client/rewards"
+				options={{
+					href: null
+				}}
+			/>
+			<Tabs.Screen
+				name="admin/itemsManagement"
+				options={{
+					href: null
+				}}
+			/>
+			<Tabs.Screen
+				name="admin/userManagement"
+				options={{
+					href: null
+				}}
+			/>
+		</Tabs>
+	);
 }

@@ -406,6 +406,9 @@ export default function HomepageScreen() {
                                             size="xl"
                                             onHoverIn={() => setHoverUser(true)}
                                             onHoverOut={() => setHoverUser(false)}
+                                            onPress={() => {
+                                                router.push("/admin/userManagement")
+                                            }}
                                             style={{
                                                 height: isMobileScreen
                                                     ? "auto"
@@ -486,10 +489,10 @@ export default function HomepageScreen() {
                                 </Text>
                             </Box>
 
-                            <HStack 
-                                style={{ 
+                            <HStack
+                                style={{
                                     flex: 1,
-                                    flexDirection: isMobileScreen ? "column" : "row", 
+                                    flexDirection: isMobileScreen ? "column" : "row",
                                     gap: 24,
                                     padding: 20,
                                     justifyContent: "center",
@@ -605,7 +608,7 @@ export default function HomepageScreen() {
                                 <HStack space="sm" style={{ alignItems: "center" }}>
                                     <Ionicons name="wallet" size={24} color="white" />
                                     <Text style={{ color: "white", fontSize: 16 }}>
-                                        Available Points: 
+                                        Available Points:
                                     </Text>
                                     <Text style={{ color: "white", fontSize: 16, fontWeight: "bold" }}>
                                         {userData?.points || 0} PTS
