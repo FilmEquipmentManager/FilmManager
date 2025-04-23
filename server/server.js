@@ -171,15 +171,17 @@ app.get('/api/users', authMiddleware, async (req, res) => {
     }
 });
 
-app.delete('/api/users/:id', authMiddleware, async (req, res) => {
+app.delete('/api/users/:email', authMiddleware, async (req, res) => {
     try {
-        // Verify admin privileges
         const requestingUser = DM.peek(['Users', req.user.uid]);
         if (!requestingUser || requestingUser.role !== 'Admin') {
             return res.status(403).json({ error: 'UERROR: Unauthorized access.' });
         }
 
-        const userId = req.params.id;
+        const userEmail = req.params.email;
+
+        const userId = Object.keys(DM.peek(['Users'])).find(userId => DM.peek(['Users', userId]).email === userEmail);
+
         const userToDelete = DM.peek(['Users', userId]);
 
         if (!userToDelete) {
@@ -190,9 +192,8 @@ app.delete('/api/users/:id', authMiddleware, async (req, res) => {
             return res.status(403).json({ error: 'UERROR: Cannot delete admin users.' });
         }
 
-        // Delete from Firebase Auth
         await admin.auth().deleteUser(userId);
-        // Delete from database
+
         DM.destroy(['Users', userId]);
         await DM.save();
 

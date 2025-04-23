@@ -17,6 +17,7 @@ import { Toast, ToastDescription, ToastTitle, useToast } from "@/components/ui/t
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
 import server from "../../../networking";
+import { Pressable } from "@/components/ui/pressable";
 
 interface User {
 	uid: string;
@@ -32,9 +33,9 @@ const UserManagement = () => {
 	const [users, setUsers] = useState<User[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [searchQuery, setSearchQuery] = useState("");
-	const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+	const [deleteUserEmail, setDeleteUserEmail] = useState<string | null>(null);
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
-	const [isLoading, setIsLoading] = useState(false);
+	const [deletingUsers, setDeletingUsers] = useState<Set<string>>(new Set());
 
 	const { userData } = useAuth();
 
@@ -69,19 +70,23 @@ const UserManagement = () => {
 		return user.username.toLowerCase().includes(searchLower) || user.email.toLowerCase().includes(searchLower);
 	});
 
-	const handleDelete = async (id: string) => {
-		setIsLoading(true);
-		try {
-			await server.delete(`/api/users/${id}`);
-			setUsers(prev => prev.filter(user => user.uid !== id));
-			showToast("Success", "User deleted successfully.");
-		} catch (error) {
-			console.error("Error deleting user:", error);
-			showToast("Delete failed", "Failed to delete user. Please try again.");
-		}
-		setIsLoading(false);
-		setShowDeleteModal(false);
-	};
+	const handleDelete = async (email: string) => {
+        setDeletingUsers(prev => new Set(prev).add(email));
+        try {
+            await server.delete(`/api/users/${email}`);
+            setUsers(prev => prev.filter(user => user.email !== email));
+            showToast("Success", "User deleted successfully.");
+        } catch (error) {
+            console.error("Error deleting user:", error);
+            showToast("Delete failed", "Failed to delete user. Please try again.");
+        }
+        setDeletingUsers(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(email);
+            return newSet;
+        });
+        setShowDeleteModal(false);
+    };
 
 	const showToast = (title: string, description: string) => {
 		const newId = Math.random();
@@ -124,7 +129,6 @@ const UserManagement = () => {
 			<ProtectedRoute showAuth={true}>
 				<LinearGradient colors={isMobileScreen ? ["#00FFDD", "#1B9CFF"] : ["#1B9CFF", "#00FFDD"]} start={isMobileScreen ? { x: 0, y: 0 } : { x: 0, y: 0 }} end={isMobileScreen ? { x: 0, y: 1 } : { x: 1, y: 1 }} style={{ flex: 1 }}>
 					<VStack style={{ padding: isMobileScreen ? 4 : 8, width: "90%", alignSelf: "center", gap: 10, marginTop: isMobileScreen ? 60 : 20, marginBottom: 14 }} space="xl">
-						{/* Search Row */}
 						<HStack space="xl" style={{ alignItems: "center", justifyContent: "flex-end", marginBottom: 20, margin: "auto", width: "100%" }}>
 							<Input style={{ flex: isMobileScreen ? 1 : 0.4, backgroundColor: "white" }} size={isShortScreen ? "sm" : "md"}>
 								<InputField placeholder="Search users..." value={searchQuery} onChangeText={setSearchQuery} style={{ color: "black" }} />
@@ -134,7 +138,6 @@ const UserManagement = () => {
 							</Input>
 						</HStack>
 
-						{/* Users List */}
 						<ScrollView style={{ flex: 1, paddingRight: isMobileScreen ? 0 : 20, paddingTop: 10 }}>
 							<VStack space="2xl" style={{ flex: 1, paddingRight: isMobileScreen ? 0 : 20, paddingTop: 10 }}>
 								<VStack
@@ -234,18 +237,15 @@ const UserManagement = () => {
 																case "actions":
 																	return (
 																		<TableData key={col.key} style={{ ...cellStyle, justifyContent: col.key === "actions" ? "center" : "flex-start" }}>
-																			<Button
-																				size="sm"
-																				action="secondary"
-																				onPress={() => {
-																					setDeleteUserId(user.uid);
-																					setShowDeleteModal(true);
-																				}}
-																				isDisabled={isLoading}
-																				style={{ padding: 4, backgroundColor: "transparent" }}
-																			>
-																				<Trash2Icon size={isTinyScreen ? 12 : 16} color="#dc2626" />
-																			</Button>
+                                                                            <Pressable
+                                                                                disabled={deletingUsers.has(user.email)}
+                                                                                onPress={() => {
+                                                                                    setDeleteUserEmail(user.email);
+                                                                                    setShowDeleteModal(true);
+                                                                                }}
+                                                                            >
+                                                                                {deletingUsers.has(user.email) ? "Deleting..." : <Text style={{ color: "#dc2626", cursor: "pointer" }}>Delete</Text>}
+                                                                            </Pressable>
 																		</TableData>
 																	);
 																default:
@@ -268,31 +268,27 @@ const UserManagement = () => {
 											</TableBody>
 										) : (
 											<TableBody>
-												{filteredUsers.length > 0 ? (
-													filteredUsers.map(user => <TableRow key={user.uid}>{/* ... your existing user row code ... */}</TableRow>)
-												) : (
-													<TableRow>
-														<TableData
-															colSpan={columns.length} // This makes it span all columns
-															style={{
-																width: "100%", // Take full width
-																justifyContent: "center",
-																alignItems: "center",
-																paddingVertical: 20
-															}}
-														>
-															<Text
-																style={{
-																	fontSize: isTinyScreen ? 10 : isMobileScreen ? 12 : 14,
-																	color: "#6b7280",
-																	textAlign: "center"
-																}}
-															>
-																No users found
-															</Text>
-														</TableData>
-													</TableRow>
-												)}
+												<TableRow>
+                                                    <TableData
+                                                        colSpan={columns.length}
+                                                        style={{
+                                                            width: "100%",
+                                                            justifyContent: "center",
+                                                            alignItems: "center",
+                                                            paddingVertical: 20
+                                                        }}
+                                                    >
+                                                        <Text
+                                                            style={{
+                                                                fontSize: isTinyScreen ? 10 : isMobileScreen ? 12 : 14,
+                                                                color: "#6b7280",
+                                                                textAlign: "center"
+                                                            }}
+                                                        >
+                                                            No users found
+                                                        </Text>
+                                                    </TableData>
+                                                </TableRow>
 											</TableBody>
 										)}
 									</Table>
@@ -300,7 +296,6 @@ const UserManagement = () => {
 							</VStack>
 						</ScrollView>
 
-						{/* Delete Confirmation Modal */}
 						<Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
 							<ModalBackdrop />
 							<ModalContent>
@@ -320,7 +315,7 @@ const UserManagement = () => {
 									<Button
 										style={{ backgroundColor: "red" }}
 										onPress={() => {
-											if (deleteUserId) handleDelete(deleteUserId);
+											if (deleteUserEmail) handleDelete(deleteUserEmail);
 											setShowDeleteModal(false);
 										}}
 									>
