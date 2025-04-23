@@ -205,7 +205,7 @@ export default function ProfileScreen() {
                                             </Input>
                                         </VStack>
 
-                                        {userData?.points !== null ? (
+                                        {userData.role === "User" ? userData?.points !== null ? (
                                             <VStack style={{ marginTop: 20 }}>
                                                 <Text
                                                     style={{
@@ -241,6 +241,17 @@ export default function ProfileScreen() {
                                                 }}
                                             >
                                                 Fetching points...
+                                            </Text>
+                                        ) : (
+                                            <Text
+                                                style={{
+                                                    textAlign: "center",
+                                                    color: "#A0A0A0",
+                                                    fontWeight: "500",
+                                                    fontSize: isLargeScreen ? 20 : 14,
+                                                }}
+                                            >
+                                                Admin
                                             </Text>
                                         )}
                                     </VStack>
