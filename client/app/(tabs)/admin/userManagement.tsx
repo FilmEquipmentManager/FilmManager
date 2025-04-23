@@ -129,7 +129,7 @@ const UserManagement = () => {
 			<ProtectedRoute showAuth={true}>
 				<LinearGradient colors={isMobileScreen ? ["#00FFDD", "#1B9CFF"] : ["#1B9CFF", "#00FFDD"]} start={isMobileScreen ? { x: 0, y: 0 } : { x: 0, y: 0 }} end={isMobileScreen ? { x: 0, y: 1 } : { x: 1, y: 1 }} style={{ flex: 1 }}>
 					<VStack style={{ padding: isMobileScreen ? 4 : 8, width: "90%", alignSelf: "center", gap: 10, marginTop: isMobileScreen ? 60 : 20, marginBottom: 14 }} space="xl">
-						<HStack space="xl" style={{ alignItems: "center", justifyContent: "flex-end", marginBottom: 20, margin: "auto", width: "100%" }}>
+						<HStack space="xl" style={{ alignItems: "center", justifyContent: "flex-start", marginBottom: 20, width: "100%" }}>
 							<Input style={{ flex: isMobileScreen ? 1 : 0.4, backgroundColor: "white" }} size={isShortScreen ? "sm" : "md"}>
 								<InputField placeholder="Search users..." value={searchQuery} onChangeText={setSearchQuery} style={{ color: "black" }} />
 								<InputSlot style={{ paddingRight: 4 }}>
