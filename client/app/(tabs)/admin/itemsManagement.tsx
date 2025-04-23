@@ -282,9 +282,9 @@ const ItemsManagement = () => {
             >
                 <VStack style={{ padding: isMobileScreen ? 4 : 8, width: "90%", alignSelf: "center", gap: 10, marginTop: isMobileScreen ? 60 : 20, marginBottom: 14 }} space="xl">
                     {/* Filter and Search Row */}
-                    <HStack space="xl" style={{ alignItems: "center", justifyContent: "space-between", marginBottom: 20, margin: "auto", width: "100%" }}>
+                    <HStack space="xl" style={{ alignItems: "center", justifyContent: isMobileScreen ? "space-between" : "flex-start", marginBottom: 20, margin: "auto", width: "100%" }}>
                         {/* Category Dropdown */}
-                        <HStack style={{ flex: isShortScreen ? 1 : 1.5 }}>
+                        <HStack style={{ marginRight: isMobileScreen ? 0 : 12 }}>
                             <Select onValueChange={(value) => setSelectedGroup(value)}>
                                 <SelectTrigger
                                     variant="outline"
@@ -319,7 +319,7 @@ const ItemsManagement = () => {
                         </HStack>
 
                         {/* Search Input */}
-                        <Input style={{ flex: isMobileScreen ? isShortScreen ? 1 : 1.2 : isMediumLaptop ? 0.6 : 0.4, backgroundColor: "white" }} size={isShortScreen ? "sm" : "md"}>
+                        <Input style={{ backgroundColor: "white" }} size={isShortScreen ? "sm" : "md"}>
                             {!isShortScreen && (
                                 <InputField
                                     placeholder="Find an item..."
@@ -386,7 +386,7 @@ const ItemsManagement = () => {
                     )}
 
                     {filteredItems.length > 0 && (
-                        <ScrollView style={{ paddingRight: isMobileScreen ? 0 : 20, paddingTop: 10 }}>
+                        <ScrollView style={{ paddingTop: 10 }}>
                             <VStack space="2xl" style={{ flex: 1, paddingRight: isMobileScreen ? 0 : 20, paddingTop: 10 }}>
                                 {Object.entries(groupedItems).map(([groupKey, items]) => (
                                     <VStack
@@ -406,7 +406,7 @@ const ItemsManagement = () => {
                                         {/* Group Title */}
                                         <HStack style={{
                                             alignItems: "center",
-                                            gap: 10,
+                                            gap: 6,
                                             padding: 12,
                                             backgroundColor: "#eef2ff",
                                             borderRadius: 16
@@ -427,6 +427,7 @@ const ItemsManagement = () => {
                                             <TableHeader style={{
                                                 backgroundColor: "#f8fafc",
                                                 borderRadius: 12,
+                                                padding: 12,
                                                 borderBottomWidth: 0,
                                             }}>
                                                 <TableRow style={{
@@ -586,7 +587,7 @@ const ItemsManagement = () => {
                                                                                         setShowDeleteModal(true);
                                                                                     }}
                                                                                     isDisabled={isLoading}
-                                                                                    style={{ padding: 4, backgroundColor: "transparent" }}
+                                                                                    style={{ padding: 4, backgroundColor: "transparent", color: "red" }}
                                                                                 >
                                                                                     <Trash2Icon size={isTinyScreen ? 12 : 16} color="#dc2626" />
                                                                                 </Button>
