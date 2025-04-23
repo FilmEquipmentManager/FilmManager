@@ -19,7 +19,7 @@ import { Radio, RadioGroup, RadioIndicator, RadioLabel } from '@/components/ui/r
 import server from "../../../networking";
 import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
 import { LinearGradient } from "expo-linear-gradient";
-import { AlertTriangleIcon, ArrowDownCircle, ArrowUpCircle, CheckCircleIcon, MinusCircleIcon, PencilIcon, ScanIcon, SparklesIcon, WarehouseIcon } from "lucide-react-native";
+import { AlertTriangleIcon, ArrowDownCircle, ArrowUpCircle, CheckCircleIcon, MinusCircleIcon, PencilIcon, ScanIcon, SparklesIcon, StopCircleIcon, WarehouseIcon } from "lucide-react-native";
 import { Box } from "@/components/ui/box";
 import { useData } from "@/contexts/DataContext";
 import { useLocalSearchParams } from "expo-router";
@@ -55,12 +55,6 @@ export default function ScannerScreen() {
     const [editingItemLocation, setEditingItemLocation] = useState("");
     const [editingItemPointsToRedeem, setEditingItemPointsToRedeem] = useState("");
     const [editingItemGroup, setEditingItemGroup] = useState("");
-    const [originalItemName, setOriginalItemName] = useState('');
-    const [originalItemDescription, setOriginalItemDescription] = useState('');
-    const [originalItemCount, setOriginalItemCount] = useState('');
-    const [originalItemLocation, setOriginalItemLocation] = useState('');
-    const [originalItemPointsToRedeem, setOriginalItemPointsToRedeem] = useState('');
-    const [originalItemGroup, setOriginalItemGroup] = useState('');
     const [isEditingUnknown, setIsEditingUnknown] = useState(false);
     const [showReceiveModal, setShowReceiveModal] = useState(false);
     const [showDispatchModal, setShowDispatchModal] = useState(false);
@@ -68,6 +62,7 @@ export default function ScannerScreen() {
     const [isSelectOpen, setIsSelectOpen] = useState(false)
     const [currentMode, setCurrentMode] = useState("");
     const [isFocused, setIsFocused] = useState(false);
+    const [isInventoryMode, setIsInventoryMode] = useState(false);
     const [validationErrors, setValidationErrors] = useState({
         barcode: false,
         itemName: false,
@@ -243,7 +238,30 @@ export default function ScannerScreen() {
                         newPendingItems = [...currentPendingList, newItem];
                         setPendingList(newPendingItems);
                     } else {
-                        handleEditUnknownItem(newItem);
+                        if (!isKnown) {
+                            if (isInventoryMode) {
+                                // Append directly, skip modal
+                                setPendingUnknownItems((prev) => [
+                                    ...prev,
+                                    {
+                                        id: Date.now().toString(),
+                                        barcode: barcodeToScan,
+                                        group: "others",
+                                        itemName: "",
+                                        itemDescription: "",
+                                        createdAt: new Date().toISOString(),
+                                        updatedAt: new Date().toISOString(),
+                                        updatedBy: "",
+                                        totalCount: 0,
+                                        sessionCount: 1,
+                                        location: "",
+                                        pointsToRedeem: 0,
+                                    },
+                                ]);
+                            } else {
+                                handleEditUnknownItem(newItem);
+                            }
+                        }
                     }
                 }
 
@@ -356,13 +374,6 @@ export default function ScannerScreen() {
         setEditingItemLocation(item.location ?? "");
         setEditingItemPointsToRedeem(item.pointsToRedeem?.toString() ?? "0");
         setEditingItemGroup(item.group ?? "");
-
-        setOriginalItemName(item.itemName ?? "");
-        setOriginalItemDescription(item.itemDescription ?? "");
-        setOriginalItemCount(item.totalCount?.toString() ?? "0");
-        setOriginalItemLocation(item.location ?? "");
-        setOriginalItemPointsToRedeem(item.pointsToRedeem?.toString() ?? "0");
-        setOriginalItemGroup(item.group ?? "");
 
         const isUnknown = pendingUnknownItems.some(i => i.id === item.id);
         setIsEditingUnknown(isUnknown);
@@ -782,7 +793,7 @@ export default function ScannerScreen() {
                                 >
                                     {/* Title Section */}
                                     <VStack style={{ gap: 8, alignItems: "center" }}>
-                                        <ScanIcon size={isMobileScreen ? 40 : 32} color="#3b82f6" />
+                                        <ScanIcon size={isMobileScreen ? 40 : 32} color="#3b82f6" style={{ display: isMobileScreen ? "none" : "flex" }} />
                                         <Text style={{ fontSize: 16, fontWeight: "700", color: "#1e293b" }}>
                                             Scan Area
                                         </Text>
@@ -816,8 +827,50 @@ export default function ScannerScreen() {
                                             />
                                         </Input>
 
+                                        <HStack style={{ justifyContent: "center", gap: 16, marginBottom: 0 }}>
+                                            <Button
+                                                onPress={() => {
+                                                    console.log("Inventory scanning started");
+                                                    setIsInventoryMode(true);
+                                                    setShowUnknownEditModal(false);
+                                                }}
+                                                size={isTinyScreen ? "xs" : isMobileScreen ? "sm" : "md"}
+                                                style={{
+                                                    backgroundColor: "#1B9CFF",
+                                                    opacity: isLoading ? 0.5 : 1,
+                                                }}
+                                            >
+                                                <ScanIcon size={14} color="white" style={{ display: isTinyScreen ? "flex" : isMobileScreen ? "none" : "flex" }} />
+                                                {!isTinyScreen && (
+                                                    <ButtonText size={isMobileScreen ? "sm" : "md"} style={{ color: "white" }}>
+                                                        Inventory
+                                                    </ButtonText>
+                                                )}
+                                            </Button>
+
+                                            <Button
+                                                onPress={() => {
+                                                    console.log("Inventory scanning stopped");
+                                                    setIsInventoryMode(false);
+                                                }}
+                                                variant="solid"
+                                                action="negative"
+                                                size={isTinyScreen ? "xs" : isMobileScreen ? "sm" : "md"}
+                                                style={{
+                                                    opacity: isLoading ? 0.5 : 1,
+                                                }}
+                                            >
+                                                <StopCircleIcon size={14} color="white" style={{ display: isTinyScreen ? "flex" : isMobileScreen ? "none" : "flex" }} />
+                                                {!isTinyScreen && (
+                                                    <ButtonText size={isMobileScreen ? "sm" : "md"} style={{ color: "white" }}>
+                                                        Stop
+                                                    </ButtonText>
+                                                )}
+                                            </Button>
+                                        </HStack>
+
                                         {/* Barcode Type Notice */}
-                                        <HStack style={{ gap: 8, alignItems: "center", justifyContent: "center" }}>
+                                        <HStack style={{ gap: 8, alignItems: "center", justifyContent: "center", display: scannedCode.length > 0 ? "none" : "flex" }}>
                                             <AlertTriangleIcon size={isMobileScreen ? 12 : 16} color="#64748b" />
                                             <Text style={{ fontSize: 12, color: "#64748b", textAlign: "center", fontWeight: "500" }}>
                                                 We only accept 1D barcodes
@@ -1266,6 +1319,48 @@ export default function ScannerScreen() {
                                                 }}
                                             />
                                         </Input>
+
+                                        <HStack style={{ justifyContent: "center", gap: 16, marginBottom: 0 }}>
+                                            <Button
+                                                onPress={() => {
+                                                    console.log("Inventory scanning started");
+                                                    setIsInventoryMode(true);
+                                                    setShowUnknownEditModal(false);
+                                                }}
+                                                size={isTinyScreen ? "xs" : isMobileScreen ? "sm" : "md"}
+                                                style={{
+                                                    backgroundColor: "#1B9CFF",
+                                                    opacity: isLoading ? 0.5 : 1,
+                                                }}
+                                            >
+                                                <ScanIcon size={14} color="white" style={{ display: isTinyScreen ? "flex" : isMobileScreen ? "none" : "flex" }} />
+                                                {!isTinyScreen && (
+                                                    <ButtonText size={isMobileScreen ? "sm" : "md"} style={{ color: "white" }}>
+                                                        Inventory
+                                                    </ButtonText>
+                                                )}
+                                            </Button>
+
+                                            <Button
+                                                onPress={() => {
+                                                    console.log("Inventory scanning stopped");
+                                                    setIsInventoryMode(false);
+                                                }}
+                                                variant="solid"
+                                                action="negative"
+                                                size={isTinyScreen ? "xs" : isMobileScreen ? "sm" : "md"}
+                                                style={{
+                                                    opacity: isLoading ? 0.5 : 1,
+                                                }}
+                                            >
+                                                <StopCircleIcon size={14} color="white" style={{ display: isTinyScreen ? "flex" : isMobileScreen ? "none" : "flex" }} />
+                                                {!isTinyScreen && (
+                                                    <ButtonText size={isMobileScreen ? "sm" : "md"} style={{ color: "white" }}>
+                                                        Stop
+                                                    </ButtonText>
+                                                )}
+                                            </Button>
+                                        </HStack>
 
                                         {/* Barcode Type Notice */}
                                         <HStack style={{ gap: 8, alignItems: "center", justifyContent: "center" }}>
