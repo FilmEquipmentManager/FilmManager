@@ -337,7 +337,7 @@ const ItemsManagement = () => {
                                 />
                             )}
                             <InputSlot style={{ paddingRight: 4 }}>
-                                <Icon as={SearchIcon} size="md" style={{ color: "gray", display: isMobileScreen ? "none" : "flex"}} />
+                                <Icon as={SearchIcon} size="md" style={{ color: "gray", display: isMobileScreen ? "none" : "flex" }} />
                             </InputSlot>
                         </Input>
                     </HStack>
@@ -345,19 +345,19 @@ const ItemsManagement = () => {
                     {filteredItems.length === 0 && (
                         <VStack
                             style={{
-                            backgroundColor: "white",
-                            borderRadius: 24,
-                            padding: isMobileScreen ? 16 : 24,
-                            marginTop: 10,
-                            marginBottom: 10,
-                            alignItems: "center",
-                            justifyContent: "center",
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.05,
-                            shadowRadius: 6,
-                            elevation: 2,
-                            minHeight: 200
+                                backgroundColor: "white",
+                                borderRadius: 24,
+                                padding: isMobileScreen ? 16 : 24,
+                                marginTop: 10,
+                                marginBottom: 10,
+                                alignItems: "center",
+                                justifyContent: "center",
+                                shadowColor: "#000",
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.05,
+                                shadowRadius: 6,
+                                elevation: 2,
+                                minHeight: 200
                             }}
                         >
                             <WarehouseIcon size={48} color="#4f46e5" style={{ marginBottom: 16 }} />
@@ -436,37 +436,37 @@ const ItemsManagement = () => {
                                                     backgroundColor: "transparent",
                                                 }}>
                                                     {columns
-                                                    .filter(col => col.visible)
-                                                    .map((col, index, visibleCols) => {
-                                                        const isFirstCol = index === 0;
-                                                        const isLastCol = index === visibleCols.length - 1;
+                                                        .filter(col => col.visible)
+                                                        .map((col, index, visibleCols) => {
+                                                            const isFirstCol = index === 0;
+                                                            const isLastCol = index === visibleCols.length - 1;
 
-                                                        return (
-                                                        <TableHead
-                                                            key={col.key}
-                                                            style={{
-                                                            width: col.maxWidth,
-                                                            paddingVertical: isTinyScreen ? 8 : isMobileScreen ? 10 : 14,
-                                                            paddingHorizontal: isTinyScreen ? 6 : 10,
-                                                            backgroundColor: "#4f46e5",
-                                                            borderTopLeftRadius: isFirstCol ? 12 : 0,
-                                                            borderTopRightRadius: isLastCol ? 12 : 0,
-                                                            }}
-                                                        >
-                                                        <Text
-                                                            style={{
-                                                                color: "white",
-                                                                fontWeight: "800",
-                                                                letterSpacing: 0.5,
-                                                                textTransform: "uppercase",
-                                                                fontSize: isTinyScreen ? 10 : isMobileScreen ? 12 : 14
-                                                            }}
-                                                        >
-                                                            {col.label}
-                                                        </Text>
-                                                        </TableHead>
-                                                        );
-                                                    })}
+                                                            return (
+                                                                <TableHead
+                                                                    key={col.key}
+                                                                    style={{
+                                                                        width: col.maxWidth,
+                                                                        paddingVertical: isTinyScreen ? 8 : isMobileScreen ? 10 : 14,
+                                                                        paddingHorizontal: isTinyScreen ? 6 : 10,
+                                                                        backgroundColor: "#4f46e5",
+                                                                        borderTopLeftRadius: isFirstCol ? 12 : 0,
+                                                                        borderTopRightRadius: isLastCol ? 12 : 0,
+                                                                    }}
+                                                                >
+                                                                    <Text
+                                                                        style={{
+                                                                            color: "white",
+                                                                            fontWeight: "800",
+                                                                            letterSpacing: 0.5,
+                                                                            textTransform: "uppercase",
+                                                                            fontSize: isTinyScreen ? 10 : isMobileScreen ? 12 : 14
+                                                                        }}
+                                                                    >
+                                                                        {col.label}
+                                                                    </Text>
+                                                                </TableHead>
+                                                            );
+                                                        })}
                                                 </TableRow>
                                             </TableHeader>
 
@@ -600,11 +600,11 @@ const ItemsManagement = () => {
                                                                         <TableData key={col.key} style={{ ...cellStyle, justifyContent: "center", maxWidth: col.maxWidth }}>
                                                                             <Text
                                                                                 style={{
-                                                                                color: "black",
-                                                                                fontSize: isTinyScreen ? 10 : isMobileScreen ? 12 : 14,
-                                                                                maxWidth: col.maxWidth,
-                                                                                flexWrap: "wrap",
-                                                                                wordBreak: 'break-word',
+                                                                                    color: "black",
+                                                                                    fontSize: isTinyScreen ? 10 : isMobileScreen ? 12 : 14,
+                                                                                    maxWidth: col.maxWidth,
+                                                                                    flexWrap: "wrap",
+                                                                                    wordBreak: 'break-word',
                                                                                 }}
                                                                             >
                                                                                 {text}
@@ -756,35 +756,65 @@ const ItemsManagement = () => {
                                     )}
                                 </FormControl>
 
-                                {/* Item Count */}
-                                <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.itemCount}>
-                                    <FormControlLabel>
-                                        <FormControlLabelText>Item Count</FormControlLabelText>
-                                    </FormControlLabel>
-                                    <Input isDisabled={isLoading}>
-                                        <InputField value={editingItemCount} onChangeText={setEditingItemCount} placeholder="Enter Item Stock Count" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
-                                    </Input>
-                                    {validationErrors.itemCount && (
-                                        <FormControlHelper>
-                                            <FormControlHelperText style={{ color: "red" }}>* Count must be numeric and ≤ 6 digits.</FormControlHelperText>
-                                        </FormControlHelper>
-                                    )}
-                                </FormControl>
+                                <HStack
+                                    style={{
+                                        flexDirection: "row",
+                                        justifyContent: "space-between",
+                                        flexWrap: "wrap",
+                                        gap: 12,
+                                        marginTop: 10,
+                                    }}
+                                >
+                                    {/* Item Count */}
+                                    <VStack style={{ width: "48%" }}>
+                                        <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.itemCount}>
+                                            <FormControlLabel>
+                                                <FormControlLabelText>Item Count</FormControlLabelText>
+                                            </FormControlLabel>
+                                            <Input isDisabled={isLoading}>
+                                                <InputField
+                                                    value={editingItemCount}
+                                                    onChangeText={setEditingItemCount}
+                                                    placeholder="Enter Item Stock Count"
+                                                    keyboardType="numeric"
+                                                    style={{ height: 40, width: "100%" }}
+                                                />
+                                            </Input>
+                                            {validationErrors.itemCount && (
+                                                <FormControlHelper>
+                                                    <FormControlHelperText style={{ color: "red" }}>
+                                                        * Count must be numeric and ≤ 6 digits.
+                                                    </FormControlHelperText>
+                                                </FormControlHelper>
+                                            )}
+                                        </FormControl>
+                                    </VStack>
 
-                                {/* Points to Redeem */}
-                                <FormControl isInvalid={validationErrors.pointsToRedeem}>
-                                    <FormControlLabel>
-                                        <FormControlLabelText>Points to Redeem</FormControlLabelText>
-                                    </FormControlLabel>
-                                    <Input isDisabled={isLoading}>
-                                        <InputField value={editingItemPointsToRedeem} onChangeText={setEditingItemPointsToRedeem} placeholder="Enter Points To Redeem For Item" keyboardType="numeric" style={{ height: 40, width: "100%" }} />
-                                    </Input>
-                                    {validationErrors.pointsToRedeem && (
-                                        <FormControlHelper>
-                                            <FormControlHelperText style={{ color: "red" }}>* Points must be numeric and ≤ 6 digits.</FormControlHelperText>
-                                        </FormControlHelper>
-                                    )}
-                                </FormControl>
+                                    {/* Points to Redeem */}
+                                    <VStack style={{ width: "48%" }}>
+                                        <FormControl isInvalid={validationErrors.pointsToRedeem}>
+                                            <FormControlLabel>
+                                                <FormControlLabelText>Points to Redeem</FormControlLabelText>
+                                            </FormControlLabel>
+                                            <Input isDisabled={isLoading}>
+                                                <InputField
+                                                    value={editingItemPointsToRedeem}
+                                                    onChangeText={setEditingItemPointsToRedeem}
+                                                    placeholder="Enter Points To Redeem For Item"
+                                                    keyboardType="numeric"
+                                                    style={{ height: 40, width: "100%" }}
+                                                />
+                                            </Input>
+                                            {validationErrors.pointsToRedeem && (
+                                                <FormControlHelper>
+                                                    <FormControlHelperText style={{ color: "red" }}>
+                                                        * Points must be numeric and ≤ 6 digits.
+                                                    </FormControlHelperText>
+                                                </FormControlHelper>
+                                            )}
+                                        </FormControl>
+                                    </VStack>
+                                </HStack>
                             </ModalBody>
 
                             <ModalFooter>
