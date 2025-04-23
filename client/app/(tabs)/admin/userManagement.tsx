@@ -110,7 +110,7 @@ const UserManagement = () => {
 		{ key: "avatar", label: "Avatar", flex: 1, maxWidth: 48, visible: true },
 		{ key: "username", label: "Username", flex: 2, maxWidth: 120, visible: true },
 		{ key: "email", label: "Email", flex: 2.5, maxWidth: 160, visible: !isSmallLaptop },
-		{ key: "points", label: "Points", flex: 1, maxWidth: 80, visible: true },
+		{ key: "points", label: "Points", flex: 1, maxWidth: 80, visible: !isMobileScreen },
 		{ key: "created", label: "Joined", flex: 1.5, maxWidth: 100, visible: !isMobileScreen },
 		{ key: "actions", label: "Actions", flex: 0.5, maxWidth: 60, visible: true }
 	].filter(col => col.visible);
@@ -138,7 +138,7 @@ const UserManagement = () => {
 							</Input>
 						</HStack>
 
-						<ScrollView style={{ flex: 1, paddingRight: isMobileScreen ? 0 : 20, paddingTop: 10 }}>
+						<ScrollView style={{ paddingRight: isMobileScreen ? 0 : 20, paddingTop: 10 }}>
 							<VStack space="2xl" style={{ flex: 1, paddingRight: isMobileScreen ? 0 : 20, paddingTop: 10 }}>
 								<VStack
 									space="lg"
@@ -155,7 +155,7 @@ const UserManagement = () => {
 								>
 									<Table style={{ width: "100%" }}>
 										<TableHeader style={{ backgroundColor: "#f8fafc", borderRadius: 12 }}>
-											<TableRow>
+											<TableRow style={{ backgroundColor: "transparent" }}>
 												{columns.map((col, index, visibleCols) => {
 													const isFirstCol = index === 0;
 													const isLastCol = index === visibleCols.length - 1;
@@ -165,7 +165,6 @@ const UserManagement = () => {
 															key={col.key}
 															style={{
 																width: col.maxWidth,
-																maxWidth: col.maxWidth,
 																paddingVertical: isTinyScreen ? 8 : isMobileScreen ? 10 : 14,
 																paddingHorizontal: isTinyScreen ? 6 : 10,
 																backgroundColor: "#4f46e5",
@@ -191,7 +190,7 @@ const UserManagement = () => {
 										{filteredUsers.length > 0 ? (
 											<TableBody>
 												{filteredUsers.map(user => (
-													<TableRow key={user.uid}>
+													<TableRow key={user.uid} style={{ backgroundColor: "transparent" }}>
 														{columns.map(col => {
 															const cellStyle = {
 																flex: col.flex,
@@ -268,7 +267,7 @@ const UserManagement = () => {
 											</TableBody>
 										) : (
 											<TableBody>
-												<TableRow>
+												<TableRow style={{ backgroundColor: "transparent" }}>
                                                     <TableData
                                                         colSpan={columns.length}
                                                         style={{

@@ -262,12 +262,12 @@ const ItemsManagement = () => {
     const allColumns = [
         { key: "image", label: "Image", flex: 1, maxWidth: 48, visible: !isLaptop },
         { key: "barcode", label: "Barcode", flex: 1.5, maxWidth: 120, visible: true },
-        { key: "itemName", label: "Name", flex: 2, maxWidth: 80, visible: true },
+        { key: "itemName", label: "Name", flex: 2, maxWidth: 100, visible: true },
         { key: "itemDescription", label: "Description", flex: 2, maxWidth: 100, visible: !isSmallLaptop },
-        { key: "location", label: "Location", flex: 1, maxWidth: 60, visible: !isSmallLaptop },
+        { key: "location", label: "Location", flex: 1, maxWidth: 80, visible: !isSmallLaptop },
         { key: "stock", label: "Stock", flex: 0.5, maxWidth: 20, visible: !isMobileScreen },
         { key: "points", label: "Points", flex: 0.5, maxWidth: 20, visible: !isMobileScreen },
-        { key: "actions", label: "Actions", flex: 0.5, maxWidth: 60, visible: true },
+        { key: "actions", label: "Actions", flex: 0.5, maxWidth: 80, visible: true },
     ];
 
     const columns = allColumns.filter(col => col.visible);
@@ -386,7 +386,7 @@ const ItemsManagement = () => {
                     )}
 
                     {filteredItems.length > 0 && (
-                        <ScrollView style={{ flex: 1, paddingRight: isMobileScreen ? 0 : 20, paddingTop: 10 }}>
+                        <ScrollView style={{ paddingRight: isMobileScreen ? 0 : 20, paddingTop: 10 }}>
                             <VStack space="2xl" style={{ flex: 1, paddingRight: isMobileScreen ? 0 : 20, paddingTop: 10 }}>
                                 {Object.entries(groupedItems).map(([groupKey, items]) => (
                                     <VStack
@@ -427,11 +427,12 @@ const ItemsManagement = () => {
                                             <TableHeader style={{
                                                 backgroundColor: "#f8fafc",
                                                 borderRadius: 12,
-                                                borderBottomWidth: 0
+                                                borderBottomWidth: 0,
                                             }}>
                                                 <TableRow style={{
                                                     shadowColor: "transparent",
-                                                    borderBottomWidth: 0
+                                                    borderBottomWidth: 0,
+                                                    backgroundColor: "transparent",
                                                 }}>
                                                     {columns
                                                     .filter(col => col.visible)
@@ -444,16 +445,13 @@ const ItemsManagement = () => {
                                                             key={col.key}
                                                             style={{
                                                             width: col.maxWidth,
-                                                            maxWidth: col.maxWidth,
-                                                            flexShrink: 1,
-                                                            flexGrow: 0,
                                                             paddingVertical: isTinyScreen ? 8 : isMobileScreen ? 10 : 14,
                                                             paddingHorizontal: isTinyScreen ? 6 : 10,
                                                             backgroundColor: "#4f46e5",
                                                             borderTopLeftRadius: isFirstCol ? 12 : 0,
                                                             borderTopRightRadius: isLastCol ? 12 : 0,
                                                             }}
-                                                        >{/* Move text-specific styles inside the Text component */}
+                                                        >
                                                         <Text
                                                             style={{
                                                                 color: "white",
@@ -473,7 +471,7 @@ const ItemsManagement = () => {
 
                                             <TableBody>
                                                 {items.map(item => (
-                                                    <TableRow key={item.id}>
+                                                    <TableRow key={item.id} style={{ backgroundColor: "transparent" }}>
                                                         {columns.map(col => {
                                                             // common style object for each cell
                                                             const cellStyle = { flex: col.flex, minWidth: col.maxWidth, justifyContent: col.key === "image" || col.key === "actions" ? "center" : undefined };
@@ -601,9 +599,11 @@ const ItemsManagement = () => {
                                                                         <TableData key={col.key} style={{ ...cellStyle, justifyContent: "center", maxWidth: col.maxWidth }}>
                                                                             <Text
                                                                                 style={{
+                                                                                color: "black",
                                                                                 fontSize: isTinyScreen ? 10 : isMobileScreen ? 12 : 14,
                                                                                 maxWidth: col.maxWidth,
                                                                                 flexWrap: "wrap",
+                                                                                wordBreak: 'break-word',
                                                                                 }}
                                                                             >
                                                                                 {text}
