@@ -726,7 +726,7 @@ const ItemsManagement = () => {
                                         onOpen={() => setIsSelectOpen(true)}
                                         onClose={() => setIsSelectOpen(false)}
                                     >
-                                        <SelectTrigger variant="outline" size="md">
+                                        <SelectTrigger variant="outline" size="md" style={{ height: 40, alignItems: "center", justifyContent: isMobileScreen ? "flex-start" : "space-between" }}>
                                             <SelectInput value={editingGroupLabels[editingItemGroup]} placeholder="Select Item Group" />
                                             <SelectIcon className="mr-3" as={ChevronDownIcon} />
                                         </SelectTrigger>

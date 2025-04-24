@@ -1914,7 +1914,7 @@ export default function ScannerScreen() {
                                     onOpen={() => setIsSelectOpen(true)}
                                     onClose={() => setIsSelectOpen(false)}
                                 >
-                                    <SelectTrigger variant="outline" size="md">
+                                    <SelectTrigger variant="outline" size="md" style={{ height: 40, alignItems: "center", justifyContent: isMobileScreen ? "flex-start" : "space-between" }}>
                                         <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
                                         <SelectIcon className="mr-3" as={ChevronDownIcon} />
                                     </SelectTrigger>
@@ -1950,7 +1950,7 @@ export default function ScannerScreen() {
                                     flexDirection: "row",
                                     justifyContent: "space-between",
                                     flexWrap: "wrap",
-                                    gap: 12,
+                                    gap: 8,
                                     marginTop: 10,
                                 }}
                             >
@@ -2095,7 +2095,7 @@ export default function ScannerScreen() {
                                     onOpen={() => setIsSelectOpen(true)}
                                     onClose={() => setIsSelectOpen(false)}
                                 >
-                                    <SelectTrigger variant="outline" size="md">
+                                    <SelectTrigger variant="outline" size="md" style={{ height: 40, alignItems: "center", justifyContent: isMobileScreen ? "flex-start" : "space-between" }}>
                                         <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
                                         <SelectIcon className="mr-3" as={ChevronDownIcon} />
                                     </SelectTrigger>
@@ -2129,7 +2129,7 @@ export default function ScannerScreen() {
                                     flexDirection: "row",
                                     justifyContent: "space-between",
                                     flexWrap: "wrap",
-                                    gap: 12,
+                                    gap: 8,
                                     marginTop: 10,
                                 }}
                             >

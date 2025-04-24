@@ -53,7 +53,7 @@ export default function HomepageScreen() {
                         <VStack style={{ flex: 1, padding: 20 }} space="2xl">
                             <Box
                                 style={{
-                                    marginBottom: 50,
+                                    marginBottom: isMobileScreen ? 20: 50,
                                     marginTop: isMobileScreen
                                         ? isShortScreen
                                             ? 36
@@ -70,7 +70,6 @@ export default function HomepageScreen() {
                                     numberOfLines={1}
                                     ellipsizeMode="tail"
                                     style={{
-                                        lineHeight: 1,
                                         color: "white",
                                         fontSize: isMobileScreen
                                             ? isShortScreen
@@ -81,7 +80,7 @@ export default function HomepageScreen() {
                                             : 40,
                                         fontWeight: "bold",
                                         textAlign: "center",
-                                        padding: isMobileScreen ? 50 : 8,
+                                        paddingTop: isMobileScreen ? 0 : 8,
                                     }}
                                 >
                                     {getGreeting()}, {userData?.username}!
@@ -162,7 +161,7 @@ export default function HomepageScreen() {
                                             alignItems: "center",
                                             width: isMobileScreen ? "100%" : "70%",
                                             margin: "auto",
-                                            marginBottom: isMobileScreen ? 24 : 40,
+                                            marginBottom: isMobileScreen ? 10 : 30,
                                             marginTop: 40,
                                             height: isMobileScreen ? "70%" : "60%",
                                             gap: isMobileScreen ? 50 : 100,
