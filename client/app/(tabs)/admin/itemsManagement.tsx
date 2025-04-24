@@ -62,6 +62,7 @@ const ItemsManagement = () => {
     const [originalItemPointsToRedeem, setOriginalItemPointsToRedeem] = useState('');
     const [originalItemGroup, setOriginalItemGroup] = useState('');
     const [isSelectOpen, setIsSelectOpen] = useState(false)
+    const [isOpen, setIsOpen] = useState(false);
     const [validationErrors, setValidationErrors] = useState({
         barcode: false,
         itemName: false,
@@ -282,19 +283,19 @@ const ItemsManagement = () => {
             >
                 <VStack style={{ padding: isMobileScreen ? 4 : 8, width: "90%", alignSelf: "center", gap: 10, marginTop: isMobileScreen ? 60 : 20, marginBottom: 14 }} space="xl">
                     {/* Filter and Search Row */}
-                    <HStack space="xl" style={{ alignItems: "center", justifyContent: isMobileScreen ? "space-between" : "flex-start", marginBottom: 20, margin: "auto", width: "100%" }}>
+                    <HStack space="xl" style={{ alignItems: "center", justifyContent: isMobileScreen ? "space-between" : "flex-start", marginBottom: 20, width: "100%" }}>
                         {/* Category Dropdown */}
                         <HStack style={{ marginRight: isMobileScreen ? 0 : 12 }}>
-                            <Select onValueChange={(value) => setSelectedGroup(value)}>
+                            <Select open={isOpen} onOpenChange={setIsOpen} onValueChange={(value) => { setSelectedGroup(value); setIsOpen(false); }}>
                                 <SelectTrigger
                                     variant="outline"
-                                    size={isShortScreen ? "sm" : "md"}
+                                    size={isMobileScreen ? "sm" : "md"}
                                     style={{ backgroundColor: "white" }}
                                 >
-                                    {!isShortScreen && (
+                                    {!isMobileScreen && (
                                         <SelectInput placeholder="Category" style={{ color: "black" }} />
                                     )}
-                                    {isShortScreen && (
+                                    {isMobileScreen && (
                                         <Text style={{ color: "black", fontSize: 14, padding: 10 }}>Filter</Text>
                                     )}
                                     <SelectIcon className="mr-3" as={ChevronDownIcon} />
