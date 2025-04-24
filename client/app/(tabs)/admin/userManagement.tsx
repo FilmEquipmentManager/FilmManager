@@ -138,8 +138,8 @@ const UserManagement = () => {
 							</Input>
 						</HStack>
 
-						<ScrollView style={{ paddingRight: isMobileScreen ? 0 : 20, paddingTop: 10 }}>
-							<VStack space="2xl" style={{ flex: 1, paddingRight: isMobileScreen ? 0 : 20, paddingTop: 10 }}>
+						<ScrollView style={{ paddingRight: isMobileScreen ? 0 : 20 }}>
+							<VStack space="2xl" style={{ flex: 1, paddingRight: isMobileScreen ? 0 : 20 }}>
 								<VStack
 									space="lg"
 									style={{

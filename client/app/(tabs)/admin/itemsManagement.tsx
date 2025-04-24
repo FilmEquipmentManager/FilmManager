@@ -386,8 +386,8 @@ const ItemsManagement = () => {
                     )}
 
                     {filteredItems.length > 0 && (
-                        <ScrollView style={{ paddingTop: 10 }}>
-                            <VStack space="2xl" style={{ flex: 1, paddingRight: isMobileScreen ? 0 : 20, paddingTop: 10 }}>
+                        <ScrollView>
+                            <VStack space="2xl" style={{ flex: 1, paddingRight: isMobileScreen ? 0 : 20 }}>
                                 {Object.entries(groupedItems).map(([groupKey, items]) => (
                                     <VStack
                                         key={groupKey}
