@@ -13,10 +13,12 @@ import { auth } from "@/firebase/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useEffect, useState, useRef } from "react";
 import { Input, InputField } from "@/components/ui/input";
-import { Eye, EyeClosed, LogInIcon } from "lucide-react-native";
-import { Platform } from "react-native";
+import { Eye, EyeClosed, LogInIcon, WifiHighIcon } from "lucide-react-native";
 import server from "../../networking";
 import FirebaseDecoder from "../tools/FirebaseDecoder";
+
+import { NativeModules, NativeEventEmitter, Platform } from 'react-native';
+const { GClientModule } = NativeModules;
 
 type AuthFormProps = {
 	isRegister: boolean;
@@ -294,7 +296,26 @@ export default function ProtectedRoute({ showAuth, children }: ProtectedRoutePro
 	const isWeb = Platform.OS === "web";
 	const toast = useToast();
 
+    const emitter = new NativeEventEmitter(GClientModule);
+
 	const pathname = usePathname();
+
+    useEffect(() => {
+        if (Platform.OS === 'android') {
+          GClientModule.powerOn();
+          GClientModule.openSerial('/dev/ttyS3:115200', 1000);
+
+          const sub = emitter.addListener('onTagEpcLog', ({ epc }) => {
+            console.log('RFID tag:', epc);
+          });
+
+          return () => {
+            sub.remove();
+            GClientModule.stopInventory();
+            GClientModule.close();
+          };
+        }
+    }, []);
 
 	const showToast = (title: string, description: string) => {
 		const newId = Math.random();
@@ -484,6 +505,35 @@ export default function ProtectedRoute({ showAuth, children }: ProtectedRoutePro
 									</Text>
 								</HStack>
 							</Button>
+
+                            <Button
+                                onPress={() => GClientModule.startInventory()}
+                                style={{
+                                    backgroundColor: "#1B9CFF",
+                                    borderRadius: 12,
+                                    width: "100%",
+                                    elevation: 3
+                                }}
+                            >
+                                <HStack
+                                    space="sm"
+                                    style={{
+                                        alignItems: "center",
+                                        justifyContent: "center"
+                                    }}
+                                >
+                                    <Icon as={WifiHighIcon} size="md" color="white" />
+                                    <Text
+                                        style={{
+                                            fontSize: 18,
+                                            fontWeight: "600",
+                                            color: "white"
+                                        }}
+                                    >
+                                        Scan with RFID
+                                    </Text>
+                                </HStack>
+                            </Button>
 						</VStack>
 					</Card>
 				</LinearGradient>

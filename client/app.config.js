@@ -22,6 +22,7 @@ module.exports = ({ config }) => ({
     },
     android: {
         ...config.android,
+        package: "com.sadliquid.FilmManager",
         adaptiveIcon: {
             foregroundImage: "./assets/images/adaptive-icon.png",
             backgroundColor: "#ffffff",
@@ -61,5 +62,5 @@ module.exports = ({ config }) => ({
         FIREBASE_STORAGE_BUCKET: process.env.FIREBASE_STORAGE_BUCKET,
         FIREBASE_SENDER_ID: process.env.FIREBASE_SENDER_ID,
         FIREBASE_APP_ID: process.env.FIREBASE_APP_ID,
-    },    
+    },
 });
