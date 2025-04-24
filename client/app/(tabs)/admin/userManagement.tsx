@@ -28,7 +28,7 @@ interface User {
 	createdAt: number;
 }
 
-const UserManagement = () => {
+export default function UserManagement() {
 	const { width, height } = useWindowDimensions();
 	const [users, setUsers] = useState<User[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -327,6 +327,4 @@ const UserManagement = () => {
 				</LinearGradient>
 			</ProtectedRoute>
 		);
-};
-
-export default UserManagement;
+}
