@@ -75,7 +75,7 @@ module.exports = ({ config }) => ({
         FIREBASE_SENDER_ID: process.env.FIREBASE_SENDER_ID,
         FIREBASE_APP_ID: process.env.FIREBASE_APP_ID,
         eas: {
-            projectId: "5e8d0969-0c7d-4b06-9727-1695c8156814"
+            projectId: "d6f7b2a9-6744-42a0-9bea-494dfbeb8ccf"
         }
     },
 });
