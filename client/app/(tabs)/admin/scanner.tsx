@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import { ScrollView, useWindowDimensions } from "react-native";

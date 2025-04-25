@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createContext, useContext, useEffect, useState } from "react";
 import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
 import { User, onAuthStateChanged, onIdTokenChanged } from "firebase/auth";

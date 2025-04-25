@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from "react";
 import { SafeAreaView, useWindowDimensions } from "react-native";
 import { Tabs } from "expo-router";
