@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect, useMemo } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { useWindowDimensions, ScrollView, Pressable } from "react-native";

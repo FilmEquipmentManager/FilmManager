@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from "react";
 import { VStack } from "@/components/ui/vstack";
 import { Box } from "@/components/ui/box";

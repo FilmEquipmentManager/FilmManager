@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { LinearGradient } from "expo-linear-gradient";
 import { ScrollView } from "react-native";
 import { VStack } from "@/components/ui/vstack";

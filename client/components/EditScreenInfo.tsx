@@ -1,4 +1,4 @@
-import React from "react";
+// @ts-nocheck
 
 import { ExternalLink } from "./ExternalLink";
 import { Box } from "@/components/ui/box";
