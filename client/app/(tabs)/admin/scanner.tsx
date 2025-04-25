@@ -24,6 +24,7 @@ import { AlertTriangleIcon, ArrowDownCircle, ArrowUpCircle, CheckCircleIcon, Min
 import { Box } from "@/components/ui/box";
 import { useData } from "@/contexts/DataContext";
 import { useLocalSearchParams } from "expo-router";
+import { Platform } from "react-native";
 
 interface ScannedItem {
     id: string;
@@ -828,7 +829,7 @@ export default function ScannerScreen() {
                                             />
                                         </Input>
 
-                                        <HStack style={{ justifyContent: "center", gap: 16, marginBottom: 0 }}>
+                                        <HStack style={{ justifyContent: "center", gap: 16, marginBottom: 0, display: Platform.OS == "android" ? "flex" : "none" }}>
                                             <Button
                                                 onPress={() => {
                                                     console.log("Inventory scanning started");
@@ -1320,48 +1321,6 @@ export default function ScannerScreen() {
                                                 }}
                                             />
                                         </Input>
-
-                                        <HStack style={{ justifyContent: "center", gap: 16, marginBottom: 0 }}>
-                                            <Button
-                                                onPress={() => {
-                                                    console.log("Inventory scanning started");
-                                                    setIsInventoryMode(true);
-                                                    setShowUnknownEditModal(false);
-                                                }}
-                                                size={isTinyScreen ? "xs" : isMobileScreen ? "sm" : "md"}
-                                                style={{
-                                                    backgroundColor: "#1B9CFF",
-                                                    opacity: isLoading ? 0.5 : 1,
-                                                }}
-                                            >
-                                                <ScanIcon size={14} color="white" style={{ display: isTinyScreen ? "flex" : isMobileScreen ? "none" : "flex" }} />
-                                                {!isTinyScreen && (
-                                                    <ButtonText size={isMobileScreen ? "sm" : "md"} style={{ color: "white" }}>
-                                                        Inventory
-                                                    </ButtonText>
-                                                )}
-                                            </Button>
-
-                                            <Button
-                                                onPress={() => {
-                                                    console.log("Inventory scanning stopped");
-                                                    setIsInventoryMode(false);
-                                                }}
-                                                variant="solid"
-                                                action="negative"
-                                                size={isTinyScreen ? "xs" : isMobileScreen ? "sm" : "md"}
-                                                style={{
-                                                    opacity: isLoading ? 0.5 : 1,
-                                                }}
-                                            >
-                                                <StopCircleIcon size={14} color="white" style={{ display: isTinyScreen ? "flex" : isMobileScreen ? "none" : "flex" }} />
-                                                {!isTinyScreen && (
-                                                    <ButtonText size={isMobileScreen ? "sm" : "md"} style={{ color: "white" }}>
-                                                        Stop
-                                                    </ButtonText>
-                                                )}
-                                            </Button>
-                                        </HStack>
 
                                         {/* Barcode Type Notice */}
                                         <HStack style={{ gap: 8, alignItems: "center", justifyContent: "center" }}>
