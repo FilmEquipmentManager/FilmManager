@@ -3,7 +3,7 @@ require("dotenv/config");
 module.exports = ({ config }) => ({
     ...config,
     name: "Film Manager",
-    slug: "Film Manager",
+    slug: "film-manager",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
@@ -15,6 +15,18 @@ module.exports = ({ config }) => ({
         backgroundColor: "#ffffff",
     },
     assetBundlePatterns: ["**/*"],
+    expo: {
+        plugins: [
+          [
+            "expo-build-properties",
+            {
+              android: {
+                kotlinVersion: "1.9.25"
+              }
+            }
+          ]
+        ]
+    },
     ios: {
         ...config.ios,
         supportsTablet: true,
@@ -22,6 +34,7 @@ module.exports = ({ config }) => ({
     },
     android: {
         ...config.android,
+        package: "com.sadliquid.filmmanager",
         adaptiveIcon: {
             foregroundImage: "./assets/images/adaptive-icon.png",
             backgroundColor: "#ffffff",
@@ -61,5 +74,8 @@ module.exports = ({ config }) => ({
         FIREBASE_STORAGE_BUCKET: process.env.FIREBASE_STORAGE_BUCKET,
         FIREBASE_SENDER_ID: process.env.FIREBASE_SENDER_ID,
         FIREBASE_APP_ID: process.env.FIREBASE_APP_ID,
-    },    
+        eas: {
+            projectId: "5e8d0969-0c7d-4b06-9727-1695c8156814"
+        }
+    },
 });
