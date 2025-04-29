@@ -35,7 +35,7 @@ const authMiddleware = async (req, res, next) => {
         const authHeader = req.headers.authorization;
 
         if (!authHeader?.startsWith('Bearer ')) {
-            return res.status(401).json({ error: 'UERROR: Missing authorization token.' });
+            return res.status(400).json({ error: 'UERROR: Missing authorization token.' });
         }
 
         const token = authHeader.split(' ')[1];
@@ -51,6 +51,25 @@ const authMiddleware = async (req, res, next) => {
     }
 };
 
+const securityMiddleware = async (req, res, next) => {
+    try {
+        const apiKey = req.headers.apiKey;
+
+        if (!apiKey) {
+            return res.status(400).json({ error: 'UERROR: Missing API Key.' });
+        }
+
+        if (apiKey !== process.env.API_KEY) {
+            return res.status(401).json({ error: 'UERROR: Invalid API Key.' });
+        }
+
+        next();
+    } catch (error) {
+        console.error('Authentication error:', error);
+        res.status(401).json({ error: 'UERROR: Invalid API Key.' });
+    }
+}
+
 app.use(
     cors({
         origin: "*",
@@ -64,7 +83,7 @@ app.get("/", (req, res) => {
     res.send("Server healthy!");
 });
 
-app.get('/api/user', authMiddleware, async (req, res) => {
+app.get('/api/user', authMiddleware, securityMiddleware, async (req, res) => {
     try {
         const userData = DM.peek(['Users', req.user.uid]);
 
@@ -77,7 +96,7 @@ app.get('/api/user', authMiddleware, async (req, res) => {
     }
 });
 
-app.post('/api/redeem', authMiddleware, async (req, res) => {
+app.post('/api/redeem', authMiddleware, securityMiddleware, async (req, res) => {
     try {
         const { items } = req.body;
         const user = DM.peek(['Users', req.user.uid]);
@@ -150,7 +169,7 @@ app.post('/api/redeem', authMiddleware, async (req, res) => {
     }
 });
 
-app.get('/api/users', authMiddleware, async (req, res) => {
+app.get('/api/users', authMiddleware, securityMiddleware, async (req, res) => {
     try {
         // Verify admin privileges
         const requestingUser = DM.peek(['Users', req.user.uid]);
@@ -171,7 +190,7 @@ app.get('/api/users', authMiddleware, async (req, res) => {
     }
 });
 
-app.delete('/api/users/:email', authMiddleware, async (req, res) => {
+app.delete('/api/users/:email', authMiddleware, securityMiddleware, async (req, res) => {
     try {
         const requestingUser = DM.peek(['Users', req.user.uid]);
         if (!requestingUser || requestingUser.role !== 'Admin') {
@@ -286,7 +305,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-app.get("/api/barcodes", authMiddleware, async (req, res) => {
+app.get("/api/barcodes", authMiddleware, securityMiddleware, async (req, res) => {
     try {
         const barcodes = DM.peek(["Barcodes"]);
 
@@ -306,7 +325,7 @@ app.get("/api/barcodes", authMiddleware, async (req, res) => {
     }
 });
 
-app.post("/api/barcodes", authMiddleware, async (req, res) => {
+app.post("/api/barcodes", securityMiddleware, async (req, res) => {
     try {
         const {
             barcode,
@@ -372,7 +391,7 @@ app.post("/api/barcodes", authMiddleware, async (req, res) => {
     }
 });
 
-app.put("/api/barcodes/:id", authMiddleware, async (req, res) => {
+app.put("/api/barcodes/:id", securityMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
         const operation = req.body.operation || "edit";
@@ -459,7 +478,7 @@ app.put("/api/barcodes/:id", authMiddleware, async (req, res) => {
     }
 });
 
-app.delete("/api/barcodes/:id", authMiddleware, async (req, res) => {
+app.delete("/api/barcodes/:id", authMiddleware, securityMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
 

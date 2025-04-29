@@ -53,6 +53,19 @@ if (missingSAKeys.length > 0) {
     process.exit(1);
 }
 
+const requiredEnvVars = [
+    'PORT',
+    'API_KEY',
+    'FIREBASE_DATABASE_URL'
+];
+
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingEnvVars.length > 0) {
+    console.log(`\n[BOOTCHECK] - FAILED: Environment variables missing: ${missingEnvVars.join(", ")}\n`);
+    process.exit(1);
+}
+
 let admin;
 
 try {
@@ -65,21 +78,21 @@ try {
 (async () => {
     try {
         const credential = admin.credential.cert(serviceAccount);
-        
+
         const tokenResponse = await credential.getAccessToken();
-        
+
         if (!tokenResponse || !tokenResponse.access_token) {
             console.log(`\n[BOOTCHECK] - FAILED: Unable to generate a valid access token using the Service Account Key.\n`);
             process.exit(1);
         }
-        
+
         admin.initializeApp({
             credential: credential
         });
 
         const firestore = admin.firestore();
         await firestore.collection('dummy').limit(1).get();
-        
+
         console.log(`\n[BOOTCHECK] - SUCCESS: All environment variables and Service Account Key audited. SYSTEM READY.\n`);
         process.exit(0);
     } catch (error) {

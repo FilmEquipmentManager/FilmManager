@@ -59,6 +59,7 @@ module.exports = ({ config }) => ({
       FIREBASE_STORAGE_BUCKET: process.env.FIREBASE_STORAGE_BUCKET,
       FIREBASE_SENDER_ID: process.env.FIREBASE_SENDER_ID,
       FIREBASE_APP_ID: process.env.FIREBASE_APP_ID,
+      API_KEY: process.env.API_KEY,
       eas: {
         projectId: "d6f7b2a9-6744-42a0-9bea-494dfbeb8ccf",
       },
