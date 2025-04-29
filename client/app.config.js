@@ -1,7 +1,7 @@
 require("dotenv/config");
 
-module.exports = () => ({
-  expo: {
+module.exports = ({ config }) => ({
+    ...config,
     name: "Film Manager",
     slug: "client",
     version: "1.0.0",
@@ -63,5 +63,4 @@ module.exports = () => ({
         projectId: "d6f7b2a9-6744-42a0-9bea-494dfbeb8ccf",
       },
     },
-  },
 });

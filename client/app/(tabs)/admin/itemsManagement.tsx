@@ -130,18 +130,38 @@ const ItemsManagement = () => {
         setShowEditModal(false)
     }
 
+    const trueLength = (str) => [...str].length;
+
     const validateInputs = () => {
         const alphanumeric = /^[a-zA-Z0-9 ]*$/;
+        const generalTextPattern = /^[\u4e00-\u9fa5\p{L}\p{N}\p{P}\p{Emoji_Presentation} ]*$/u;
         const numeric = /^[0-9]+$/;
         const locationPattern = /^[0-9-]*$/;
 
         return {
-            barcode: editingBarcode.length > 100 || !alphanumeric.test(editingBarcode),
-            itemName: editingItemName.length > 100 || !alphanumeric.test(editingItemName),
-            itemDescription: editingItemDescription.length > 250 || !alphanumeric.test(editingItemDescription),
-            location: editingItemLocation.length > 20 || !locationPattern.test(editingItemLocation),
-            itemCount: editingItemCount.length > 6 || !numeric.test(editingItemCount),
-            pointsToRedeem: editingItemPointsToRedeem.length > 6 || !numeric.test(editingItemPointsToRedeem),
+            barcode:
+                trueLength(editingBarcode) > 100 ||
+                !alphanumeric.test(editingBarcode),
+
+            itemName:
+                trueLength(editingItemName) > 100 ||
+                !generalTextPattern.test(editingItemName),
+    
+            itemDescription:
+                trueLength(editingItemDescription) > 250 ||
+                !generalTextPattern.test(editingItemDescription),
+
+            location:
+                trueLength(editingItemLocation) > 20 ||
+                !locationPattern.test(editingItemLocation),
+
+            itemCount:
+                trueLength(editingItemCount) > 6 ||
+                !numeric.test(editingItemCount),
+
+            pointsToRedeem:
+                trueLength(editingItemPointsToRedeem) > 6 ||
+                !numeric.test(editingItemPointsToRedeem),
         };
     };
 
