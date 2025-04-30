@@ -362,7 +362,7 @@ app.post("/api/barcodes", securityMiddleware, async (req, res) => {
                 barcode: barcode.trim(),
                 itemName: itemName.trim(),
                 itemDescription: itemDescription?.trim() || "",
-                group: group?.trim() || "Unknown",
+                group: group?.trim() || "consumable",
                 location: location?.trim() || "",
                 totalCount: count,
                 pointsToRedeem,
