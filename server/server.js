@@ -406,7 +406,9 @@ app.put("/api/barcodes", securityMiddleware, async (req, res) => {
                 continue;
             }
 
+            const currentGroup = (group || existingBarcode.group || "consumable").trim();
             let newCount = existingBarcode.totalCount;
+
             if (operation === "receive") {
                 if (typeof count !== "number") {
                     errors.push({ index, error: "Count must be numeric", id });
@@ -418,7 +420,15 @@ app.put("/api/barcodes", securityMiddleware, async (req, res) => {
                     errors.push({ index, error: "Invalid dispatch quantity", id });
                     continue;
                 }
+
                 newCount -= count;
+
+                console.log(newCount)
+
+                if (currentGroup === "consumable" && newCount <= 0) {
+                    DM.destroy(["Barcodes", id]);
+                    continue;
+                }
             } else {
                 if (typeof count === "number") newCount = count;
             }
@@ -428,7 +438,7 @@ app.put("/api/barcodes", securityMiddleware, async (req, res) => {
                 barcode: barcode?.trim() || existingBarcode.barcode,
                 itemName: itemName?.trim() || existingBarcode.itemName,
                 itemDescription: itemDescription?.trim() || existingBarcode.itemDescription,
-                group: group?.trim() || existingBarcode.group,
+                group: currentGroup,
                 location: location?.trim() || existingBarcode.location,
                 pointsToRedeem: typeof pointsToRedeem === "number" ? pointsToRedeem : existingBarcode.pointsToRedeem,
                 totalCount: newCount,

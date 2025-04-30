@@ -95,8 +95,7 @@ export default function ScannerScreen() {
         console.log(barcodes)
     }, [barcodes])
 
-    const groupLabels = { camera: "Camera", lighting: "Lighting", audio: "Audio", lenses: "Lenses", accessories: "Accessories", grip: "Grip Equipment", power: "Power Supply", cables: "Cables", misc: "Miscellaneous", others: "Others" };
-
+    const groupLabels = { consumable: "消耗品", rental: "租赁物" };
     const scanInputRef = useRef<any>(null)
     const inputRef = useRef<any>(null);
 
@@ -247,7 +246,7 @@ export default function ScannerScreen() {
                         : {
                             id: uuidv4(),
                             barcode: barcodeToScan,
-                            group: "others",
+                            group: "consumable",
                             itemName: "New Item",
                             itemDescription: "",
                             createdAt: new Date().toISOString(),
@@ -271,7 +270,7 @@ export default function ScannerScreen() {
                                     {
                                         id: uuidv4(),
                                         barcode: barcodeToScan,
-                                        group: "others",
+                                        group: "consumable",
                                         itemName: "New Item",
                                         itemDescription: "",
                                         createdAt: new Date().toISOString(),

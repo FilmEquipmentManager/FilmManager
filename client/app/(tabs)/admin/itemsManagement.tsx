@@ -77,9 +77,8 @@ const ItemsManagement = () => {
 
     const { API_KEY } = Constants.expoConfig.extra;
 
-    const groupLabels = { all: "All Equipment", available: "Available Items", unavailable: "Unavailable Items", camera: "Camera", lighting: "Lighting", audio: "Audio", lenses: "Lenses", accessories: "Accessories", grip: "Grip Equipment", power: "Power Supply", cables: "Cables", misc: "Miscellaneous", others: "Others" };
-    const editingGroupLabels = { camera: "Camera", lighting: "Lighting", audio: "Audio", lenses: "Lenses", accessories: "Accessories", grip: "Grip Equipment", power: "Power Supply", cables: "Cables", misc: "Miscellaneous", others: "Others" };
-
+    const groupLabels = { all: "All Equipment", available: "Available Items", unavailable: "Unavailable Items", consumable: "消耗品", rental: "租赁物" };
+    const editingGroupLabels = { consumable: "消耗品", rental: "租赁物" };
     const barcodeArray: BarcodeItem[] = barcodes ? Object.values(barcodes) : [];
 
     const filteredItems: BarcodeItem[] = barcodeArray.filter((barcode: BarcodeItem) => {
