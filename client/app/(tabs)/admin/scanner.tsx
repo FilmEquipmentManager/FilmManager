@@ -25,6 +25,7 @@ import { Box } from "@/components/ui/box";
 import { useData } from "@/contexts/DataContext";
 import { useLocalSearchParams } from "expo-router";
 import { Platform } from "react-native";
+import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 
 interface ScannedItem {
@@ -115,7 +116,7 @@ export default function ScannerScreen() {
             itemName:
                 trueLength(editingItemName) > 100 ||
                 !generalTextPattern.test(editingItemName),
-    
+
             itemDescription:
                 trueLength(editingItemDescription) > 250 ||
                 !generalTextPattern.test(editingItemDescription),
@@ -520,7 +521,7 @@ export default function ScannerScreen() {
                 location: item.location,
                 pointsToRedeem: item.pointsToRedeem,
             }));
-              
+
             const response = await server.put('/api/barcodes', dispatchPayload);
 
             await Promise.all(dispatchPayload);
