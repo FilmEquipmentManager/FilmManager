@@ -53,7 +53,7 @@ const authMiddleware = async (req, res, next) => {
 
 const securityMiddleware = async (req, res, next) => {
     try {
-        const apiKey = req.headers.apiKey;
+        const apiKey = req.headers.api_key;
 
         if (!apiKey) {
             return res.status(400).json({ error: 'UERROR: Missing API Key.' });
@@ -327,177 +327,166 @@ app.get("/api/barcodes", authMiddleware, securityMiddleware, async (req, res) =>
 
 app.post("/api/barcodes", securityMiddleware, async (req, res) => {
     try {
-        const {
-            barcode,
-            itemName,
-            itemDescription,
-            count,
-            group,
-            location,
-            pointsToRedeem,
-        } = req.body;
-
-        if (
-            (barcode !== null && barcode !== undefined && typeof barcode !== "string") ||
-            (itemName !== null && itemName !== undefined && typeof itemName !== "string") ||
-            (itemDescription !== null && itemDescription !== undefined && typeof itemDescription !== "string") ||
-            (group !== null && group !== undefined && typeof group !== "string") ||
-            (location !== null && location !== undefined && typeof location !== "string")
-        ) {
-            return res.status(400).json({
-                error: "UERROR: Invalid input types for strings.",
-            });
-        }
-
-        if (
-            (count !== null && count !== undefined && typeof count !== "number") ||
-            (pointsToRedeem !== null && pointsToRedeem !== undefined && typeof pointsToRedeem !== "number")
-        ) {
-            return res.status(400).json({
-                error: "UERROR: Invalid input types for numbers.",
-            });
-        }
-
+        const barcodes = Array.isArray(req.body) ? req.body : [req.body];
         const now = new Date().toISOString();
-        const updatedBy = req.user.name || req.user.email || req.user.uid || "Unknown";
+        const updatedBy = req?.user?.name || req?.user?.email || req?.user?.uid || "Unknown";
 
-        const newBarcode = {
-            id: Date.now().toString(),
-            barcode: typeof barcode === "string" ? barcode.trim() : null,
-            itemName: typeof itemName === "string" ? itemName.trim() : null,
-            itemDescription: typeof itemDescription === "string" ? itemDescription.trim() : null,
-            group: typeof group === "string" ? group.trim() : "Unknown",
-            location: typeof location === "string" ? location.trim() : "Unknown",
-            totalCount: typeof count === "number" ? count : 1,
-            pointsToRedeem: typeof pointsToRedeem === "number" ? pointsToRedeem : 0,
-            createdAt: now,
-            updatedAt: now,
-            updatedBy,
-        };
+        const successes = [];
+        const errors = [];
 
-        DM["Barcodes"][newBarcode.id] = newBarcode;
+        for (const [index, b] of barcodes.entries()) {
+            const {
+                barcode, itemName, itemDescription,
+                count, group, location, pointsToRedeem
+            } = b;
+
+            // Validate
+            const isValid =
+                (typeof barcode === "string") &&
+                (typeof itemName === "string") &&
+                (typeof itemDescription === "string" || itemDescription === undefined) &&
+                (typeof group === "string" || group === undefined) &&
+                (typeof location === "string" || location === undefined) &&
+                (typeof count === "number") &&
+                (typeof pointsToRedeem === "number");
+
+            if (!isValid) {
+                errors.push({ index, error: "Invalid barcode input types." });
+                continue;
+            }
+
+            const newBarcode = {
+                id: Utilities.generateUniqueID(),
+                barcode: barcode.trim(),
+                itemName: itemName.trim(),
+                itemDescription: itemDescription?.trim() || "",
+                group: group?.trim() || "Unknown",
+                location: location?.trim() || "",
+                totalCount: count,
+                pointsToRedeem,
+                createdAt: now,
+                updatedAt: now,
+                updatedBy
+            };
+
+            DM["Barcodes"][newBarcode.id] = newBarcode;
+            successes.push(newBarcode);
+        }
 
         await DM.save();
-        const barcodeList = Object.values(DM["Barcodes"] || {});
-        io.emit("barcodes_updated", barcodeList);
+        io.emit("barcodes_updated", Object.values(DM["Barcodes"] || {}));
 
         res.status(200).json({
-            message: "SUCCESS: Barcode saved successfully.",
-            result: newBarcode,
+            message: `SUCCESS: ${successes.length} barcodes saved.`,
+            successes,
+            errors
         });
     } catch (error) {
-        console.log(`\n[API] - FAILED: /api/barcodes POST - ${error.stack || error}\n`);
+        console.error(`\n[API] - FAILED: /api/barcodes POST - ${error.stack || error}\n`);
         res.status(500).json({ error: "ERROR: Failed to save data." });
     }
 });
 
-app.put("/api/barcodes/:id", securityMiddleware, async (req, res) => {
+app.put("/api/barcodes", securityMiddleware, async (req, res) => {
     try {
-        const { id } = req.params;
-        const operation = req.body.operation || "edit";
-        const {
-            barcode,
-            itemName,
-            itemDescription,
-            count,
-            group,
-            location,
-            pointsToRedeem,
-        } = req.body;
-
-        if (
-            (barcode !== null && barcode !== undefined && typeof barcode !== "string") ||
-            (itemName !== null && itemName !== undefined && typeof itemName !== "string") ||
-            (itemDescription !== null && itemDescription !== undefined && typeof itemDescription !== "string") ||
-            (group !== null && group !== undefined && typeof group !== "string") ||
-            (location !== null && location !== undefined && typeof location !== "string")
-        ) {
-            return res.status(400).json({
-                error: "UERROR: Invalid input types for strings.",
-            });
-        }
-
-        if (
-            (count !== null && count !== undefined && typeof count !== "number") ||
-            (pointsToRedeem !== null && pointsToRedeem !== undefined && typeof pointsToRedeem !== "number")
-        ) {
-            return res.status(400).json({
-                error: "UERROR: Invalid input types for numbers.",
-            });
-        }
-
+        const updates = Array.isArray(req.body) ? req.body : [req.body];
         const now = new Date().toISOString();
-        const updatedBy = req.user.name || req.user.email || req.user.uid || "Unknown";
+        const updatedBy = req?.user?.name || req?.user?.email || req?.user?.uid || "Unknown";
 
-        const existingBarcode = DM.peek(["Barcodes", id]);
-        if (!existingBarcode) {
-            return res.status(404).json({ error: "UERROR: Barcode not found." });
+        const successes = [];
+        const errors = [];
+
+        for (const [index, item] of updates.entries()) {
+            const { id, barcode, itemName, itemDescription, count, group, location, pointsToRedeem, operation = "edit" } = item;
+
+            const existingBarcode = DM.peek(["Barcodes", id]);
+
+            if (!existingBarcode) {
+                errors.push({ index, error: "Barcode not found", id });
+                continue;
+            }
+
+            let newCount = existingBarcode.totalCount;
+            if (operation === "receive") {
+                if (typeof count !== "number") {
+                    errors.push({ index, error: "Count must be numeric", id });
+                    continue;
+                }
+                newCount += count;
+            } else if (operation === "dispatch") {
+                if (typeof count !== "number" || count > existingBarcode.totalCount) {
+                    errors.push({ index, error: "Invalid dispatch quantity", id });
+                    continue;
+                }
+                newCount -= count;
+            } else {
+                if (typeof count === "number") newCount = count;
+            }
+
+            const updated = {
+                ...existingBarcode,
+                barcode: barcode?.trim() || existingBarcode.barcode,
+                itemName: itemName?.trim() || existingBarcode.itemName,
+                itemDescription: itemDescription?.trim() || existingBarcode.itemDescription,
+                group: group?.trim() || existingBarcode.group,
+                location: location?.trim() || existingBarcode.location,
+                pointsToRedeem: typeof pointsToRedeem === "number" ? pointsToRedeem : existingBarcode.pointsToRedeem,
+                totalCount: newCount,
+                updatedAt: now,
+                updatedBy
+            };
+
+            DM["Barcodes"][id] = updated;
+            successes.push(updated);
         }
-
-        let newCount = existingBarcode.totalCount;
-
-        if (operation === "receive") {
-            if (typeof count !== "number") {
-                return res.status(400).json({ error: "UERROR: Item's count must be numeric" });
-            }
-            newCount += count;
-        } else if (operation === "dispatch") {
-            if (typeof count !== "number") {
-                return res.status(400).json({ error: "UERROR: Item's count must be numeric" });
-            }
-            if (count > existingBarcode.totalCount) {
-                return res.status(400).json({ error: "UERROR: Not enough stock to dispatch. Please rescan the item or check inventory" });
-            }
-            newCount -= count;
-        } else {
-            newCount = typeof count === "number" ? count : existingBarcode.totalCount;
-        }
-
-        const updatedBarcode = {
-            ...existingBarcode,
-            barcode: typeof barcode === "string" ? barcode.trim() : existingBarcode.barcode,
-            itemName: typeof itemName === "string" ? itemName.trim() : existingBarcode.itemName,
-            itemDescription: typeof itemDescription === "string" ? itemDescription.trim() : existingBarcode.itemDescription,
-            group: typeof group === "string" ? group.trim() : existingBarcode.group || "",
-            location: typeof location === "string" ? location.trim() : existingBarcode.location || "",
-            pointsToRedeem: typeof pointsToRedeem === "number" ? pointsToRedeem : existingBarcode.pointsToRedeem || 0,
-            totalCount: newCount,
-            updatedAt: now,
-            updatedBy,
-        };
-
-        DM["Barcodes"][id] = updatedBarcode;
 
         await DM.save();
         io.emit("barcodes_updated", Object.values(DM["Barcodes"] || {}));
 
-        res.status(200).json({ message: "SUCCESS: Barcode updated successfully." });
+        res.status(200).json({
+            message: `SUCCESS: ${successes.length} barcodes updated.`,
+            successes,
+            errors
+        });
     } catch (error) {
-        console.log(`\n[API] - FAILED: /api/barcodes/:id PUT - ${error.stack || error}\n`);
-        res.status(500).json({ error: "ERROR: Failed to update barcode." });
+        console.error(`\n[API] - FAILED: /api/barcodes PUT - ${error.stack || error}\n`);
+        res.status(500).json({ error: "ERROR: Failed to update barcodes." });
     }
 });
 
-app.delete("/api/barcodes/:id", authMiddleware, securityMiddleware, async (req, res) => {
+app.delete("/api/barcodes", authMiddleware, securityMiddleware, async (req, res) => {
     try {
-        const { id } = req.params;
+        const ids = Array.isArray(req.body) ? req.body : [req.body?.id];
+        const successes = [];
+        const errors = [];
 
-        const existingBarcode = DM.peek(["Barcodes", id]);
+        for (const [index, id] of ids.entries()) {
+            if (typeof id !== "string" || !id.trim()) {
+                errors.push({ index, id, error: "Invalid or missing ID." });
+                continue;
+            }
 
-        if (!existingBarcode) {
-            return res.status(404).json({ error: "UERROR: Barcode not found." });
+            const existing = DM.peek(["Barcodes", id]);
+            if (!existing) {
+                errors.push({ index, id, error: "Barcode not found." });
+                continue;
+            }
+
+            DM.destroy(["Barcodes", id]);
+            successes.push({ id, message: "Deleted successfully." });
         }
 
-        DM.destroy(["Barcodes", id]);
-
         await DM.save();
-
         io.emit("barcodes_updated", Object.values(DM["Barcodes"] || {}));
 
-        res.status(200).json({ message: "SUCCESS: Barcode deleted successfully." });
+        res.status(200).json({
+            message: `SUCCESS: ${successes.length} barcode(s) deleted.`,
+            successes,
+            errors
+        });
     } catch (error) {
-        console.log(`\n[API] - FAILED: /api/barcodes/:id DELETE - ${error.stack || error}\n`);
-        res.status(500).json({ error: "ERROR: Failed to delete barcode." });
+        console.error(`\n[API] - FAILED: /api/barcodes DELETE - ${error.stack || error}\n`);
+        res.status(500).json({ error: "ERROR: Failed to delete barcodes." });
     }
 });
 

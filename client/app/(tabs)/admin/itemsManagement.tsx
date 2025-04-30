@@ -18,6 +18,7 @@ import { Input, InputField, InputSlot } from '@/components/ui/input';
 import { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableData } from "@/components/ui/table";
 import { Heading } from '@/components/ui/heading';
 import server from "../../../networking";
+import Constants from "expo-constants";
 import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast';
 import { Badge } from '@/components/ui/badge';
 import { Box } from '@/components/ui/box';
@@ -73,6 +74,8 @@ const ItemsManagement = () => {
     });
 
     const { barcodes, loading } = useData()
+
+    const { API_KEY } = Constants.expoConfig.extra;
 
     const groupLabels = { all: "All Equipment", available: "Available Items", unavailable: "Unavailable Items", camera: "Camera", lighting: "Lighting", audio: "Audio", lenses: "Lenses", accessories: "Accessories", grip: "Grip Equipment", power: "Power Supply", cables: "Cables", misc: "Miscellaneous", others: "Others" };
     const editingGroupLabels = { camera: "Camera", lighting: "Lighting", audio: "Audio", lenses: "Lenses", accessories: "Accessories", grip: "Grip Equipment", power: "Power Supply", cables: "Cables", misc: "Miscellaneous", others: "Others" };
@@ -187,8 +190,9 @@ const ItemsManagement = () => {
         };
 
         try {
-            await server.put(`/api/barcodes/${editingItem.id}`, {
-                operation: "edit",
+            await server.put('/api/barcodes', [{
+                id: editingItem.id,
+                operation: 'edit',
                 barcode: editingBarcode.trim(),
                 group: editingItemGroup.trim(),
                 location: editingItemLocation.trim(),
@@ -196,13 +200,7 @@ const ItemsManagement = () => {
                 itemName: editingItemName.trim(),
                 itemDescription: editingItemDescription.trim(),
                 count: parseInt(editingItemCount),
-            });
-
-            setPendingItems((prev) =>
-                prev.map((item) =>
-                    item.id === editingItem.id ? updatedItem : item
-                )
-            );
+            }]);
         } catch (error) {
             console.error("Edit Error:", error);
             if (
@@ -233,7 +231,10 @@ const ItemsManagement = () => {
     const handleDelete = async (id: string) => {
         setIsLoading(true);
         try {
-            await server.delete(`/api/barcodes/${id}`);
+            await server.delete('/api/barcodes', {
+                data: [id],
+                headers: { apiKey: API_KEY }
+            });
             setPendingItems((prev) => prev.filter((item) => item.id !== id));
         } catch (error) {
             console.error("Error deleting barcode:", error);

@@ -25,6 +25,7 @@ import { Box } from "@/components/ui/box";
 import { useData } from "@/contexts/DataContext";
 import { useLocalSearchParams } from "expo-router";
 import { Platform } from "react-native";
+import { v4 as uuidv4 } from 'uuid';
 
 interface ScannedItem {
     id: string;
@@ -79,6 +80,8 @@ export default function ScannerScreen() {
     const isShortScreen = height < 750;
     const isMobileScreen = width < 680;
     const isTinyScreen = width < 375;
+
+    const { API_KEY } = Constants.expoConfig.extra;
 
     const { barcodes, loading } = useData()
 
@@ -242,10 +245,10 @@ export default function ScannerScreen() {
                             sessionCount: 1,
                         }
                         : {
-                            id: Date.now().toString(),
+                            id: uuidv4(),
                             barcode: barcodeToScan,
                             group: "others",
-                            itemName: "",
+                            itemName: "New Item",
                             itemDescription: "",
                             createdAt: new Date().toISOString(),
                             updatedAt: new Date().toISOString(),
@@ -266,10 +269,10 @@ export default function ScannerScreen() {
                                 setPendingUnknownItems((prev) => [
                                     ...prev,
                                     {
-                                        id: Date.now().toString(),
+                                        id: uuidv4(),
                                         barcode: barcodeToScan,
                                         group: "others",
-                                        itemName: "",
+                                        itemName: "New Item",
                                         itemDescription: "",
                                         createdAt: new Date().toISOString(),
                                         updatedAt: new Date().toISOString(),
@@ -425,36 +428,36 @@ export default function ScannerScreen() {
 
         try {
             // Update known items (PUT)
-            const updatePromises = knownItemsToReceive.map(item =>
-                server.put(`/api/barcodes/${item.id}`, {
-                    operation: "receive",
-                    count: item.sessionCount,
-                    barcode: item.barcode,
-                    group: item.group,
-                    itemName: item.itemName,
-                    itemDescription: item.itemDescription,
-                    location: item.location,
-                    pointsToRedeem: item.pointsToRedeem,
-                })
-            );
+            if (knownItemsToReceive.length > 0) {
+                const updatePayload = knownItemsToReceive.map(item => ({
+                  id: item.id,
+                  operation: 'receive',
+                  count: item.sessionCount,
+                  barcode: item.barcode,
+                  itemName: item.itemName,
+                  itemDescription: item.itemDescription,
+                  group: item.group,
+                  location: item.location,
+                  pointsToRedeem: item.pointsToRedeem,
+                }));
+                const response = await server.put('/api/barcodes', updatePayload);
+            }
 
             // Create unknown items (POST)
-            const createPromises = unknownItemsToReceive.map(item =>
-                server.post(`/api/barcodes`, {
-                    barcode: item.barcode,
-                    group: item.group,
-                    itemName: item.itemName,
-                    itemDescription: item.itemDescription,
-                    count: item.totalCount + item.sessionCount,
-                    location: item.location,
-                    pointsToRedeem: item.pointsToRedeem,
-                    createdAt: item.createdAt,
-                    updatedAt: item.updatedAt,
-                    updatedBy: item.updatedBy,
-                })
-            );
+            if (unknownItemsToReceive.length > 0) {
+                const createPayload = unknownItemsToReceive.map(item => ({
+                  barcode: item.barcode,
+                  itemName: item.itemName,
+                  itemDescription: item.itemDescription,
+                  count: item.totalCount + item.sessionCount,
+                  group: item.group,
+                  location: item.location,
+                  pointsToRedeem: item.pointsToRedeem,
+                }));
+                const response = await server.post('/api/barcodes', createPayload);
+            }
 
-            await Promise.all([...updatePromises, ...createPromises]);
+            await Promise.all([knownItemsToReceive, unknownItemsToReceive]);
 
             setPendingItems(prev => prev.filter(item => !selectedBarcodes.has(item.barcode)));
             setPendingUnknownItems(prev => prev.filter(item => !selectedBarcodes.has(item.barcode)));
@@ -507,20 +510,21 @@ export default function ScannerScreen() {
         }
 
         try {
-            const updatePromises = dispatchableItems.map(item =>
-                server.put(`/api/barcodes/${item.id}`, {
-                    operation: "dispatch",
-                    count: item.sessionCount,
-                    barcode: item.barcode,
-                    group: item.group,
-                    itemName: item.itemName,
-                    itemDescription: item.itemDescription,
-                    location: item.location,
-                    pointsToRedeem: item.pointsToRedeem,
-                })
-            );
+            const dispatchPayload = dispatchableItems.map(item => ({
+                id: item.id,
+                operation: 'dispatch',
+                count: item.sessionCount,
+                barcode: item.barcode,
+                itemName: item.itemName,
+                itemDescription: item.itemDescription,
+                group: item.group,
+                location: item.location,
+                pointsToRedeem: item.pointsToRedeem,
+            }));
+              
+            const response = await server.put('/api/barcodes', dispatchPayload);
 
-            await Promise.all(updatePromises);
+            await Promise.all(dispatchPayload);
 
             setPendingItems(prev => prev.filter(item => !selectedIds.has(item.id)));
             setPendingUnknownItems(prev => prev.filter(item => !selectedIds.has(item.id)));
@@ -638,8 +642,9 @@ export default function ScannerScreen() {
             );
         } else {
             try {
-                await server.put(`/api/barcodes/${editingItem.id}`, {
-                    operation: "edit",
+                await server.put('/api/barcodes', [{
+                    id: editingItem.id,
+                    operation: 'edit',
                     barcode: editingBarcode.trim(),
                     group: editingItemGroup.trim(),
                     location: editingItemLocation.trim(),
@@ -647,13 +652,7 @@ export default function ScannerScreen() {
                     itemName: editingItemName.trim(),
                     itemDescription: editingItemDescription.trim(),
                     count: parseInt(editingItemCount),
-                });
-
-                setPendingItems((prev) =>
-                    prev.map((item) =>
-                        item.id === editingItem.id ? updatedItem : item
-                    )
-                );
+                }]);
             } catch (error) {
                 console.error("Edit Error:", error);
                 if (
