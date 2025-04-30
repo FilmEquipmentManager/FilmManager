@@ -305,7 +305,8 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-app.get("/api/barcodes", authMiddleware, securityMiddleware, async (req, res) => {
+app.get("/api/barcodes", securityMiddleware, async (req, res) => {
+    console.log(`\n[API] - GET: /api/barcodes\n`);
     try {
         const barcodes = DM.peek(["Barcodes"]);
 
@@ -326,6 +327,7 @@ app.get("/api/barcodes", authMiddleware, securityMiddleware, async (req, res) =>
 });
 
 app.post("/api/barcodes", securityMiddleware, async (req, res) => {
+    console.log(`\n[API] - POST: /api/barcodes\n`);
     try {
         const barcodes = Array.isArray(req.body) ? req.body : [req.body];
         const now = new Date().toISOString();
@@ -388,6 +390,7 @@ app.post("/api/barcodes", securityMiddleware, async (req, res) => {
 });
 
 app.put("/api/barcodes", securityMiddleware, async (req, res) => {
+    console.log(`\n[API] - PUT: /api/barcodes\n`);
     try {
         const updates = Array.isArray(req.body) ? req.body : [req.body];
         const now = new Date().toISOString();
