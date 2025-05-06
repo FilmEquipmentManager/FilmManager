@@ -133,6 +133,11 @@ const ItemsManagement = () => {
         setShowEditModal(false)
     }
 
+    const handleCancelDelete = () => {
+        setDeleteItemId(null);
+        setShowDeleteModal(false);
+    };
+
     const trueLength = (str) => [...str].length;
 
     const validateInputs = () => {
@@ -659,7 +664,7 @@ const ItemsManagement = () => {
                         )}
 
                         {/* Delete Confirmation Modal */}
-                        <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
+                        <Modal isOpen={showDeleteModal} onClose={handleCancelDelete}>
                             <ModalBackdrop />
                             <ModalContent>
                                 <ModalHeader>
@@ -672,7 +677,7 @@ const ItemsManagement = () => {
                                     <Text>Are you sure you want to delete this item? This action cannot be undone.</Text>
                                 </ModalBody>
                                 <ModalFooter>
-                                    <Button variant="outline" style={{ marginRight: 3 }} onPress={() => setShowDeleteModal(false)}>
+                                    <Button variant="outline" style={{ marginRight: 3 }} onPress={handleCancelDelete}>
                                         <ButtonText>Cancel</ButtonText>
                                     </Button>
                                     <Button
@@ -689,7 +694,7 @@ const ItemsManagement = () => {
                         </Modal>
 
                         {/* Known Items Editing Modal */}
-                        <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} size="lg">
+                        <Modal isOpen={showEditModal} onClose={handleCancelKnownItem} size="lg">
                             <ModalBackdrop />
                             <ModalContent>
                                 <ModalHeader>
@@ -710,7 +715,7 @@ const ItemsManagement = () => {
                                         </Input>
                                         {validationErrors.barcode && (
                                             <FormControlHelper>
-                                                <FormControlHelperText style={{ color: "red" }}>* Barcode must be alphanumeric and ≤ 100 characters.</FormControlHelperText>
+                                                <FormControlHelperText style={{ color: "red" }}>* Only letters and numbers. Max 100 characters.</FormControlHelperText>
                                             </FormControlHelper>
                                         )}
                                     </FormControl>
@@ -725,7 +730,7 @@ const ItemsManagement = () => {
                                         </Input>
                                         {validationErrors.itemName && (
                                             <FormControlHelper>
-                                                <FormControlHelperText style={{ color: "red" }}>* Item Name must be alphanumeric and ≤ 100 characters.</FormControlHelperText>
+                                                <FormControlHelperText style={{ color: "red" }}>* Invalid characters or too long. Max 100 characters.</FormControlHelperText>
                                             </FormControlHelper>
                                         )}
                                     </FormControl>
@@ -740,7 +745,7 @@ const ItemsManagement = () => {
                                         </Input>
                                         {validationErrors.itemDescription && (
                                             <FormControlHelper>
-                                                <FormControlHelperText style={{ color: "red" }}>* Description must be alphanumeric and ≤ 250 characters.</FormControlHelperText>
+                                                <FormControlHelperText style={{ color: "red" }}>* Invalid characters or too long. Max 250 characters.</FormControlHelperText>
                                             </FormControlHelper>
                                         )}
                                     </FormControl>
@@ -786,7 +791,7 @@ const ItemsManagement = () => {
                                         </Input>
                                         {validationErrors.location && (
                                             <FormControlHelper>
-                                                <FormControlHelperText style={{ color: "red" }}>* Location can only include numbers and dashes, ≤ 20 characters.</FormControlHelperText>
+                                                <FormControlHelperText style={{ color: "red" }}>* Only numbers and dashes. Max 20 characters.</FormControlHelperText>
                                             </FormControlHelper>
                                         )}
                                     </FormControl>
@@ -818,7 +823,7 @@ const ItemsManagement = () => {
                                                 {validationErrors.itemCount && (
                                                     <FormControlHelper>
                                                         <FormControlHelperText style={{ color: "red" }}>
-                                                            * Count must be numeric and ≤ 6 digits.
+                                                            * Digits only. Max 6 digits.
                                                         </FormControlHelperText>
                                                     </FormControlHelper>
                                                 )}
@@ -843,7 +848,7 @@ const ItemsManagement = () => {
                                                 {validationErrors.pointsToRedeem && (
                                                     <FormControlHelper>
                                                         <FormControlHelperText style={{ color: "red" }}>
-                                                            * Points must be numeric and ≤ 6 digits.
+                                                            * Digits only. Max 6 digits.
                                                         </FormControlHelperText>
                                                     </FormControlHelper>
                                                 )}

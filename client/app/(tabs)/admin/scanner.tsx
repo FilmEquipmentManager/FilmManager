@@ -1822,7 +1822,7 @@ export default function ScannerScreen() {
                 </HStack>
 
                 {/* Known Items Editing Modal */}
-                <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} size="lg">
+                <Modal isOpen={showEditModal} onClose={handleCancelKnownItem} size="lg">
                     <ModalBackdrop />
                     <ModalContent>
                         <ModalHeader>
@@ -1843,7 +1843,7 @@ export default function ScannerScreen() {
                                 </Input>
                                 {validationErrors.barcode && (
                                     <FormControlHelper>
-                                        <FormControlHelperText style={{ color: "red" }}>* Barcode must be alphanumeric and ≤ 100 characters.</FormControlHelperText>
+                                        <FormControlHelperText style={{ color: "red" }}>* Only letters and numbers. Max 100 characters.</FormControlHelperText>
                                     </FormControlHelper>
                                 )}
                             </FormControl>
@@ -1858,7 +1858,7 @@ export default function ScannerScreen() {
                                 </Input>
                                 {validationErrors.itemName && (
                                     <FormControlHelper>
-                                        <FormControlHelperText style={{ color: "red" }}>* Item Name must be alphanumeric and ≤ 100 characters.</FormControlHelperText>
+                                        <FormControlHelperText style={{ color: "red" }}>* Invalid characters or too long. Max 100 characters.</FormControlHelperText>
                                     </FormControlHelper>
                                 )}
                             </FormControl>
@@ -1873,7 +1873,7 @@ export default function ScannerScreen() {
                                 </Input>
                                 {validationErrors.itemDescription && (
                                     <FormControlHelper>
-                                        <FormControlHelperText style={{ color: "red" }}>* Description must be alphanumeric and ≤ 250 characters.</FormControlHelperText>
+                                        <FormControlHelperText style={{ color: "red" }}>* Invalid characters or too long. Max 250 characters.</FormControlHelperText>
                                     </FormControlHelper>
                                 )}
                             </FormControl>
@@ -1919,7 +1919,7 @@ export default function ScannerScreen() {
                                 </Input>
                                 {validationErrors.location && (
                                     <FormControlHelper>
-                                        <FormControlHelperText style={{ color: "red" }}>* Location can only include numbers and dashes, ≤ 20 characters.</FormControlHelperText>
+                                        <FormControlHelperText style={{ color: "red" }}>* Only numbers and dashes. Max 20 characters.</FormControlHelperText>
                                     </FormControlHelper>
                                 )}
                             </FormControl>
@@ -1952,7 +1952,7 @@ export default function ScannerScreen() {
                                         {validationErrors.itemCount && (
                                             <FormControlHelper>
                                                 <FormControlHelperText style={{ color: "red" }}>
-                                                    * Count must be numeric and ≤ 6 digits.
+                                                    * Digits only. Max 6 digits.
                                                 </FormControlHelperText>
                                             </FormControlHelper>
                                         )}
@@ -1978,7 +1978,7 @@ export default function ScannerScreen() {
                                         {validationErrors.pointsToRedeem && (
                                             <FormControlHelper>
                                                 <FormControlHelperText style={{ color: "red" }}>
-                                                    * Points must be numeric and ≤ 6 digits.
+                                                    * Digits only. Max 6 digits.
                                                 </FormControlHelperText>
                                             </FormControlHelper>
                                         )}
@@ -2010,7 +2010,7 @@ export default function ScannerScreen() {
                 </Modal>
 
                 {/* Unknown Items Editing Modal */}
-                <Modal isOpen={showUnknownEditModal} onClose={() => setShowUnknownEditModal(false)} size="lg">
+                <Modal isOpen={showUnknownEditModal} onClose={handleCancelUnknownItem} size="lg">
                     <ModalBackdrop />
                     <ModalContent>
                         <ModalHeader>
@@ -2033,7 +2033,7 @@ export default function ScannerScreen() {
                                 </Input>
                                 {validationErrors.barcode && (
                                     <FormControlHelper>
-                                        <FormControlHelperText style={{ color: "red" }}>* Barcode must be alphanumeric and ≤ 100 characters.</FormControlHelperText>
+                                        <FormControlHelperText style={{ color: "red" }}>* Only letters and numbers. Max 100 characters.</FormControlHelperText>
                                     </FormControlHelper>
                                 )}
                             </FormControl>
@@ -2046,7 +2046,7 @@ export default function ScannerScreen() {
                                 </Input>
                                 {validationErrors.itemName && (
                                     <FormControlHelper>
-                                        <FormControlHelperText style={{ color: "red" }}>* Item Name must be alphanumeric and ≤ 100 characters.</FormControlHelperText>
+                                        <FormControlHelperText style={{ color: "red" }}>* Invalid characters or too long. Max 100 characters.</FormControlHelperText>
                                     </FormControlHelper>
                                 )}
                             </FormControl>
@@ -2059,7 +2059,7 @@ export default function ScannerScreen() {
                                 </Input>
                                 {validationErrors.itemDescription && (
                                     <FormControlHelper>
-                                        <FormControlHelperText style={{ color: "red" }}>* Description must be alphanumeric and ≤ 250 characters.</FormControlHelperText>
+                                        <FormControlHelperText style={{ color: "red" }}>* Invalid characters or too long. Max 250 characters.</FormControlHelperText>
                                     </FormControlHelper>
                                 )}
                             </FormControl>
@@ -2098,7 +2098,7 @@ export default function ScannerScreen() {
                                 </Input>
                                 {validationErrors.location && (
                                     <FormControlHelper>
-                                        <FormControlHelperText style={{ color: "red" }}>* Location can only include numbers and dashes, ≤ 20 characters.</FormControlHelperText>
+                                        <FormControlHelperText style={{ color: "red" }}>* Only numbers and dashes. Max 20 characters.</FormControlHelperText>
                                     </FormControlHelper>
                                 )}
                             </FormControl>
@@ -2131,7 +2131,7 @@ export default function ScannerScreen() {
                                         {validationErrors.itemCount && (
                                             <FormControlHelper>
                                                 <FormControlHelperText style={{ color: "red" }}>
-                                                    * Count must be a number and ≤ 999999.
+                                                    * Digits only. Max 6 digits.
                                                 </FormControlHelperText>
                                             </FormControlHelper>
                                         )}
@@ -2157,7 +2157,7 @@ export default function ScannerScreen() {
                                         {validationErrors.pointsToRedeem && (
                                             <FormControlHelper>
                                                 <FormControlHelperText style={{ color: "red" }}>
-                                                    * Points must be a number and ≤ 999999.
+                                                    * Digits only. Max 6 digits.
                                                 </FormControlHelperText>
                                             </FormControlHelper>
                                         )}
