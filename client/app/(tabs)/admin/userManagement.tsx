@@ -18,6 +18,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
 import server from "../../../networking";
 import { Pressable } from "@/components/ui/pressable";
+import { Box } from "@/components/ui/box";
+import { Spinner } from "@/components/ui/spinner";
 
 interface User {
 	uid: string;
@@ -123,6 +125,18 @@ export default function UserManagement() {
 			day: "numeric"
 		});
 	};
+
+	if (loading)
+		return (
+			<ProtectedRoute showAuth={true}>
+				<LinearGradient colors={isMobileScreen ? ["#00FFDD", "#1B9CFF"] : ["#1B9CFF", "#00FFDD"]} start={isMobileScreen ? { x: 0, y: 0 } : { x: 0, y: 0 }} end={isMobileScreen ? { x: 0, y: 1 } : { x: 1, y: 1 }} style={{ flex: 1, justifyContent: "center",alignItems: "center"}}>
+					<Box style={{ padding: 40, alignItems: "center" }}>
+						<Spinner size="large" />
+						<Text style={{ marginTop: 16, color: "black" }}>Loading users...</Text>
+					</Box>
+				</LinearGradient>
+			</ProtectedRoute>
+	)
 
 	if (!loading)
 		return (

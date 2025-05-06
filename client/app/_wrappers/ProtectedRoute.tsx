@@ -15,7 +15,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { useEffect, useState, useRef } from "react";
 import { Input, InputField } from "@/components/ui/input";
 import { Eye, EyeClosed, LogInIcon } from "lucide-react-native";
-import { Platform } from "react-native";
+import { Platform, useWindowDimensions } from "react-native";
 import server from "../../networking";
 import FirebaseDecoder from "../tools/FirebaseDecoder";
 
@@ -297,6 +297,9 @@ export default function ProtectedRoute({ showAuth, children }: ProtectedRoutePro
 
 	const pathname = usePathname();
 
+	const { width, height } = useWindowDimensions();
+	const isMobileScreen = width < 680;
+
 	const showToast = (title: string, description: string) => {
 		const newId = Math.random();
 		toast.show({
@@ -363,14 +366,7 @@ export default function ProtectedRoute({ showAuth, children }: ProtectedRoutePro
 
 	if (loading) {
 		return (
-			<LinearGradient
-				colors={["#00FFDD", "#1B9CFF"]}
-				style={{
-					flex: 1,
-					justifyContent: "center",
-					alignItems: "center"
-				}}
-			>
+			<LinearGradient colors={isMobileScreen ? ["#00FFDD", "#1B9CFF"] : ["#1B9CFF", "#00FFDD"]} start={isMobileScreen ? { x: 0, y: 0 } : { x: 0, y: 0 }} end={isMobileScreen ? { x: 0, y: 1 } : { x: 1, y: 1 }} style={{ flex: 1, justifyContent: "center",alignItems: "center"}}>
 				<Spinner size="large" />
 			</LinearGradient>
 		);
