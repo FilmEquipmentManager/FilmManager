@@ -75,22 +75,22 @@ export default function UserManagement() {
 	});
 
 	const handleDelete = async (email: string) => {
-        setDeletingUsers(prev => new Set(prev).add(email));
-        try {
-            await server.delete(`/api/users/${email}`);
-            setUsers(prev => prev.filter(user => user.email !== email));
-            showToast(t('userManagement.deleteSuccessTitle'), t('userManagement.deleteSuccessDesc'));
-        } catch (error) {
-            console.error("Error deleting user:", error);
-            showToast(t('userManagement.deleteFailedTitle'), t('userManagement.deleteFailedDesc'));
-        }
-        setDeletingUsers(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(email);
-            return newSet;
-        });
-        setShowDeleteModal(false);
-    };
+		setDeletingUsers(prev => new Set(prev).add(email));
+		try {
+			await server.delete(`/api/users/${email}`);
+			setUsers(prev => prev.filter(user => user.email !== email));
+			showToast(t('userManagement.deleteSuccessTitle'), t('userManagement.deleteSuccessDesc'));
+		} catch (error) {
+			console.error("Error deleting user:", error);
+			showToast(t('userManagement.deleteFailedTitle'), t('userManagement.deleteFailedDesc'));
+		}
+		setDeletingUsers(prev => {
+			const newSet = new Set(prev);
+			newSet.delete(email);
+			return newSet;
+		});
+		setShowDeleteModal(false);
+	};
 
 	const showToast = (title: string, description: string) => {
 		const newId = Math.random();
@@ -131,14 +131,14 @@ export default function UserManagement() {
 	if (loading)
 		return (
 			<ProtectedRoute showAuth={true}>
-				<LinearGradient colors={isMobileScreen ? ["#00FFDD", "#1B9CFF"] : ["#1B9CFF", "#00FFDD"]} start={isMobileScreen ? { x: 0, y: 0 } : { x: 0, y: 0 }} end={isMobileScreen ? { x: 0, y: 1 } : { x: 1, y: 1 }} style={{ flex: 1, justifyContent: "center",alignItems: "center"}}>
+				<LinearGradient colors={isMobileScreen ? ["#00FFDD", "#1B9CFF"] : ["#1B9CFF", "#00FFDD"]} start={isMobileScreen ? { x: 0, y: 0 } : { x: 0, y: 0 }} end={isMobileScreen ? { x: 0, y: 1 } : { x: 1, y: 1 }} style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
 					<Box style={{ padding: 40, alignItems: "center" }}>
 						<Spinner size="large" />
 						<Text style={{ marginTop: 16, color: "black" }}>{t('userManagement.loading')}</Text>
 					</Box>
 				</LinearGradient>
 			</ProtectedRoute>
-	)
+		)
 
 	if (!loading)
 		return (
@@ -252,15 +252,15 @@ export default function UserManagement() {
 																case "actions":
 																	return (
 																		<TableData key={col.key} style={{ ...cellStyle, justifyContent: col.key === "actions" ? "center" : "flex-start" }}>
-                                                                            <Pressable
-                                                                                disabled={deletingUsers.has(user.email)}
-                                                                                onPress={() => {
-                                                                                    setDeleteUserEmail(user.email);
-                                                                                    setShowDeleteModal(true);
-                                                                                }}
-                                                                            >
-                                                                                {deletingUsers.has(user.email) ? t('userManagement.deleting'): <Text style={{ color: "#dc2626", cursor: "pointer" }}>{t('userManagement.delete')}</Text>}
-                                                                            </Pressable>
+																			<Pressable
+																				disabled={deletingUsers.has(user.email)}
+																				onPress={() => {
+																					setDeleteUserEmail(user.email);
+																					setShowDeleteModal(true);
+																				}}
+																			>
+																				{deletingUsers.has(user.email) ? t('userManagement.deleting') : <Text style={{ color: "#dc2626", cursor: "pointer" }}>{t('userManagement.delete')}</Text>}
+																			</Pressable>
 																		</TableData>
 																	);
 																default:
@@ -284,26 +284,26 @@ export default function UserManagement() {
 										) : (
 											<TableBody>
 												<TableRow style={{ backgroundColor: "transparent" }}>
-                                                    <TableData
-                                                        colSpan={columns.length}
-                                                        style={{
-                                                            width: "100%",
-                                                            justifyContent: "center",
-                                                            alignItems: "center",
-                                                            paddingVertical: 20
-                                                        }}
-                                                    >
-                                                        <Text
-                                                            style={{
-                                                                fontSize: isTinyScreen ? 10 : isMobileScreen ? 12 : 14,
-                                                                color: "#6b7280",
-                                                                textAlign: "center"
-                                                            }}
-                                                        >
-                                                            {t('userManagement.noUsers')}
-                                                        </Text>
-                                                    </TableData>
-                                                </TableRow>
+													<TableData
+														colSpan={columns.length}
+														style={{
+															width: "100%",
+															justifyContent: "center",
+															alignItems: "center",
+															paddingVertical: 20
+														}}
+													>
+														<Text
+															style={{
+																fontSize: isTinyScreen ? 10 : isMobileScreen ? 12 : 14,
+																color: "#6b7280",
+																textAlign: "center"
+															}}
+														>
+															{t('userManagement.noUsers')}
+														</Text>
+													</TableData>
+												</TableRow>
 											</TableBody>
 										)}
 									</Table>

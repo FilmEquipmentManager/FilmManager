@@ -993,13 +993,29 @@ export default function ScannerScreen() {
                                                                         elevation: 2,
                                                                     }}
                                                                 >
-                                                                    <Box style={{ justifyContent: "center", alignItems: "center", marginBottom: 20 }}>
+                                                                    <Box
+                                                                        style={{
+                                                                            justifyContent: "center",
+                                                                            alignSelf: "center",
+                                                                            marginBottom: 20,
+                                                                            width: isTinyScreen ? 36 : 90,
+                                                                            height: isTinyScreen ? 36 : 90,
+                                                                            borderRadius: 8,
+                                                                            overflow: 'hidden',
+                                                                        }}
+                                                                    >
                                                                         <Image
-                                                                            size={isTinyScreen ? "sm" : "md"}
-                                                                            borderRadius={12}
-                                                                            source={{ uri: imageUrls[item.id] || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s' }}
+                                                                            size="lg"
+                                                                            source={{
+                                                                                uri:
+                                                                                    imageUrls[item.id] ||
+                                                                                    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s',
+                                                                            }}
                                                                             alt="item image"
-                                                                            style={{ overflow: "hidden" }}
+                                                                            style={{
+                                                                                width: '100%',
+                                                                                height: '100%',
+                                                                            }}
                                                                         />
                                                                     </Box>
                                                                     <HStack style={{ justifyContent: "space-between", alignItems: "center" }}>
@@ -1461,13 +1477,28 @@ export default function ScannerScreen() {
                                                                                 </Checkbox>
                                                                             </Box>
 
-                                                                            <Image
-                                                                                size={isSmallLaptop ? "sm" : "lg"}
-                                                                                borderRadius={12}
-                                                                                source={{ uri: imageUrls[item.id] || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s' }}
-                                                                                alt="item image"
-                                                                                style={{ borderRadius: 12, overflow: "hidden" }}
-                                                                            />
+                                                                            <Box
+                                                                                style={{
+                                                                                    width: isTinyScreen ? 36 : 90,
+                                                                                    height: isTinyScreen ? 36 : 90,
+                                                                                    borderRadius: 8,
+                                                                                    overflow: 'hidden',
+                                                                                }}
+                                                                            >
+                                                                                <Image
+                                                                                    size="lg"
+                                                                                    source={{
+                                                                                        uri:
+                                                                                            imageUrls[item.id] ||
+                                                                                            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s',
+                                                                                    }}
+                                                                                    alt="item image"
+                                                                                    style={{
+                                                                                        width: '100%',
+                                                                                        height: '100%',
+                                                                                    }}
+                                                                                />
+                                                                            </Box>
 
                                                                             {/* Item Details */}
                                                                             <VStack style={{ flex: 1, gap: 6 }}>
@@ -1852,7 +1883,7 @@ export default function ScannerScreen() {
                                         <FormControlLabelText>{t('itemsManagement.editModal.location')}</FormControlLabelText>
                                     </FormControlLabel>
                                     <Input isDisabled={isLoading}>
-                                        <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder={t('itemsManagement.editModal.location')}style={{ height: 40, width: "100%" }} />
+                                        <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder={t('itemsManagement.editModal.location')} style={{ height: 40, width: "100%" }} />
                                     </Input>
                                     {validationErrors.location && (
                                         <FormControlHelper>

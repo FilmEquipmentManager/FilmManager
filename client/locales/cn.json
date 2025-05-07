@@ -1,6 +1,7 @@
 {
 	"navbar": {
-		"navbarChangeLanguage": "切换语言"
+		"navbarChangeLanguage": "切换语言",
+        "languageSwitchTooltip": "点击我切换语言"
 	},
 	"profile": {
 		"profile": "个人资料"

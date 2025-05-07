@@ -1,6 +1,7 @@
 {
 	"navbar": {
-		"navbarChangeLanguage": "Change Language"
+		"navbarChangeLanguage": "Change Language",
+        "languageSwitchTooltip": "Click me to change language"
 	},
 	"profile": {
 		"profile": "Profile"

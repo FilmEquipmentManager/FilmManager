@@ -90,17 +90,17 @@ const ItemsManagement = () => {
 
     const { API_KEY } = Constants.expoConfig.extra;
 
-    const groupLabels = { 
-        all: t('itemsManagement.groups.all'), 
-        available: t('itemsManagement.groups.available'), 
-        unavailable: t('itemsManagement.groups.unavailable'), 
-        consumable: t('itemsManagement.groups.consumable'), 
-        rental: t('itemsManagement.groups.rental') 
+    const groupLabels = {
+        all: t('itemsManagement.groups.all'),
+        available: t('itemsManagement.groups.available'),
+        unavailable: t('itemsManagement.groups.unavailable'),
+        consumable: t('itemsManagement.groups.consumable'),
+        rental: t('itemsManagement.groups.rental')
     };
 
-    const editingGroupLabels = { 
-        consumable: t('itemsManagement.groups.consumable'), 
-        rental: t('itemsManagement.groups.rental') 
+    const editingGroupLabels = {
+        consumable: t('itemsManagement.groups.consumable'),
+        rental: t('itemsManagement.groups.rental')
     };
     const barcodeArray: BarcodeItem[] = barcodes ? Object.values(barcodes) : [];
 
@@ -650,11 +650,24 @@ const ItemsManagement = () => {
                                                                     case "image":
                                                                         return (
                                                                             <TableData key={col.key} style={{ ...cellStyle, justifyContent: "center" }}>
-                                                                                <Image
-                                                                                    style={{ width: isTinyScreen ? 36 : 48, height: isTinyScreen ? 36 : 48, borderRadius: 8 }}
-                                                                                    source={{ uri: imageUrls[item.id] || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s' }}
-                                                                                    alt="item image"
-                                                                                />
+                                                                                <Box
+                                                                                    style={{
+                                                                                        width: isTinyScreen ? 36 : 90,
+                                                                                        height: isTinyScreen ? 36 : 90,
+                                                                                        borderRadius: 8,
+                                                                                        overflow: 'hidden',
+                                                                                    }}
+                                                                                >
+                                                                                    <Image
+                                                                                        size='lg'
+                                                                                        source={{
+                                                                                            uri:
+                                                                                                imageUrls[item.id] ||
+                                                                                                'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s',
+                                                                                        }}
+                                                                                        alt="item image"
+                                                                                    />
+                                                                                </Box>
                                                                             </TableData>
                                                                         );
                                                                     case "stock":
@@ -840,7 +853,7 @@ const ItemsManagement = () => {
                                             <FormControlLabelText>{t('itemsManagement.editModal.barcode')}</FormControlLabelText>
                                         </FormControlLabel>
                                         <Input isDisabled={isLoading}>
-                                            <InputField value={editingBarcode} onChangeText={setEditingBarcode} placeholder={t('itemsManagement.editModal.barcode')}  style={{ height: 40, width: "100%" }} />
+                                            <InputField value={editingBarcode} onChangeText={setEditingBarcode} placeholder={t('itemsManagement.editModal.barcode')} style={{ height: 40, width: "100%" }} />
                                         </Input>
                                         {validationErrors.barcode && (
                                             <FormControlHelper>
@@ -855,7 +868,7 @@ const ItemsManagement = () => {
                                             <FormControlLabelText>{t('itemsManagement.editModal.itemName')}</FormControlLabelText>
                                         </FormControlLabel>
                                         <Input isDisabled={isLoading}>
-                                            <InputField value={editingItemName} onChangeText={setEditingItemName} placeholder={t('itemsManagement.editModal.itemName')}  style={{ height: 40, width: "100%" }} />
+                                            <InputField value={editingItemName} onChangeText={setEditingItemName} placeholder={t('itemsManagement.editModal.itemName')} style={{ height: 40, width: "100%" }} />
                                         </Input>
                                         {validationErrors.itemName && (
                                             <FormControlHelper>
@@ -965,10 +978,20 @@ const ItemsManagement = () => {
                                             style={{ height: 160, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "#ccc", backgroundColor: "transparent", borderRadius: 8 }}
                                         >
                                             {editingItemImage?.uri ? (
-                                                <Image
-                                                    source={{ uri: editingItemImage.uri }}
-                                                    style={{ width: 120, height: 120, borderRadius: 8 }}
-                                                />
+                                                <Box
+                                                    style={{
+                                                        width: 120,
+                                                        height: 120,
+                                                        borderRadius: 8,
+                                                        overflow: 'hidden',
+                                                    }}
+                                                >
+                                                    <Image
+                                                        source={{ uri: editingItemImage.uri }}
+                                                        size="xl"
+                                                        alt="selected item image"
+                                                    />
+                                                </Box>
                                             ) : (
                                                 <Text>{t('itemsManagement.editModal.selectImage')}</Text>
                                             )}
