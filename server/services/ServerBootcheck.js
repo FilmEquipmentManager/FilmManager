@@ -56,7 +56,9 @@ if (missingSAKeys.length > 0) {
 const requiredEnvVars = [
     'PORT',
     'API_KEY',
-    'FIREBASE_DATABASE_URL'
+    'FIREBASE_DATABASE_URL',
+    'SUPABASE_URL',
+    'SUPABASE_ANON_KEY'
 ];
 
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);

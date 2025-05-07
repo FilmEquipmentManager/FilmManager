@@ -27,6 +27,7 @@ import { useLocalSearchParams } from "expo-router";
 import { Platform } from "react-native";
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
+import { Spinner } from "@/components/ui/spinner";
 
 interface ScannedItem {
     id: string;
@@ -67,6 +68,7 @@ export default function ScannerScreen() {
     const [currentMode, setCurrentMode] = useState("");
     const [isFocused, setIsFocused] = useState(false);
     const [isInventoryMode, setIsInventoryMode] = useState(false);
+    const [imageUrls, setImageUrls] = useState({})
     const [validationErrors, setValidationErrors] = useState({
         barcode: false,
         itemName: false,
@@ -439,15 +441,15 @@ export default function ScannerScreen() {
             // Update known items (PUT)
             if (knownItemsToReceive.length > 0) {
                 const updatePayload = knownItemsToReceive.map(item => ({
-                  id: item.id,
-                  operation: 'receive',
-                  count: item.sessionCount,
-                  barcode: item.barcode,
-                  itemName: item.itemName,
-                  itemDescription: item.itemDescription,
-                  group: item.group,
-                  location: item.location,
-                  pointsToRedeem: item.pointsToRedeem,
+                    id: item.id,
+                    operation: 'receive',
+                    count: item.sessionCount,
+                    barcode: item.barcode,
+                    itemName: item.itemName,
+                    itemDescription: item.itemDescription,
+                    group: item.group,
+                    location: item.location,
+                    pointsToRedeem: item.pointsToRedeem,
                 }));
                 const response = await server.put('/api/barcodes', updatePayload);
             }
@@ -455,13 +457,13 @@ export default function ScannerScreen() {
             // Create unknown items (POST)
             if (unknownItemsToReceive.length > 0) {
                 const createPayload = unknownItemsToReceive.map(item => ({
-                  barcode: item.barcode,
-                  itemName: item.itemName,
-                  itemDescription: item.itemDescription,
-                  count: item.totalCount + item.sessionCount,
-                  group: item.group,
-                  location: item.location,
-                  pointsToRedeem: item.pointsToRedeem,
+                    barcode: item.barcode,
+                    itemName: item.itemName,
+                    itemDescription: item.itemDescription,
+                    count: item.totalCount + item.sessionCount,
+                    group: item.group,
+                    location: item.location,
+                    pointsToRedeem: item.pointsToRedeem,
                 }));
                 const response = await server.post('/api/barcodes', createPayload);
             }
@@ -686,9 +688,42 @@ export default function ScannerScreen() {
 
     const selectedInsufficientStock = [...pendingItems, ...pendingUnknownItems].filter(item => selectedIds.has(item.id)).some(item => item.totalCount < 1 || item.sessionCount > item.totalCount);
 
+    const fetchImagesForAllBarcodes = async () => {
+        if (!barcodes || Object.keys(barcodes).length === 0) {
+            console.log("Barcodes data not available.");
+            return;
+        }
+    
+        const newImageUrls = {};
+    
+        for (const [itemId, item] of Object.entries(barcodes)) {
+            let finalUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s';
+            
+            if (item?.imageUrl) {
+                try {
+                    const fileName = item.imageUrl.split("/").pop();
+                    const response = await server.get(`/api/image/url/${fileName}`);
+                    if (response.data?.url) {
+                        finalUrl = response.data.url;
+                    }
+                } catch (err) {
+                    console.error(`Error fetching image for ${itemId}:`, err);
+                }
+            }
+    
+            newImageUrls[itemId] = finalUrl;
+        }
+    
+        setImageUrls(newImageUrls);
+    };
+
     // Update items when realtime database have changes on barcodes
     useEffect(() => {
-        if (!barcodes) return;
+        if (!barcodes || Object.keys(barcodes).length === 0) return;
+        const shouldFetchImages = Object.keys(imageUrls).length !== Object.keys(barcodes).length;
+        if (shouldFetchImages) {
+            fetchImagesForAllBarcodes();
+        }
         const barcodesArray = Object.values(barcodes) as ScannedItem[];
 
         setPendingItems(prev =>
@@ -716,18 +751,18 @@ export default function ScannerScreen() {
         );
     }, [barcodes]);
 
-    if(loading) 
+    if (loading)
         return (
             <ProtectedRoute showAuth={true}>
-                <LinearGradient colors={isMobileScreen ? ["#00FFDD", "#1B9CFF"] : ["#1B9CFF", "#00FFDD"]} start={isMobileScreen ? { x: 0, y: 0 } : { x: 0, y: 0 }} end={isMobileScreen ? { x: 0, y: 1 } : { x: 1, y: 1 }} style={{ flex: 1, justifyContent: "center",alignItems: "center"}}>
+                <LinearGradient colors={isMobileScreen ? ["#00FFDD", "#1B9CFF"] : ["#1B9CFF", "#00FFDD"]} start={isMobileScreen ? { x: 0, y: 0 } : { x: 0, y: 0 }} end={isMobileScreen ? { x: 0, y: 1 } : { x: 1, y: 1 }} style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
                     <Box style={{ padding: 40, alignItems: "center" }}>
                         <Spinner size="large" />
                     </Box>
                 </LinearGradient>
             </ProtectedRoute>
-    )
+        )
 
-    if (!loading) 
+    if (!loading)
         return (
             <ProtectedRoute showAuth={true}>
                 <LinearGradient
@@ -1003,9 +1038,7 @@ export default function ScannerScreen() {
                                                                         <Image
                                                                             size={isTinyScreen ? "sm" : "md"}
                                                                             borderRadius={12}
-                                                                            source={{
-                                                                                uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s',
-                                                                            }}
+                                                                            source={{ uri: imageUrls[item.id] || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s' }}
                                                                             alt="item image"
                                                                             style={{ overflow: "hidden" }}
                                                                         />
@@ -1476,9 +1509,7 @@ export default function ScannerScreen() {
                                                                             <Image
                                                                                 size={isSmallLaptop ? "sm" : "lg"}
                                                                                 borderRadius={12}
-                                                                                source={{
-                                                                                    uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s',
-                                                                                }}
+                                                                                source={{ uri: imageUrls[item.id] || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s' }}
                                                                                 alt="item image"
                                                                                 style={{ borderRadius: 12, overflow: "hidden" }}
                                                                             />
@@ -1748,7 +1779,7 @@ export default function ScannerScreen() {
                                     {selectedInsufficientStock && (
                                         <Text
                                             size={isTinyScreen ? "2xs" : isMobileScreen ? "2xs" : "md"}
-                                            style={{ color: "red", fontWeight: "500", display: isTinyScreen ? "none" : "flex", textAlign: "right" }}
+                                            style={{ color: "red", fontSize: 12, fontWeight: "500", display: isTinyScreen ? "none" : "flex", textAlign: "right" }}
                                         >
                                             Not enough stock to dispatch.
                                         </Text>
@@ -1794,7 +1825,7 @@ export default function ScannerScreen() {
                                     </Input>
                                     {validationErrors.barcode && (
                                         <FormControlHelper>
-                                            <FormControlHelperText style={{ color: "red" }}>* Only letters and numbers. Max 100 characters.</FormControlHelperText>
+                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Only letters and numbers. Max 100 characters.</FormControlHelperText>
                                         </FormControlHelper>
                                     )}
                                 </FormControl>
@@ -1809,7 +1840,7 @@ export default function ScannerScreen() {
                                     </Input>
                                     {validationErrors.itemName && (
                                         <FormControlHelper>
-                                            <FormControlHelperText style={{ color: "red" }}>* Invalid characters or too long. Max 100 characters.</FormControlHelperText>
+                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Invalid characters or too long. Max 100 characters.</FormControlHelperText>
                                         </FormControlHelper>
                                     )}
                                 </FormControl>
@@ -1824,7 +1855,7 @@ export default function ScannerScreen() {
                                     </Input>
                                     {validationErrors.itemDescription && (
                                         <FormControlHelper>
-                                            <FormControlHelperText style={{ color: "red" }}>* Invalid characters or too long. Max 250 characters.</FormControlHelperText>
+                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Invalid characters or too long. Max 250 characters.</FormControlHelperText>
                                         </FormControlHelper>
                                     )}
                                 </FormControl>
@@ -1870,7 +1901,7 @@ export default function ScannerScreen() {
                                     </Input>
                                     {validationErrors.location && (
                                         <FormControlHelper>
-                                            <FormControlHelperText style={{ color: "red" }}>* Only numbers and dashes. Max 20 characters.</FormControlHelperText>
+                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Only numbers and dashes. Max 20 characters.</FormControlHelperText>
                                         </FormControlHelper>
                                     )}
                                 </FormControl>
@@ -1902,7 +1933,7 @@ export default function ScannerScreen() {
                                             </Input>
                                             {validationErrors.itemCount && (
                                                 <FormControlHelper>
-                                                    <FormControlHelperText style={{ color: "red" }}>
+                                                    <FormControlHelperText style={{ color: "red", fontSize: 12 }}>
                                                         * Digits only. Max 6 digits.
                                                     </FormControlHelperText>
                                                 </FormControlHelper>
@@ -1928,7 +1959,7 @@ export default function ScannerScreen() {
                                             </Input>
                                             {validationErrors.pointsToRedeem && (
                                                 <FormControlHelper>
-                                                    <FormControlHelperText style={{ color: "red" }}>
+                                                    <FormControlHelperText style={{ color: "red", fontSize: 12 }}>
                                                         * Digits only. Max 6 digits.
                                                     </FormControlHelperText>
                                                 </FormControlHelper>
@@ -1984,7 +2015,7 @@ export default function ScannerScreen() {
                                     </Input>
                                     {validationErrors.barcode && (
                                         <FormControlHelper>
-                                            <FormControlHelperText style={{ color: "red" }}>* Only letters and numbers. Max 100 characters.</FormControlHelperText>
+                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Only letters and numbers. Max 100 characters.</FormControlHelperText>
                                         </FormControlHelper>
                                     )}
                                 </FormControl>
@@ -1997,7 +2028,7 @@ export default function ScannerScreen() {
                                     </Input>
                                     {validationErrors.itemName && (
                                         <FormControlHelper>
-                                            <FormControlHelperText style={{ color: "red" }}>* Invalid characters or too long. Max 100 characters.</FormControlHelperText>
+                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Invalid characters or too long. Max 100 characters.</FormControlHelperText>
                                         </FormControlHelper>
                                     )}
                                 </FormControl>
@@ -2010,7 +2041,7 @@ export default function ScannerScreen() {
                                     </Input>
                                     {validationErrors.itemDescription && (
                                         <FormControlHelper>
-                                            <FormControlHelperText style={{ color: "red" }}>* Invalid characters or too long. Max 250 characters.</FormControlHelperText>
+                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Invalid characters or too long. Max 250 characters.</FormControlHelperText>
                                         </FormControlHelper>
                                     )}
                                 </FormControl>
@@ -2049,7 +2080,7 @@ export default function ScannerScreen() {
                                     </Input>
                                     {validationErrors.location && (
                                         <FormControlHelper>
-                                            <FormControlHelperText style={{ color: "red" }}>* Only numbers and dashes. Max 20 characters.</FormControlHelperText>
+                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Only numbers and dashes. Max 20 characters.</FormControlHelperText>
                                         </FormControlHelper>
                                     )}
                                 </FormControl>
@@ -2081,7 +2112,7 @@ export default function ScannerScreen() {
                                             </Input>
                                             {validationErrors.itemCount && (
                                                 <FormControlHelper>
-                                                    <FormControlHelperText style={{ color: "red" }}>
+                                                    <FormControlHelperText style={{ color: "red", fontSize: 12 }}>
                                                         * Digits only. Max 6 digits.
                                                     </FormControlHelperText>
                                                 </FormControlHelper>
@@ -2107,7 +2138,7 @@ export default function ScannerScreen() {
                                             </Input>
                                             {validationErrors.pointsToRedeem && (
                                                 <FormControlHelper>
-                                                    <FormControlHelperText style={{ color: "red" }}>
+                                                    <FormControlHelperText style={{ color: "red", fontSize: 12 }}>
                                                         * Digits only. Max 6 digits.
                                                     </FormControlHelperText>
                                                 </FormControlHelper>

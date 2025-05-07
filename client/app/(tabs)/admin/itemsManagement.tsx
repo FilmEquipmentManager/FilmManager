@@ -1,7 +1,7 @@
 // @ts-nocheck
 import ProtectedRoute from '@/app/_wrappers/ProtectedRoute';
-import React, { useState } from 'react';
-import { ScrollView, useWindowDimensions } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ScrollView, useWindowDimensions, Platform } from 'react-native';
 import { Image } from "@/components/ui/image";
 import { Text } from "@/components/ui/text";
 import { LinearGradient } from "expo-linear-gradient";
@@ -23,6 +23,8 @@ import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/t
 import { Badge } from '@/components/ui/badge';
 import { Box } from '@/components/ui/box';
 import { Spinner } from '@/components/ui/spinner';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
 
 interface BarcodeItem {
     id: string;
@@ -57,14 +59,19 @@ const ItemsManagement = () => {
     const [editingItemLocation, setEditingItemLocation] = useState("");
     const [editingItemPointsToRedeem, setEditingItemPointsToRedeem] = useState("");
     const [editingItemGroup, setEditingItemGroup] = useState("");
+    const [editingItemImage, setEditingItemImage] = useState("");
     const [originalItemName, setOriginalItemName] = useState('');
     const [originalItemDescription, setOriginalItemDescription] = useState('');
     const [originalItemCount, setOriginalItemCount] = useState('');
     const [originalItemLocation, setOriginalItemLocation] = useState('');
     const [originalItemPointsToRedeem, setOriginalItemPointsToRedeem] = useState('');
     const [originalItemGroup, setOriginalItemGroup] = useState('');
+    const [originalItemImage, setOriginalItemImage] = useState('');
     const [isSelectOpen, setIsSelectOpen] = useState(false)
     const [isOpen, setIsOpen] = useState(false);
+    const [imageUrls, setImageUrls] = useState({});
+    const [imageLoading, setImageLoading] = useState({});
+    const [imagesFetched, setImagesFetched] = useState(false);
     const [validationErrors, setValidationErrors] = useState({
         barcode: false,
         itemName: false,
@@ -74,7 +81,9 @@ const ItemsManagement = () => {
         pointsToRedeem: false,
     });
 
-    const { barcodes, loading } = useData()
+    const { barcodes, loading } = useData();
+
+    const fetchedIdsRef = useRef<string[]>([]);
 
     const { API_KEY } = Constants.expoConfig.extra;
 
@@ -109,6 +118,11 @@ const ItemsManagement = () => {
         setEditingItemLocation(item.location ?? "");
         setEditingItemPointsToRedeem(item.pointsToRedeem?.toString() ?? "0");
         setEditingItemGroup(item.group ?? "");
+        if (item.imageUrl) {
+            setEditingItemImage({ uri: item.imageUrl });
+        } else {
+            setEditingItemImage(null);
+        }
 
         setOriginalItemName(item.itemName ?? "");
         setOriginalItemDescription(item.itemDescription ?? "");
@@ -116,6 +130,7 @@ const ItemsManagement = () => {
         setOriginalItemLocation(item.location ?? "");
         setOriginalItemPointsToRedeem(item.pointsToRedeem?.toString() ?? "0");
         setOriginalItemGroup(item.group ?? "");
+        setOriginalItemImage(item.imageUrl ?? "")
 
         setShowEditModal(true);
     };
@@ -154,7 +169,7 @@ const ItemsManagement = () => {
             itemName:
                 trueLength(editingItemName) > 100 ||
                 !generalTextPattern.test(editingItemName),
-    
+
             itemDescription:
                 trueLength(editingItemDescription) > 250 ||
                 !generalTextPattern.test(editingItemDescription),
@@ -183,18 +198,29 @@ const ItemsManagement = () => {
         if (!editingItem || !handleValidation()) return;
         setIsLoading(true);
 
-        const updatedItem = {
-            ...editingItem,
-            barcode: editingBarcode.trim(),
-            itemName: editingItemName.trim(),
-            itemDescription: editingItemDescription.trim(),
-            location: editingItemLocation.trim(),
-            pointsToRedeem: parseInt(editingItemPointsToRedeem) || 0,
-            group: editingItemGroup.trim(),
-            totalCount: parseInt(editingItemCount) || 0,
-        };
-
         try {
+            let uploadedFilePath = editingItem.imageUrl;
+
+            if (editingItemImage?.base64 && editingItemImage?.mimeType) {
+                try {
+                    const response = await server.post(`/api/image/upload`, {
+                        itemId: editingItem.id,
+                        base64: editingItemImage.base64,
+                        mimeType: editingItemImage.mimeType,
+                    });
+
+                    uploadedFilePath = response.data.imageUrl;
+                    editingItem.imageUrl = uploadedFilePath;
+                    setEditingItemImage(uploadedFilePath);
+                } catch (error) {
+                    console.error("Error uploading image:", error);
+                    showToast("Image Upload Failed", "An unexpected error occurred. Please try again.");
+                    setIsLoading(false);
+                    return;
+                }
+            }
+
+            // Submit updated item
             await server.put('/api/barcodes', [{
                 id: editingItem.id,
                 operation: 'edit',
@@ -205,7 +231,12 @@ const ItemsManagement = () => {
                 itemName: editingItemName.trim(),
                 itemDescription: editingItemDescription.trim(),
                 count: parseInt(editingItemCount),
+                imageUrl: uploadedFilePath,
             }]);
+
+            setShowEditModal(false);
+            setEditingItem(null);
+            showToast("Success", "Item updated successfully.");
         } catch (error) {
             console.error("Edit Error:", error);
             if (
@@ -216,21 +247,18 @@ const ItemsManagement = () => {
             ) {
                 const cleanedMessage = error.response.data.error.replace("UERROR: ", "");
                 showToast("Edit Error", cleanedMessage);
-            } else {
-                showToast("Edit Error", "Failed to update barcode. Please try again.");
             }
+        } finally {
+            setIsLoading(false);
+            setEditingBarcode(editingItem?.barcode || "");
+            setEditingItemName(editingItem?.itemName || "");
+            setEditingItemDescription(editingItem?.itemDescription || "");
+            setEditingItemCount(editingItem?.totalCount.toString() || "");
+            setEditingItemLocation(editingItem?.location || "");
+            setEditingItemPointsToRedeem(editingItem?.pointsToRedeem.toString() || "");
+            setEditingItemGroup(editingItem?.group || "");
+            setEditingItemImage(editingItem?.imageUrl || "")
         }
-
-        setEditingItem(null);
-        setShowEditModal(false);
-        setIsLoading(false);
-        setEditingBarcode(editingItem?.barcode || "");
-        setEditingItemName(editingItem?.itemName || "");
-        setEditingItemDescription(editingItem?.itemDescription || "");
-        setEditingItemCount(editingItem?.totalCount.toString() || "");
-        setEditingItemLocation(editingItem?.location || "");
-        setEditingItemPointsToRedeem(editingItem?.pointsToRedeem.toString() || "");
-        setEditingItemGroup(editingItem?.group || "");
     };
 
     const handleDelete = async (id: string) => {
@@ -241,6 +269,7 @@ const ItemsManagement = () => {
                 headers: { apiKey: API_KEY }
             });
             setPendingItems((prev) => prev.filter((item) => item.id !== id));
+            showToast("Delete Success", "The item has been successfully deleted.");
         } catch (error) {
             console.error("Error deleting barcode:", error);
             showToast("Delete failed", "Failed to delete barcode. Please try again.");
@@ -299,17 +328,104 @@ const ItemsManagement = () => {
 
     const columns = allColumns.filter(col => col.visible);
 
+    const handleImageSelection = async () => {
+        if (Platform.OS === 'web') {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+
+            fileInput.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const previewUrl = URL.createObjectURL(file);
+                    const base64 = await readFileAsBase64(file);
+
+                    setEditingItemImage({
+                        uri: previewUrl,
+                        base64,
+                        mimeType: file.type,
+                    });
+                }
+            };
+
+            fileInput.click();
+        } else {
+            const result = await DocumentPicker.getDocumentAsync({
+                type: ['image/*'],
+                copyToCacheDirectory: true,
+            });
+
+            if (!result.canceled) {
+                const file = result.assets[0];
+
+                const base64 = await FileSystem.readAsStringAsync(file.uri, {
+                    encoding: FileSystem.EncodingType.Base64,
+                });
+
+                setEditingItemImage({
+                    uri: file.uri,
+                    base64,
+                    mimeType: file.mimeType || 'image/jpeg',
+                });
+            }
+        }
+    };
+
+    const readFileAsBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    };
+
+    const fetchImagesForAllBarcodes = async () => {
+        if (!barcodes || Object.keys(barcodes).length === 0) {
+            console.log("Barcodes data not available.");
+            return;
+        }
+
+        const newImageUrls = {};
+
+        for (const [itemId, item] of Object.entries(barcodes)) {
+            let finalUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s';
+
+            if (item?.imageUrl) {
+                try {
+                    const fileName = item.imageUrl.split("/").pop();
+                    const response = await server.get(`/api/image/url/${fileName}`);
+                    if (response.data?.url) {
+                        finalUrl = response.data.url;
+                    }
+                } catch (err) {
+                    console.error(`Error fetching image for ${itemId}:`, err);
+                }
+            }
+
+            newImageUrls[itemId] = finalUrl;
+        }
+
+        setImageUrls(newImageUrls);
+    };
+
+    useEffect(() => {
+        if (barcodes && Object.keys(barcodes).length > 0) {
+            fetchImagesForAllBarcodes();
+        }
+    }, [barcodes]);
+
     if (loading)
         return (
-        <ProtectedRoute showAuth={true}>
-            <LinearGradient colors={isMobileScreen ? ["#00FFDD", "#1B9CFF"] : ["#1B9CFF", "#00FFDD"]} start={isMobileScreen ? { x: 0, y: 0 } : { x: 0, y: 0 }} end={isMobileScreen ? { x: 0, y: 1 } : { x: 1, y: 1 }} style={{ flex: 1, justifyContent: "center",alignItems: "center"}}>
-                <Box style={{ padding: 40, alignItems: "center" }}>
-                    <Spinner size="large" />
-                    <Text style={{ marginTop: 16, color: "black" }}>Loading items...</Text>
-                </Box>
-            </LinearGradient>
-        </ProtectedRoute>
-    )
+            <ProtectedRoute showAuth={true}>
+                <LinearGradient colors={isMobileScreen ? ["#00FFDD", "#1B9CFF"] : ["#1B9CFF", "#00FFDD"]} start={isMobileScreen ? { x: 0, y: 0 } : { x: 0, y: 0 }} end={isMobileScreen ? { x: 0, y: 1 } : { x: 1, y: 1 }} style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                    <Box style={{ padding: 40, alignItems: "center" }}>
+                        <Spinner size="large" />
+                        <Text style={{ marginTop: 16, color: "black" }}>Loading items...</Text>
+                    </Box>
+                </LinearGradient>
+            </ProtectedRoute>
+        )
 
     if (!loading)
         return (
@@ -332,10 +448,10 @@ const ItemsManagement = () => {
                                         style={{ backgroundColor: "white" }}
                                     >
                                         {!isMobileScreen && (
-                                            <SelectInput placeholder="Category" style={{ color: "black" }} />
+                                            <SelectInput value={groupLabels[selectedGroup]} placeholder="Category" style={{ color: "black" }} />
                                         )}
                                         {isMobileScreen && (
-                                            <Text style={{ color: "black", fontSize: 14, padding: 10 }}>Filter</Text>
+                                            <Text style={{ color: "black", fontSize: 14, padding: 10 }}>{groupLabels[selectedGroup]}</Text>
                                         )}
                                         <SelectIcon className="mr-3" as={ChevronDownIcon} />
                                     </SelectTrigger>
@@ -523,7 +639,7 @@ const ItemsManagement = () => {
                                                                             <TableData key={col.key} style={{ ...cellStyle, justifyContent: "center" }}>
                                                                                 <Image
                                                                                     style={{ width: isTinyScreen ? 36 : 48, height: isTinyScreen ? 36 : 48, borderRadius: 8 }}
-                                                                                    source={{ uri: item.imageUrl || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s' }}
+                                                                                    source={{ uri: imageUrls[item.id] || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s' }}
                                                                                     alt="item image"
                                                                                 />
                                                                             </TableData>
@@ -715,7 +831,7 @@ const ItemsManagement = () => {
                                         </Input>
                                         {validationErrors.barcode && (
                                             <FormControlHelper>
-                                                <FormControlHelperText style={{ color: "red" }}>* Only letters and numbers. Max 100 characters.</FormControlHelperText>
+                                                <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Only letters and numbers. Max 100 characters.</FormControlHelperText>
                                             </FormControlHelper>
                                         )}
                                     </FormControl>
@@ -730,7 +846,7 @@ const ItemsManagement = () => {
                                         </Input>
                                         {validationErrors.itemName && (
                                             <FormControlHelper>
-                                                <FormControlHelperText style={{ color: "red" }}>* Invalid characters or too long. Max 100 characters.</FormControlHelperText>
+                                                <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Invalid characters or too long. Max 100 characters.</FormControlHelperText>
                                             </FormControlHelper>
                                         )}
                                     </FormControl>
@@ -745,55 +861,105 @@ const ItemsManagement = () => {
                                         </Input>
                                         {validationErrors.itemDescription && (
                                             <FormControlHelper>
-                                                <FormControlHelperText style={{ color: "red" }}>* Invalid characters or too long. Max 250 characters.</FormControlHelperText>
+                                                <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Invalid characters or too long. Max 250 characters.</FormControlHelperText>
                                             </FormControlHelper>
                                         )}
                                     </FormControl>
 
-                                    {/* Item Group (no validation needed) */}
+                                    <HStack
+                                        style={{
+                                            flexDirection: "row",
+                                            justifyContent: "space-between",
+                                            flexWrap: "wrap",
+                                            gap: 12,
+                                            marginBottom: 12,
+                                        }}
+                                    >
+                                        {/* Item Group */}
+                                        <VStack style={{ width: "48%" }}>
+                                            <FormControl>
+                                                <FormControlLabel>
+                                                    <FormControlLabelText>Item Group</FormControlLabelText>
+                                                </FormControlLabel>
+                                                <Select
+                                                    isDisabled={isLoading}
+                                                    selectedValue={editingItemGroup}
+                                                    onValueChange={(value) => {
+                                                        setEditingItemGroup(value);
+                                                        setIsSelectOpen(false);
+                                                    }}
+                                                    onOpen={() => setIsSelectOpen(true)}
+                                                    onClose={() => setIsSelectOpen(false)}
+                                                >
+                                                    <SelectTrigger
+                                                        variant="outline"
+                                                        size="md"
+                                                        style={{
+                                                            height: 40,
+                                                            alignItems: "center",
+                                                            justifyContent: isMobileScreen ? "flex-start" : "space-between",
+                                                        }}
+                                                    >
+                                                        <SelectInput value={editingGroupLabels[editingItemGroup]} placeholder="Select Item Group" />
+                                                        <SelectIcon className="mr-3" as={ChevronDownIcon} />
+                                                    </SelectTrigger>
+                                                    <SelectPortal>
+                                                        <SelectBackdrop />
+                                                        <SelectContent>
+                                                            <SelectDragIndicatorWrapper>
+                                                                <SelectDragIndicator />
+                                                            </SelectDragIndicatorWrapper>
+                                                            {Object.entries(editingGroupLabels).map(([value, label]) => (
+                                                                <SelectItem key={value} label={label} value={value} />
+                                                            ))}
+                                                        </SelectContent>
+                                                    </SelectPortal>
+                                                </Select>
+                                            </FormControl>
+                                        </VStack>
+
+                                        {/* Location */}
+                                        <VStack style={{ width: "48%" }}>
+                                            <FormControl isInvalid={validationErrors.location}>
+                                                <FormControlLabel>
+                                                    <FormControlLabelText>Location</FormControlLabelText>
+                                                </FormControlLabel>
+                                                <Input isDisabled={isLoading}>
+                                                    <InputField
+                                                        value={editingItemLocation}
+                                                        onChangeText={setEditingItemLocation}
+                                                        placeholder="Enter Item Warehouse Location"
+                                                        style={{ height: 40, width: "100%" }}
+                                                    />
+                                                </Input>
+                                                {validationErrors.location && (
+                                                    <FormControlHelper>
+                                                        <FormControlHelperText style={{ color: "red", fontSize: 12 }}>
+                                                            * Only numbers and dashes. Max 20 characters.
+                                                        </FormControlHelperText>
+                                                    </FormControlHelper>
+                                                )}
+                                            </FormControl>
+                                        </VStack>
+                                    </HStack>
+
                                     <FormControl style={{ marginBottom: 12 }}>
                                         <FormControlLabel>
-                                            <FormControlLabelText>Item Group</FormControlLabelText>
+                                            <FormControlLabelText>Item Image</FormControlLabelText>
                                         </FormControlLabel>
-                                        <Select
-                                            isDisabled={isLoading}
-                                            selectedValue={editingItemGroup}
-                                            onValueChange={(value) => {
-                                                setEditingItemGroup(value);
-                                                setIsSelectOpen(false);
-                                            }}
-                                            onOpen={() => setIsSelectOpen(true)}
-                                            onClose={() => setIsSelectOpen(false)}
+                                        <Button
+                                            onPress={handleImageSelection}
+                                            style={{ height: 160, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "#ccc", backgroundColor: "transparent", borderRadius: 8 }}
                                         >
-                                            <SelectTrigger variant="outline" size="md" style={{ height: 40, alignItems: "center", justifyContent: isMobileScreen ? "flex-start" : "space-between" }}>
-                                                <SelectInput value={editingGroupLabels[editingItemGroup]} placeholder="Select Item Group" />
-                                                <SelectIcon className="mr-3" as={ChevronDownIcon} />
-                                            </SelectTrigger>
-                                            <SelectPortal>
-                                                <SelectBackdrop />
-                                                <SelectContent>
-                                                    <SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
-                                                    {Object.entries(editingGroupLabels).map(([value, label]) => (
-                                                        <SelectItem key={value} label={label} value={value} />
-                                                    ))}
-                                                </SelectContent>
-                                            </SelectPortal>
-                                        </Select>
-                                    </FormControl>
-
-                                    {/* Location */}
-                                    <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.location}>
-                                        <FormControlLabel>
-                                            <FormControlLabelText>Location</FormControlLabelText>
-                                        </FormControlLabel>
-                                        <Input isDisabled={isLoading}>
-                                            <InputField value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder="Enter Item Warehouse Location" style={{ height: 40, width: "100%" }} />
-                                        </Input>
-                                        {validationErrors.location && (
-                                            <FormControlHelper>
-                                                <FormControlHelperText style={{ color: "red" }}>* Only numbers and dashes. Max 20 characters.</FormControlHelperText>
-                                            </FormControlHelper>
-                                        )}
+                                            {editingItemImage?.uri ? (
+                                                <Image
+                                                    source={{ uri: editingItemImage.uri }}
+                                                    style={{ width: 120, height: 120, borderRadius: 8 }}
+                                                />
+                                            ) : (
+                                                <Text>Select Image</Text>
+                                            )}
+                                        </Button>
                                     </FormControl>
 
                                     <HStack
@@ -822,7 +988,7 @@ const ItemsManagement = () => {
                                                 </Input>
                                                 {validationErrors.itemCount && (
                                                     <FormControlHelper>
-                                                        <FormControlHelperText style={{ color: "red" }}>
+                                                        <FormControlHelperText style={{ color: "red", fontSize: 12 }}>
                                                             * Digits only. Max 6 digits.
                                                         </FormControlHelperText>
                                                     </FormControlHelper>
@@ -847,7 +1013,7 @@ const ItemsManagement = () => {
                                                 </Input>
                                                 {validationErrors.pointsToRedeem && (
                                                     <FormControlHelper>
-                                                        <FormControlHelperText style={{ color: "red" }}>
+                                                        <FormControlHelperText style={{ color: "red", fontSize: 12 }}>
                                                             * Digits only. Max 6 digits.
                                                         </FormControlHelperText>
                                                     </FormControlHelper>

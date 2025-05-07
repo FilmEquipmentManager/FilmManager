@@ -2,6 +2,10 @@ process.noDeprecation = true;
 
 require("dotenv").config();
 
+const { createClient } = require('@supabase/supabase-js');
+
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY)
+
 const express = require("express");
 const cors = require("cors");
 
@@ -77,7 +81,7 @@ app.use(
     })
 );
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 app.get("/", (req, res) => {
     res.send("Server healthy!");
@@ -366,6 +370,7 @@ app.post("/api/barcodes", securityMiddleware, async (req, res) => {
                 location: location?.trim() || "",
                 totalCount: count,
                 pointsToRedeem,
+                imageUrl: "",
                 createdAt: now,
                 updatedAt: now,
                 updatedBy
@@ -389,6 +394,7 @@ app.post("/api/barcodes", securityMiddleware, async (req, res) => {
     }
 });
 
+// PUT endpoint: Update barcode item
 app.put("/api/barcodes", securityMiddleware, async (req, res) => {
     console.log(`\n[API] - PUT: /api/barcodes\n`);
     try {
@@ -400,7 +406,7 @@ app.put("/api/barcodes", securityMiddleware, async (req, res) => {
         const errors = [];
 
         for (const [index, item] of updates.entries()) {
-            const { id, barcode, itemName, itemDescription, count, group, location, pointsToRedeem, operation = "edit" } = item;
+            const { id, barcode, itemName, itemDescription, count, group, location, pointsToRedeem, operation = "edit", imageUrl } = item;
 
             const existingBarcode = DM.peek(["Barcodes", id]);
 
@@ -426,7 +432,7 @@ app.put("/api/barcodes", securityMiddleware, async (req, res) => {
 
                 newCount -= count;
 
-                console.log(newCount)
+                console.log(newCount);
 
                 if (currentGroup === "consumable" && newCount <= 0) {
                     DM.destroy(["Barcodes", id]);
@@ -434,6 +440,25 @@ app.put("/api/barcodes", securityMiddleware, async (req, res) => {
                 }
             } else {
                 if (typeof count === "number") newCount = count;
+            }
+
+            if (imageUrl) {
+                const existingImageUrl = existingBarcode.imageUrl;
+
+                if (existingImageUrl) {
+                    const filePath = existingImageUrl.split("/").pop();
+
+                    const { error: deleteError } = await supabase.storage
+                        .from("filmmanager")
+                        .remove([filePath]);
+
+                    if (deleteError) {
+                        errors.push({ index, error: "Failed to delete old image", id });
+                        continue;
+                    }
+                }
+
+                existingBarcode.imageUrl = imageUrl;
             }
 
             const updated = {
@@ -485,6 +510,26 @@ app.delete("/api/barcodes", authMiddleware, securityMiddleware, async (req, res)
                 continue;
             }
 
+            const imageUrl = existing.imageUrl;
+            if (imageUrl && typeof imageUrl === "string") {
+                const filePath = imageUrl.split("/").pop();
+
+                if (filePath) {
+                    const { error: deleteError } = await supabase.storage
+                        .from("filmmanager")
+                        .remove([filePath]);
+
+                    if (deleteError) {
+                        errors.push({ index, id, error: "Failed to delete image", imageUrl });
+                        continue;
+                    }
+                } else {
+                    console.log(`No file path found in image URL for barcode ${id}. Skipping image deletion.`);
+                }
+            } else {
+                console.log(`No valid image URL found for barcode ${id}. Skipping image deletion.`);
+            }
+
             DM.destroy(["Barcodes", id]);
             successes.push({ id, message: "Deleted successfully." });
         }
@@ -500,6 +545,79 @@ app.delete("/api/barcodes", authMiddleware, securityMiddleware, async (req, res)
     } catch (error) {
         console.error(`\n[API] - FAILED: /api/barcodes DELETE - ${error.stack || error}\n`);
         res.status(500).json({ error: "ERROR: Failed to delete barcodes." });
+    }
+});
+
+// POST endpoint: Upload an image
+app.post("/api/image/upload", async (req, res) => {
+    try {
+        const { itemId, base64, mimeType } = req.body;
+
+        if (!itemId || !base64 || !mimeType) {
+            return res.status(400).json({ error: "Missing required fields." });
+        }
+
+        const buffer = Buffer.from(base64, "base64");
+        const uniqueFileName = Utilities.generateUniqueID();
+        const filePath = `${uniqueFileName}`;
+
+        const { data, error } = await supabase.storage
+            .from("filmmanager")
+            .upload(filePath, buffer, {
+                contentType: mimeType,
+                upsert: true,
+            });
+
+        if (error) throw error;
+
+        const { data: publicData } = supabase.storage
+        .from("filmmanager")
+        .getPublicUrl(filePath);
+
+        const imageUrl = publicData?.publicUrl;
+
+        console.log(imageUrl)
+
+        res.status(200).json({ filePath, imageUrl: imageUrl });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET endpoint: Retrieve image URL using itemId
+app.get("/api/image/url/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        console.log(id)
+
+        if (!id) return res.status(400).json({ error: "Missing item id." });
+
+        const filePath = `${id}`;
+
+        const { data } = await supabase.storage
+            .from("filmmanager")
+            .getPublicUrl(filePath);
+
+        return res.status(200).json({ url: data.publicUrl });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete("/api/image/delete/:filePath", async (req, res) => {
+    try {
+        const { filePath } = req.params;
+
+        const { data, error } = await supabase.storage
+            .from("filmmanager")
+            .remove([filePath]);
+
+        if (error) throw error;
+
+        res.status(200).json({ message: "Image deleted", data });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
