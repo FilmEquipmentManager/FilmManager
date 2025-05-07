@@ -305,5 +305,20 @@
 				"generic": "出现错误，请重试。"
 			}
 		}
-	}
+	},
+	"userRewards": {
+        "header": {
+            "title": "我的奖励",
+            "availablePoints": "可用积分: {{points}}"
+        },
+        "table": {
+            "item": "物品",
+            "group": "类别",
+            "quantity": "数量"
+        },
+        "emptyState": {
+            "title": "暂无已兑换奖励",
+            "description": "立即兑换精彩物品！"
+        }
+    }
 }
