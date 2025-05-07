@@ -207,7 +207,20 @@ export default function RedeemScreen() {
         }
     }, [barcodes]);
 
-	if (!productsLoading) return (
+    if (productsLoading) {
+        return (
+            <VStack
+                style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center"
+                }}
+            >
+                <Spinner size="large" color="#10B981" />
+                <Text style={{ marginTop: 16, color: "#6B7280" }}>Loading available equipment...</Text>
+            </VStack>
+        );
+    } else {
         <ProtectedRoute>
             {userData => (
                 <LinearGradient colors={["#F0FDF4", "#ECFEFF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }}>
@@ -1034,5 +1047,5 @@ export default function RedeemScreen() {
                 </LinearGradient>
             )}
         </ProtectedRoute>
-	);
+    }
 }
