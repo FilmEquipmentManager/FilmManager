@@ -17,5 +17,28 @@
         "checkInfo": "查看物品信息",
         "itemsManagement": "物品管理",
         "userManagement": "用户管理"
+    },
+    "userManagement": {
+        "searchPlaceholder": "搜索用户…",
+        "loading": "加载用户…",
+        "noUsers": "未找到用户",
+        "confirmDeletion": "确认删除",
+        "deleteConfirmation": "您确定要删除此用户吗？此操作无法撤销。",
+        "cancel": "取消",
+        "delete": "删除",
+        "fetchErrorTitle": "获取错误",
+        "fetchErrorDesc": "加载用户失败。请重试。",
+        "deleteSuccessTitle": "成功",
+        "deleteSuccessDesc": "用户已成功删除。",
+        "deleteFailedTitle": "删除失败",
+        "deleteFailedDesc": "删除用户失败。请重试。",
+        "table": {
+            "avatar": "头像",
+            "username": "用户名",
+            "email": "电子邮件",
+            "points": "积分",
+            "created": "加入时间",
+            "actions": "操作"
+        }
     }
 }

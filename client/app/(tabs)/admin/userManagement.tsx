@@ -20,6 +20,7 @@ import server from "../../../networking";
 import { Pressable } from "@/components/ui/pressable";
 import { Box } from "@/components/ui/box";
 import { Spinner } from "@/components/ui/spinner";
+import { useTranslation } from 'react-i18next';
 
 interface User {
 	uid: string;
@@ -32,6 +33,7 @@ interface User {
 
 export default function UserManagement() {
 	const { width, height } = useWindowDimensions();
+	const { t } = useTranslation();
 	const [users, setUsers] = useState<User[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [searchQuery, setSearchQuery] = useState("");
@@ -61,7 +63,7 @@ export default function UserManagement() {
 			setUsers(response.data.result);
 		} catch (error) {
 			console.error("Error fetching users:", error);
-			showToast("Fetch Error", "Failed to load users. Please try again.");
+			showToast(t('userManagement.fetchErrorTitle'), t('userManagement.fetchErrorDesc'));
 		} finally {
 			setLoading(false);
 		}
@@ -77,10 +79,10 @@ export default function UserManagement() {
         try {
             await server.delete(`/api/users/${email}`);
             setUsers(prev => prev.filter(user => user.email !== email));
-            showToast("Success", "User deleted successfully.");
+            showToast(t('userManagement.deleteSuccessTitle'), t('userManagement.deleteSuccessDesc'));
         } catch (error) {
             console.error("Error deleting user:", error);
-            showToast("Delete failed", "Failed to delete user. Please try again.");
+            showToast(t('userManagement.deleteFailedTitle'), t('userManagement.deleteFailedDesc'));
         }
         setDeletingUsers(prev => {
             const newSet = new Set(prev);
@@ -132,7 +134,7 @@ export default function UserManagement() {
 				<LinearGradient colors={isMobileScreen ? ["#00FFDD", "#1B9CFF"] : ["#1B9CFF", "#00FFDD"]} start={isMobileScreen ? { x: 0, y: 0 } : { x: 0, y: 0 }} end={isMobileScreen ? { x: 0, y: 1 } : { x: 1, y: 1 }} style={{ flex: 1, justifyContent: "center",alignItems: "center"}}>
 					<Box style={{ padding: 40, alignItems: "center" }}>
 						<Spinner size="large" />
-						<Text style={{ marginTop: 16, color: "black" }}>Loading users...</Text>
+						<Text style={{ marginTop: 16, color: "black" }}>{t('userManagement.loading')}</Text>
 					</Box>
 				</LinearGradient>
 			</ProtectedRoute>
@@ -145,7 +147,7 @@ export default function UserManagement() {
 					<VStack style={{ padding: isMobileScreen ? 4 : 8, width: "90%", alignSelf: "center", gap: 10, marginTop: isMobileScreen ? 60 : 20, marginBottom: 14 }} space="xl">
 						<HStack space="xl" style={{ alignItems: "center", justifyContent: "flex-start", marginBottom: 20, width: "100%" }}>
 							<Input style={{ flex: isMobileScreen ? 1 : 0.4, backgroundColor: "white" }} size={isShortScreen ? "sm" : "md"}>
-								<InputField placeholder="Search users..." value={searchQuery} onChangeText={setSearchQuery} style={{ color: "black" }} />
+								<InputField placeholder={t('userManagement.searchPlaceholder')} value={searchQuery} onChangeText={setSearchQuery} style={{ color: "black" }} />
 								<InputSlot style={{ paddingRight: 4 }}>
 									<Icon as={SearchIcon} size="md" style={{ color: "gray" }} />
 								</InputSlot>
@@ -193,7 +195,7 @@ export default function UserManagement() {
 																	fontSize: isTinyScreen ? 10 : isMobileScreen ? 12 : 14
 																}}
 															>
-																{col.label}
+																{t(`userManagement.table.${col.key}`)}
 															</Text>
 														</TableHead>
 													);
@@ -257,7 +259,7 @@ export default function UserManagement() {
                                                                                     setShowDeleteModal(true);
                                                                                 }}
                                                                             >
-                                                                                {deletingUsers.has(user.email) ? "Deleting..." : <Text style={{ color: "#dc2626", cursor: "pointer" }}>Delete</Text>}
+                                                                                {deletingUsers.has(user.email) ? "Deleting..." : <Text style={{ color: "#dc2626", cursor: "pointer" }}>{t('userManagement.delete')}</Text>}
                                                                             </Pressable>
 																		</TableData>
 																	);
@@ -298,7 +300,7 @@ export default function UserManagement() {
                                                                 textAlign: "center"
                                                             }}
                                                         >
-                                                            No users found
+                                                            {t('userManagement.noUsers')}
                                                         </Text>
                                                     </TableData>
                                                 </TableRow>
@@ -313,17 +315,17 @@ export default function UserManagement() {
 							<ModalBackdrop />
 							<ModalContent>
 								<ModalHeader>
-									<Heading>Confirm Deletion</Heading>
+									<Heading>{t('userManagement.confirmDeletion')}</Heading>
 									<ModalCloseButton>
 										<Icon as={CloseIcon} />
 									</ModalCloseButton>
 								</ModalHeader>
 								<ModalBody>
-									<Text>Are you sure you want to delete this user? This action cannot be undone.</Text>
+									<Text>{t('userManagement.deleteConfirmation')}</Text>
 								</ModalBody>
 								<ModalFooter>
 									<Button variant="outline" style={{ marginRight: 3 }} onPress={() => setShowDeleteModal(false)}>
-										<ButtonText>Cancel</ButtonText>
+										<ButtonText>{t('userManagement.cancel')}</ButtonText>
 									</Button>
 									<Button
 										style={{ backgroundColor: "red" }}
@@ -332,7 +334,7 @@ export default function UserManagement() {
 											setShowDeleteModal(false);
 										}}
 									>
-										<ButtonText>Delete</ButtonText>
+										<ButtonText>{t('userManagement.cancel')}</ButtonText>
 									</Button>
 								</ModalFooter>
 							</ModalContent>
