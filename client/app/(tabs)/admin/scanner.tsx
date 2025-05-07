@@ -28,6 +28,7 @@ import { Platform } from "react-native";
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import { Spinner } from "@/components/ui/spinner";
+import { useTranslation } from 'react-i18next';
 
 interface ScannedItem {
     id: string;
@@ -88,6 +89,8 @@ export default function ScannerScreen() {
 
     const { barcodes, loading } = useData()
 
+    const { t } = useTranslation();
+
     const { mode } = useLocalSearchParams();
     const initialMode = typeof mode === "string" ? mode : "info";
     useEffect(() => {
@@ -99,6 +102,11 @@ export default function ScannerScreen() {
     }, [barcodes])
 
     const groupLabels = { consumable: "消耗品", rental: "租赁物" };
+    const radioOptions = [
+        { value: 'receive', key: 'scanner.radio.receive' },
+        { value: 'dispatch', key: 'scanner.radio.dispatch' },
+        { value: 'info', key: 'scanner.radio.info' },
+    ];
     const scanInputRef = useRef<any>(null)
     const inputRef = useRef<any>(null);
 
@@ -188,10 +196,7 @@ export default function ScannerScreen() {
         socket.on("connect_error", (err) => {
             console.error("Socket connection error:", err);
             if (!toast.isActive(toastId.toString())) {
-                showToast(
-                    "Socket connection error",
-                    "Please check your internet connection and try again."
-                );
+                showToast(t('scanner.toast.socketErrorTitle'), t('scanner.toast.socketErrorDesc'));
             }
         });
 
@@ -218,7 +223,7 @@ export default function ScannerScreen() {
             const barcodeToScan = currentScan.trim();
 
             if (barcodeToScan.startsWith("http")) {
-                showToast("Invalid Barcode", "2D barcodes like QR codes are not supported.");
+                showToast(t('scanner.toast.invalidBarcodeTitle'), t('scanner.toast.invalidBarcodeDesc'));
                 setCurrentScan("");
                 setScannedCode("")
                 setIsLoading(false);
@@ -314,9 +319,9 @@ export default function ScannerScreen() {
                     error.response.data.error.startsWith("UERROR: ")
                 ) {
                     const cleanedMessage = error.response.data.error.replace("UERROR: ", "");
-                    showToast("Scanner Error", cleanedMessage);
+                    showToast(t('scanner.toast.scannerErrorTitle'), cleanedMessage);
                 } else {
-                    showToast("Scanner Error", "Could not verify barcode with the server.");
+                    showToast(t('scanner.toast.scannerErrorTitle'), t('scanner.toast.scannerErrorServerDesc'));
                 }
                 setIsLoading(false);
                 setIsFocused(false);
@@ -378,7 +383,7 @@ export default function ScannerScreen() {
         setPendingItems([]);
         setPendingUnknownItems([]);
         setSelectedIds(new Set());
-        showToast("Cleared", "All scanned results have been removed.");
+        showToast(t('scanner.toast.clearedTitle'), t('scanner.toast.clearedDesc'));
         setIsLoading(false);
     };
 
@@ -475,7 +480,7 @@ export default function ScannerScreen() {
             setSelectedIds(new Set());
 
             const totalReceived = knownItemsToReceive.length + unknownItemsToReceive.length;
-            showToast("Items Received", `${totalReceived} barcodes received.`);
+            showToast(t('scanner.toast.itemsReceivedTitle'), t('scanner.toast.itemsReceivedDesc', { count: totalReceived }));
         } catch (error) {
             console.error("Receive Error:", error);
             if (
@@ -485,9 +490,9 @@ export default function ScannerScreen() {
                 error.response.data.error.startsWith("UERROR: ")
             ) {
                 const cleanedMessage = error.response.data.error.replace("UERROR: ", "");
-                showToast("Receive Error", cleanedMessage);
+                showToast(t('scanner.toast.receiveErrorTitle'), cleanedMessage);
             } else {
-                showToast("Receive Error", "Failed to receive some items.");
+                showToast(t('scanner.toast.receiveErrorTitle'), t('scanner.toast.receiveErrorDesc'));
             }
         } finally {
             setIsLoading(false);
@@ -505,7 +510,7 @@ export default function ScannerScreen() {
         );
 
         if (selectedUnknownItems.length > 0) {
-            showToast("Dispatch Error", "You need to receive unknown items first before dispatching.");
+            showToast(t('scanner.toast.dispatchErrorUnknownTitle'), t('scanner.toast.dispatchErrorUnknownDesc'));
             setIsLoading(false);
             return;
         }
@@ -515,7 +520,7 @@ export default function ScannerScreen() {
         );
 
         if (dispatchableItems.length === 0) {
-            showToast("Dispatch Error", "Selected items have insufficient stock to dispatch.");
+            showToast(t('scanner.toast.dispatchErrorStockTitle'), t('scanner.toast.dispatchErrorStockDesc'));
             setIsLoading(false);
             return;
         }
@@ -540,7 +545,7 @@ export default function ScannerScreen() {
             setPendingItems(prev => prev.filter(item => !selectedIds.has(item.id)));
             setPendingUnknownItems(prev => prev.filter(item => !selectedIds.has(item.id)));
             setSelectedIds(new Set());
-            showToast("Dispatch Successful", `${dispatchableItems.length} items dispatched.`);
+            showToast(t('scanner.toast.dispatchSuccessTitle'), t('scanner.toast.dispatchSuccessDesc', { count: dispatchableItems.length }));
         } catch (error) {
             console.error("Dispatch Error:", error);
             if (
@@ -550,9 +555,9 @@ export default function ScannerScreen() {
                 error.response.data.error.startsWith("UERROR: ")
             ) {
                 const cleanedMessage = error.response.data.error.replace("UERROR: ", "");
-                showToast("Dispatch Error", cleanedMessage);
+                showToast(t('scanner.toast.dispatchErrorTitle'), cleanedMessage);
             } else {
-                showToast("Dispatch Error", "Failed to dispatch items. Please try again.");
+                showToast(t('scanner.toast.dispatchErrorTitle'), t('scanner.toast.dispatchErrorDesc'));
             }
         } finally {
             setIsLoading(false);
@@ -615,9 +620,9 @@ export default function ScannerScreen() {
                     error.response.data.error.startsWith("UERROR: ")
                 ) {
                     const cleanedMessage = error.response.data.error.replace("UERROR: ", "");
-                    showToast("Edit Error", cleanedMessage);
+                    showToast(t('scanner.toast.editErrorTitle'), cleanedMessage);
                 } else {
-                    showToast("Edit Error", "Failed to update barcode. Please try again.");
+                    showToast(t('scanner.toast.editErrorTitle'), t('scanner.toast.editErrorDesc'));
                 }
             }
         }
@@ -693,12 +698,12 @@ export default function ScannerScreen() {
             console.log("Barcodes data not available.");
             return;
         }
-    
+
         const newImageUrls = {};
-    
+
         for (const [itemId, item] of Object.entries(barcodes)) {
             let finalUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s';
-            
+
             if (item?.imageUrl) {
                 try {
                     const fileName = item.imageUrl.split("/").pop();
@@ -710,10 +715,10 @@ export default function ScannerScreen() {
                     console.error(`Error fetching image for ${itemId}:`, err);
                 }
             }
-    
+
             newImageUrls[itemId] = finalUrl;
         }
-    
+
         setImageUrls(newImageUrls);
     };
 
@@ -802,7 +807,7 @@ export default function ScannerScreen() {
                                         <VStack style={{ gap: 8, alignItems: "center" }}>
                                             <ScanIcon size={isMobileScreen ? 40 : 32} color="#3b82f6" style={{ display: isMobileScreen ? "none" : "flex" }} />
                                             <Text style={{ fontSize: 16, fontWeight: "700", color: "#1e293b" }}>
-                                                Scan Area
+                                                {t('scanner.title')}
                                             </Text>
                                         </VStack>
 
@@ -811,7 +816,7 @@ export default function ScannerScreen() {
                                             <Input isDisabled={isLoading} variant="outline">
                                                 <InputField
                                                     ref={scanInputRef}
-                                                    placeholder={isFocused ? "" : "Scan barcode here..."}
+                                                    placeholder={isFocused ? "" : t('scanner.placeholder')}
                                                     value={currentScan}
                                                     onChangeText={(text) => {
                                                         setCurrentScan(text);
@@ -834,63 +839,17 @@ export default function ScannerScreen() {
                                                 />
                                             </Input>
 
-                                            <HStack style={{ justifyContent: "center", gap: 16, marginBottom: 0, display: Platform.OS == "android" ? "flex" : "none" }}>
-                                                <Button
-                                                    onPress={() => {
-                                                        console.log("Inventory scanning started");
-                                                        setIsInventoryMode(true);
-                                                        setShowUnknownEditModal(false);
-                                                    }}
-                                                    size={isTinyScreen ? "xs" : isMobileScreen ? "sm" : "md"}
-                                                    style={{
-                                                        backgroundColor: "#1B9CFF",
-                                                        opacity: isLoading ? 0.5 : 1,
-                                                    }}
-                                                >
-                                                    <ScanIcon size={14} color="white" style={{ display: isTinyScreen ? "flex" : isMobileScreen ? "none" : "flex" }} />
-                                                    {!isTinyScreen && (
-                                                        <ButtonText size={isMobileScreen ? "sm" : "md"} style={{ color: "white" }}>
-                                                            Inventory
-                                                        </ButtonText>
-                                                    )}
-                                                </Button>
-
-                                                <Button
-                                                    onPress={() => {
-                                                        console.log("Inventory scanning stopped");
-                                                        setIsInventoryMode(false);
-                                                    }}
-                                                    variant="solid"
-                                                    action="negative"
-                                                    size={isTinyScreen ? "xs" : isMobileScreen ? "sm" : "md"}
-                                                    style={{
-                                                        opacity: isLoading ? 0.5 : 1,
-                                                    }}
-                                                >
-                                                    <StopCircleIcon size={14} color="white" style={{ display: isTinyScreen ? "flex" : isMobileScreen ? "none" : "flex" }} />
-                                                    {!isTinyScreen && (
-                                                        <ButtonText size={isMobileScreen ? "sm" : "md"} style={{ color: "white" }}>
-                                                            Stop
-                                                        </ButtonText>
-                                                    )}
-                                                </Button>
-                                            </HStack>
-
                                             {/* Barcode Type Notice */}
                                             <HStack style={{ gap: 8, alignItems: "center", justifyContent: "center", display: scannedCode.length > 0 ? "none" : "flex" }}>
                                                 <AlertTriangleIcon size={isMobileScreen ? 12 : 16} color="#64748b" />
                                                 <Text style={{ fontSize: 12, color: "#64748b", textAlign: "center", fontWeight: "500" }}>
-                                                    We only accept 1D barcodes
+                                                    {t('scanner.notice')}
                                                 </Text>
                                             </HStack>
 
                                             <RadioGroup value={currentMode} onChange={setCurrentMode} style={{ justifyContent: "center", alignItems: "center", paddingBottom: pendingItems.length > 0 || pendingUnknownItems.length > 0 ? 0 : 10 }} >
                                                 <HStack space="sm" style={{ gap: 30 }}>
-                                                    {[
-                                                        { value: "receive", label: "Receive" },
-                                                        { value: "dispatch", label: "Dispatch" },
-                                                        { value: "info", label: "Scan Info" },
-                                                    ].map(({ value, label }) => (
+                                                    {radioOptions.map(({ value, key }) => (
                                                         <Radio key={value} value={value} size="sm"  >
                                                             <HStack style={{ alignItems: "center", gap: 6 }}>
                                                                 <RadioIndicator
@@ -925,7 +884,7 @@ export default function ScannerScreen() {
                                                                         color: currentMode === value ? "#1B9CFF" : "#64748b",
                                                                     }}
                                                                 >
-                                                                    {label}
+                                                                    {t(key)}
                                                                 </RadioLabel>
                                                             </HStack>
                                                         </Radio>
@@ -947,7 +906,7 @@ export default function ScannerScreen() {
                                                 <HStack style={{ gap: 8, alignItems: "center", justifyContent: "center", }}>
                                                     <CheckCircleIcon size={isMobileScreen ? 14 : 20} color="#16a34a" />
                                                     <Text style={{ fontSize: 14, fontWeight: "500", color: "#166534" }}>
-                                                        Last Scanned:
+                                                        {t('scanner.scannedResult.lastScanned')}
                                                     </Text>
                                                 </HStack>
                                                 <Text
@@ -1015,7 +974,7 @@ export default function ScannerScreen() {
                                                                     fontSize: 20, fontWeight: "900", color: "#4f46e5",
                                                                     letterSpacing: -0.5, textTransform: "uppercase"
                                                                 }}>
-                                                                    {groupLabels[group] || group}
+                                                                    {t(`itemsManagement.groups.${group}`, { defaultValue: group })}
                                                                 </Text>
                                                             </HStack>
 
@@ -1119,7 +1078,7 @@ export default function ScannerScreen() {
                                                                                     color: "#334155",
                                                                                     fontStyle: item.itemName ? "normal" : "italic"
                                                                                 }}>
-                                                                                    {item.itemName || "Unnamed Product"}
+                                                                                    {item.itemName || t('scanner.item.unnamed')}
                                                                                 </Text>
 
                                                                                 <Text isTruncated={true} style={{
@@ -1128,7 +1087,7 @@ export default function ScannerScreen() {
                                                                                     color: "#334155",
                                                                                     fontStyle: item.itemName ? "normal" : "italic"
                                                                                 }}>
-                                                                                    {item.itemDescription || "No Description"}
+                                                                                    {item.itemDescription || t('scanner.item.noDescription')}
                                                                                 </Text>
 
                                                                                 <HStack style={{ gap: 8, flexWrap: "wrap" }}>
@@ -1141,7 +1100,7 @@ export default function ScannerScreen() {
                                                                                     }}>
                                                                                         <WarehouseIcon size={14} color="#94a3b8" style={{ minWidth: 14 }} />
                                                                                         <Text isTruncated={true} style={{ fontSize: 14, color: "#64748b", fontWeight: "500" }}>
-                                                                                            {item.location || "Unknown Location"}
+                                                                                            {item.location || t('scanner.item.unknownLocation')}
                                                                                         </Text>
                                                                                     </HStack>
 
@@ -1158,7 +1117,7 @@ export default function ScannerScreen() {
                                                                                             color: item.totalCount <= 10 ? "#991b1b" : item.totalCount <= 100 ? "#92400e" : "#166534",
                                                                                             fontWeight: "600"
                                                                                         }}>
-                                                                                            Stock: {item.totalCount}
+                                                                                            {t('scanner.stock', { count: item.totalCount })}
                                                                                         </Text>
                                                                                     </HStack>
                                                                                 </HStack>
@@ -1217,7 +1176,7 @@ export default function ScannerScreen() {
                                                                             textShadowOffset: { width: 0, height: 0 },
                                                                             textShadowRadius: 4
                                                                         }}>
-                                                                            Required Points: {item.pointsToRedeem}
+                                                                            {t('scanner.requiredPoints', { count: item.pointsToRedeem })}
                                                                         </Text>
                                                                     </HStack>
                                                                 </VStack>
@@ -1254,7 +1213,7 @@ export default function ScannerScreen() {
                                                                     letterSpacing: 1
                                                                 }}
                                                             >
-                                                                Scan results will appear here!
+                                                                {t('scanner.emptyState.title')}
                                                             </Text>
                                                         </HStack>
                                                     </VStack>
@@ -1293,7 +1252,7 @@ export default function ScannerScreen() {
                                         <VStack style={{ gap: 8, alignItems: "center" }}>
                                             <ScanIcon size={32} color="#3b82f6" />
                                             <Text style={{ fontSize: 20, fontWeight: "700", color: "#1e293b" }}>
-                                                Scan Area
+                                                {t('scanner.title')}
                                             </Text>
                                         </VStack>
 
@@ -1302,7 +1261,7 @@ export default function ScannerScreen() {
                                             <Input isDisabled={isLoading} variant="outline">
                                                 <InputField
                                                     ref={scanInputRef}
-                                                    placeholder={isFocused ? "" : "Scan barcode here..."}
+                                                    placeholder={isFocused ? "" : t('scanner.placeholder')}
                                                     value={currentScan}
                                                     onChangeText={(text) => {
                                                         setCurrentScan(text);
@@ -1329,17 +1288,13 @@ export default function ScannerScreen() {
                                             <HStack style={{ gap: 8, alignItems: "center", justifyContent: "center" }}>
                                                 <AlertTriangleIcon size={16} color="#64748b" />
                                                 <Text style={{ fontSize: 12, color: "#64748b", textAlign: "center", fontWeight: "500" }}>
-                                                    We only accept 1D barcodes
+                                                    {t('scanner.notice')}
                                                 </Text>
                                             </HStack>
 
                                             <RadioGroup value={currentMode} onChange={setCurrentMode} style={{ justifyContent: "center", alignItems: "center", marginTop: 8 }} >
                                                 <HStack space="sm" style={{ gap: 10 }}>
-                                                    {[
-                                                        { value: "receive", label: "Receive" },
-                                                        { value: "dispatch", label: "Dispatch" },
-                                                        { value: "info", label: "Scan Info" },
-                                                    ].map(({ value, label }) => (
+                                                    {radioOptions.map(({ value, key }) => (
                                                         <Radio key={value} value={value} size="sm"  >
                                                             <HStack style={{ alignItems: "center", gap: 6 }}>
                                                                 <RadioIndicator
@@ -1374,7 +1329,7 @@ export default function ScannerScreen() {
                                                                         color: currentMode === value ? "#1B9CFF" : "#64748b",
                                                                     }}
                                                                 >
-                                                                    {label}
+                                                                    {t(`scanner.radio.${value}`)}
                                                                 </RadioLabel>
                                                             </HStack>
                                                         </Radio>
@@ -1397,7 +1352,7 @@ export default function ScannerScreen() {
                                                 <HStack style={{ gap: 8, alignItems: "center" }}>
                                                     <CheckCircleIcon size={20} color="#16a34a" />
                                                     <Text style={{ fontSize: 14, fontWeight: "500", color: "#166534" }}>
-                                                        Last Scanned:
+                                                        {t('scanner.scannedResult.lastScanned')}
                                                     </Text>
                                                 </HStack>
                                                 <Text
@@ -1465,7 +1420,7 @@ export default function ScannerScreen() {
                                                                     fontSize: 20, fontWeight: "900", color: "#4f46e5",
                                                                     letterSpacing: -0.5, textTransform: "uppercase"
                                                                 }}>
-                                                                    {groupLabels[group] || group}
+                                                                    {t(`itemsManagement.groups.${group}`, { defaultValue: group })}
                                                                 </Text>
                                                             </HStack>
 
@@ -1566,7 +1521,7 @@ export default function ScannerScreen() {
                                                                                     color: "#334155",
                                                                                     fontStyle: item.itemName ? "normal" : "italic"
                                                                                 }}>
-                                                                                    {item.itemName || "Unnamed Product"}
+                                                                                    {item.itemName || t('scanner.item.unnamed')}
                                                                                 </Text>
 
                                                                                 <Text isTruncated={true} style={{
@@ -1575,7 +1530,7 @@ export default function ScannerScreen() {
                                                                                     color: "#334155",
                                                                                     fontStyle: item.itemName ? "normal" : "italic"
                                                                                 }}>
-                                                                                    {item.itemDescription || "No Description"}
+                                                                                    {item.itemDescription || t('scanner.item.noDescription')}
                                                                                 </Text>
 
                                                                                 <HStack style={{ gap: 8, flexWrap: "wrap" }}>
@@ -1588,7 +1543,7 @@ export default function ScannerScreen() {
                                                                                     }}>
                                                                                         <WarehouseIcon size={14} color="#94a3b8" style={{ minWidth: 14 }} />
                                                                                         <Text isTruncated={true} style={{ fontSize: 14, color: "#64748b", fontWeight: "500" }}>
-                                                                                            {item.location || "Unknown Location"}
+                                                                                            {item.location || t('scanner.item.unknownLocation')}
                                                                                         </Text>
                                                                                     </HStack>
 
@@ -1605,7 +1560,7 @@ export default function ScannerScreen() {
                                                                                             color: item.totalCount <= 10 ? "#991b1b" : item.totalCount <= 100 ? "#92400e" : "#166534",
                                                                                             fontWeight: "600"
                                                                                         }}>
-                                                                                            Stock: {item.totalCount}
+                                                                                            {t('scanner.stock', { count: item.totalCount })}
                                                                                         </Text>
                                                                                     </HStack>
                                                                                 </HStack>
@@ -1664,7 +1619,7 @@ export default function ScannerScreen() {
                                                                             textShadowOffset: { width: 0, height: 0 },
                                                                             textShadowRadius: 4
                                                                         }}>
-                                                                            Required Points: {item.pointsToRedeem}
+                                                                            {t('scanner.requiredPoints', { count: item.pointsToRedeem })}
                                                                         </Text>
                                                                     </HStack>
                                                                 </VStack>
@@ -1701,7 +1656,7 @@ export default function ScannerScreen() {
                                                                     letterSpacing: 1
                                                                 }}
                                                             >
-                                                                Scan results will appear here!
+                                                                {t('scanner.emptyState.title')}
                                                             </Text>
                                                         </HStack>
                                                     </VStack>
@@ -1741,7 +1696,7 @@ export default function ScannerScreen() {
                                 </CheckboxIndicator>
                             </Checkbox>
                             <Text size={isMobileScreen ? "xs" : "md"} style={{ color: "black", display: currentMode !== "info" ? "flex" : "none" }} >
-                                {allSelected ? "Unselect All" : "Select All"}
+                                {allSelected ? t('scanner.footer.unselectAll') : t('scanner.footer.selectAll')}
                             </Text>
                             <Button
                                 variant="solid"
@@ -1752,7 +1707,7 @@ export default function ScannerScreen() {
                             >
                                 <MinusCircleIcon size={14} color="white" style={{ display: isTinyScreen ? "flex" : isMobileScreen ? "none" : "flex" }} />
                                 {!isTinyScreen && (
-                                    <ButtonText size={isMobileScreen ? "sm" : "md"} style={{ color: "white" }}>Clear All</ButtonText>
+                                    <ButtonText size={isMobileScreen ? "sm" : "md"} style={{ color: "white" }}>{t('scanner.footer.clearAll')}</ButtonText>
                                 )}
                             </Button>
                         </HStack>
@@ -1770,7 +1725,7 @@ export default function ScannerScreen() {
                             >
                                 <ArrowDownCircle size={14} color="white" style={{ display: isTinyScreen ? "flex" : isMobileScreen ? "none" : "flex" }} />
                                 {!isTinyScreen && (
-                                    <ButtonText size={isMobileScreen ? "sm" : "md"} style={{ color: "white" }} >Receive</ButtonText>
+                                    <ButtonText size={isMobileScreen ? "sm" : "md"} style={{ color: "white" }} >{t('scanner.footer.receive')}</ButtonText>
                                 )}
                             </Button>
 
@@ -1781,7 +1736,7 @@ export default function ScannerScreen() {
                                             size={isTinyScreen ? "2xs" : isMobileScreen ? "2xs" : "md"}
                                             style={{ color: "red", fontSize: 12, fontWeight: "500", display: isTinyScreen ? "none" : "flex", textAlign: "right" }}
                                         >
-                                            Not enough stock to dispatch.
+                                            {t('scanner.footer.insufficientStock')}
                                         </Text>
                                     )}
                                     <Button
@@ -1795,7 +1750,7 @@ export default function ScannerScreen() {
                                     >
                                         <ArrowUpCircle size={14} color="white" style={{ display: isTinyScreen ? "flex" : isMobileScreen ? "none" : "flex" }} />
                                         {!isTinyScreen && (
-                                            <ButtonText size={isMobileScreen ? "sm" : "md"} style={{ color: "white" }} >Dispatch</ButtonText>
+                                            <ButtonText size={isMobileScreen ? "sm" : "md"} style={{ color: "white" }} >{t('scanner.footer.dispatch')}</ButtonText>
                                         )}
                                     </Button>
                                 </HStack>
@@ -1808,7 +1763,7 @@ export default function ScannerScreen() {
                         <ModalBackdrop />
                         <ModalContent>
                             <ModalHeader>
-                                <Heading size="md" className="text-typography-950">Edit Items</Heading>
+                                <Heading size="md" className="text-typography-950">{t('itemsManagement.editModal.title')}</Heading>
                                 <ModalCloseButton style={{ backgroundColor: "transparent" }}>
                                     <Icon as={CloseIcon} size="md" className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900" />
                                 </ModalCloseButton>
@@ -1818,14 +1773,14 @@ export default function ScannerScreen() {
                                 {/* Barcode */}
                                 <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.barcode}>
                                     <FormControlLabel>
-                                        <FormControlLabelText>Barcode</FormControlLabelText>
+                                        <FormControlLabelText>{t('itemsManagement.editModal.barcode')}</FormControlLabelText>
                                     </FormControlLabel>
                                     <Input isDisabled={isLoading}>
-                                        <InputField ref={inputRef} value={editingBarcode} onChangeText={setEditingBarcode} placeholder="Enter Item's Barcode" style={{ height: 40, width: "100%" }} />
+                                        <InputField ref={inputRef} value={editingBarcode} onChangeText={setEditingBarcode} placeholder={t('itemsManagement.editModal.barcode')} style={{ height: 40, width: "100%" }} />
                                     </Input>
                                     {validationErrors.barcode && (
                                         <FormControlHelper>
-                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Only letters and numbers. Max 100 characters.</FormControlHelperText>
+                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* {t('itemsManagement.editModal.validation.barcode')}</FormControlHelperText>
                                         </FormControlHelper>
                                     )}
                                 </FormControl>
@@ -1833,14 +1788,14 @@ export default function ScannerScreen() {
                                 {/* Item Name */}
                                 <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.itemName}>
                                     <FormControlLabel>
-                                        <FormControlLabelText>Item Name</FormControlLabelText>
+                                        <FormControlLabelText>{t('itemsManagement.editModal.itemName')}</FormControlLabelText>
                                     </FormControlLabel>
                                     <Input isDisabled={isLoading}>
-                                        <InputField ref={inputRef} value={editingItemName} onChangeText={setEditingItemName} placeholder="Enter Item Name" style={{ height: 40, width: "100%" }} />
+                                        <InputField ref={inputRef} value={editingItemName} onChangeText={setEditingItemName} placeholder={t('itemsManagement.editModal.itemName')} style={{ height: 40, width: "100%" }} />
                                     </Input>
                                     {validationErrors.itemName && (
                                         <FormControlHelper>
-                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Invalid characters or too long. Max 100 characters.</FormControlHelperText>
+                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* {t('itemsManagement.editModal.validation.itemName')}</FormControlHelperText>
                                         </FormControlHelper>
                                     )}
                                 </FormControl>
@@ -1848,14 +1803,14 @@ export default function ScannerScreen() {
                                 {/* Item Description */}
                                 <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.itemDescription}>
                                     <FormControlLabel>
-                                        <FormControlLabelText>Item Description</FormControlLabelText>
+                                        <FormControlLabelText>{t('itemsManagement.editModal.itemDescription')}</FormControlLabelText>
                                     </FormControlLabel>
                                     <Input isDisabled={isLoading}>
-                                        <InputField ref={inputRef} value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder="Enter Item Description" style={{ height: 40, width: "100%" }} />
+                                        <InputField ref={inputRef} value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder={t('itemsManagement.editModal.itemDescription')} style={{ height: 40, width: "100%" }} />
                                     </Input>
                                     {validationErrors.itemDescription && (
                                         <FormControlHelper>
-                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Invalid characters or too long. Max 250 characters.</FormControlHelperText>
+                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* {t('itemsManagement.editModal.validation.itemDescription')}</FormControlHelperText>
                                         </FormControlHelper>
                                     )}
                                 </FormControl>
@@ -1863,7 +1818,7 @@ export default function ScannerScreen() {
                                 {/* Item Group (no validation needed) */}
                                 <FormControl style={{ marginBottom: 12 }}>
                                     <FormControlLabel>
-                                        <FormControlLabelText>Item Group</FormControlLabelText>
+                                        <FormControlLabelText>{t('itemsManagement.editModal.itemGroup')}</FormControlLabelText>
                                     </FormControlLabel>
                                     <Select
                                         isDisabled={isLoading}
@@ -1876,14 +1831,14 @@ export default function ScannerScreen() {
                                         onClose={() => setIsSelectOpen(false)}
                                     >
                                         <SelectTrigger variant="outline" size="md" style={{ height: 40, alignItems: "center", justifyContent: isMobileScreen ? "flex-start" : "space-between" }}>
-                                            <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
+                                            <SelectInput value={t(`itemsManagement.groups.${editingItemGroup}`)} placeholder={t('itemsManagement.editModal.itemGroup')} />
                                             <SelectIcon className="mr-3" as={ChevronDownIcon} />
                                         </SelectTrigger>
                                         <SelectPortal>
                                             <SelectBackdrop />
                                             <SelectContent>
                                                 <SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
-                                                {Object.entries(groupLabels).map(([value, label]) => (
+                                                {Object.entries(t('itemsManagement.groups', { returnObjects: true })).map(([value, label]) => (
                                                     <SelectItem key={value} label={label} value={value} />
                                                 ))}
                                             </SelectContent>
@@ -1894,14 +1849,14 @@ export default function ScannerScreen() {
                                 {/* Location */}
                                 <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.location}>
                                     <FormControlLabel>
-                                        <FormControlLabelText>Location</FormControlLabelText>
+                                        <FormControlLabelText>{t('itemsManagement.editModal.location')}</FormControlLabelText>
                                     </FormControlLabel>
                                     <Input isDisabled={isLoading}>
-                                        <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder="Enter Item Warehouse Location" style={{ height: 40, width: "100%" }} />
+                                        <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder={t('itemsManagement.editModal.location')}style={{ height: 40, width: "100%" }} />
                                     </Input>
                                     {validationErrors.location && (
                                         <FormControlHelper>
-                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Only numbers and dashes. Max 20 characters.</FormControlHelperText>
+                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* {t('itemsManagement.editModal.validation.location')}</FormControlHelperText>
                                         </FormControlHelper>
                                     )}
                                 </FormControl>
@@ -1919,14 +1874,14 @@ export default function ScannerScreen() {
                                     <VStack style={{ width: "48%" }}>
                                         <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.itemCount}>
                                             <FormControlLabel>
-                                                <FormControlLabelText>Item Count</FormControlLabelText>
+                                                <FormControlLabelText>{t('itemsManagement.editModal.itemCount')}</FormControlLabelText>
                                             </FormControlLabel>
                                             <Input isDisabled={isLoading}>
                                                 <InputField
                                                     ref={inputRef}
                                                     value={editingItemCount}
                                                     onChangeText={setEditingItemCount}
-                                                    placeholder="Enter Item Stock Count"
+                                                    placeholder={t('itemsManagement.editModal.itemCount')}
                                                     keyboardType="numeric"
                                                     style={{ height: 40, width: "100%" }}
                                                 />
@@ -1934,7 +1889,7 @@ export default function ScannerScreen() {
                                             {validationErrors.itemCount && (
                                                 <FormControlHelper>
                                                     <FormControlHelperText style={{ color: "red", fontSize: 12 }}>
-                                                        * Digits only. Max 6 digits.
+                                                        * {t('itemsManagement.editModal.validation.itemCount')}
                                                     </FormControlHelperText>
                                                 </FormControlHelper>
                                             )}
@@ -1945,14 +1900,14 @@ export default function ScannerScreen() {
                                     <VStack style={{ width: "48%" }}>
                                         <FormControl isInvalid={validationErrors.pointsToRedeem}>
                                             <FormControlLabel>
-                                                <FormControlLabelText>Points to Redeem</FormControlLabelText>
+                                                <FormControlLabelText>{t('itemsManagement.editModal.pointsToRedeem')}</FormControlLabelText>
                                             </FormControlLabel>
                                             <Input isDisabled={isLoading}>
                                                 <InputField
                                                     ref={inputRef}
                                                     value={editingItemPointsToRedeem}
                                                     onChangeText={setEditingItemPointsToRedeem}
-                                                    placeholder="Enter Points To Redeem For Item"
+                                                    placeholder={t('itemsManagement.editModal.pointsToRedeem')}
                                                     keyboardType="numeric"
                                                     style={{ height: 40, width: "100%" }}
                                                 />
@@ -1960,7 +1915,7 @@ export default function ScannerScreen() {
                                             {validationErrors.pointsToRedeem && (
                                                 <FormControlHelper>
                                                     <FormControlHelperText style={{ color: "red", fontSize: 12 }}>
-                                                        * Digits only. Max 6 digits.
+                                                        * {t('itemsManagement.editModal.validation.points')}
                                                     </FormControlHelperText>
                                                 </FormControlHelper>
                                             )}
@@ -1977,14 +1932,14 @@ export default function ScannerScreen() {
                                         onPress={handleCancelKnownItem}
                                         isDisabled={isLoading}
                                     >
-                                        <Text style={{ color: "#6B7280" }}>Cancel</Text>
+                                        <Text style={{ color: "#6B7280" }}>{t('itemsManagement.editModal.cancel')}</Text>
                                     </Button>
                                     <Button
                                         style={{ flex: 1, backgroundColor: "#1B9CFF" }}
                                         onPress={saveEditedBarcode}
                                         isDisabled={isLoading}
                                     >
-                                        <Text style={{ color: "white", fontWeight: "bold" }}>Save</Text>
+                                        <Text style={{ color: "white", fontWeight: "bold" }}>{t('itemsManagement.editModal.save')}</Text>
                                     </Button>
                                 </HStack>
                             </ModalFooter>
@@ -1996,7 +1951,7 @@ export default function ScannerScreen() {
                         <ModalBackdrop />
                         <ModalContent>
                             <ModalHeader>
-                                <Heading size="md" className="text-typography-950">Add New Item</Heading>
+                                <Heading size="md" className="text-typography-950">{t('itemsManagement.unknownEditModal.title')}</Heading>
                                 <ModalCloseButton style={{ backgroundColor: "transparent" }}>
                                     <Icon
                                         as={CloseIcon}
@@ -2009,46 +1964,46 @@ export default function ScannerScreen() {
                             <ModalBody>
                                 {/* Barcode */}
                                 <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.barcode}>
-                                    <FormControlLabel><FormControlLabelText>Barcode</FormControlLabelText></FormControlLabel>
+                                    <FormControlLabel><FormControlLabelText>{t('itemsManagement.unknownEditModal.barcode')}</FormControlLabelText></FormControlLabel>
                                     <Input isDisabled={isLoading}>
-                                        <InputField ref={inputRef} value={editingBarcode} onChangeText={setEditingBarcode} placeholder="Enter Item's Barcode" style={{ height: 40, width: "100%" }} />
+                                        <InputField ref={inputRef} value={editingBarcode} onChangeText={setEditingBarcode} placeholder={t('itemsManagement.unknownEditModal.barcode')} style={{ height: 40, width: "100%" }} />
                                     </Input>
                                     {validationErrors.barcode && (
                                         <FormControlHelper>
-                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Only letters and numbers. Max 100 characters.</FormControlHelperText>
+                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* {t('itemsManagement.unknownEditModal.validation.barcode')}</FormControlHelperText>
                                         </FormControlHelper>
                                     )}
                                 </FormControl>
 
                                 {/* Item Name */}
                                 <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.itemName}>
-                                    <FormControlLabel><FormControlLabelText>Item Name</FormControlLabelText></FormControlLabel>
+                                    <FormControlLabel><FormControlLabelText>{t('itemsManagement.unknownEditModal.itemName')}</FormControlLabelText></FormControlLabel>
                                     <Input isDisabled={isLoading}>
-                                        <InputField ref={inputRef} value={editingItemName} onChangeText={setEditingItemName} placeholder="Enter Item Name" style={{ height: 40, width: "100%" }} />
+                                        <InputField ref={inputRef} value={editingItemName} onChangeText={setEditingItemName} placeholder={t('itemsManagement.unknownEditModal.itemName')} style={{ height: 40, width: "100%" }} />
                                     </Input>
                                     {validationErrors.itemName && (
                                         <FormControlHelper>
-                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Invalid characters or too long. Max 100 characters.</FormControlHelperText>
+                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* {t('itemsManagement.unknownEditModal.validation.itemName')}</FormControlHelperText>
                                         </FormControlHelper>
                                     )}
                                 </FormControl>
 
                                 {/* Item Description */}
                                 <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.itemDescription}>
-                                    <FormControlLabel><FormControlLabelText>Item Description</FormControlLabelText></FormControlLabel>
+                                    <FormControlLabel><FormControlLabelText>{t('itemsManagement.unknownEditModal.itemDescription')}</FormControlLabelText></FormControlLabel>
                                     <Input isDisabled={isLoading}>
-                                        <InputField ref={inputRef} value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder="Enter Item Description" style={{ height: 40, width: "100%" }} />
+                                        <InputField ref={inputRef} value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder={t('itemsManagement.unknownEditModal.itemDescription')} style={{ height: 40, width: "100%" }} />
                                     </Input>
                                     {validationErrors.itemDescription && (
                                         <FormControlHelper>
-                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Invalid characters or too long. Max 250 characters.</FormControlHelperText>
+                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* {t('itemsManagement.unknownEditModal.validation.itemDescription')}</FormControlHelperText>
                                         </FormControlHelper>
                                     )}
                                 </FormControl>
 
                                 {/* Item Group */}
                                 <FormControl style={{ marginBottom: 12 }}>
-                                    <FormControlLabel><FormControlLabelText>Item Group</FormControlLabelText></FormControlLabel>
+                                    <FormControlLabel><FormControlLabelText>{t('itemsManagement.unknownEditModal.itemGroup')}</FormControlLabelText></FormControlLabel>
                                     <Select
                                         isDisabled={isLoading}
                                         selectedValue={editingItemGroup}
@@ -2057,14 +2012,14 @@ export default function ScannerScreen() {
                                         onClose={() => setIsSelectOpen(false)}
                                     >
                                         <SelectTrigger variant="outline" size="md" style={{ height: 40, alignItems: "center", justifyContent: isMobileScreen ? "flex-start" : "space-between" }}>
-                                            <SelectInput value={groupLabels[editingItemGroup]} placeholder="Select Item Group" />
+                                            <SelectInput value={t(`itemsManagement.groups.${editingItemGroup}`)} placeholder={t('itemsManagement.unknownEditModal.selectGroupPlaceholder')} />
                                             <SelectIcon className="mr-3" as={ChevronDownIcon} />
                                         </SelectTrigger>
                                         <SelectPortal>
                                             <SelectBackdrop />
                                             <SelectContent>
                                                 <SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
-                                                {Object.entries(groupLabels).map(([value, label]) => (
+                                                {Object.entries(t('itemsManagement.groups', { returnObjects: true })).map(([value, label]) => (
                                                     <SelectItem key={value} label={label} value={value} />
                                                 ))}
                                             </SelectContent>
@@ -2074,13 +2029,13 @@ export default function ScannerScreen() {
 
                                 {/* Item Location */}
                                 <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.location}>
-                                    <FormControlLabel><FormControlLabelText>Item Warehouse Location</FormControlLabelText></FormControlLabel>
+                                    <FormControlLabel><FormControlLabelText>{t('itemsManagement.unknownEditModal.location')}</FormControlLabelText></FormControlLabel>
                                     <Input isDisabled={isLoading}>
-                                        <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder="Enter Item Warehouse Location" style={{ height: 40, width: "100%" }} />
+                                        <InputField ref={inputRef} value={editingItemLocation} onChangeText={setEditingItemLocation} placeholder={t('itemsManagement.unknownEditModal.location')} style={{ height: 40, width: "100%" }} />
                                     </Input>
                                     {validationErrors.location && (
                                         <FormControlHelper>
-                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Only numbers and dashes. Max 20 characters.</FormControlHelperText>
+                                            <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* {t('itemsManagement.unknownEditModal.validation.location')}</FormControlHelperText>
                                         </FormControlHelper>
                                     )}
                                 </FormControl>
@@ -2098,14 +2053,14 @@ export default function ScannerScreen() {
                                     <VStack style={{ width: "48%" }}>
                                         <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.itemCount}>
                                             <FormControlLabel>
-                                                <FormControlLabelText>Item Count</FormControlLabelText>
+                                                <FormControlLabelText>{t('itemsManagement.unknownEditModal.itemCount')}</FormControlLabelText>
                                             </FormControlLabel>
                                             <Input isDisabled={isLoading}>
                                                 <InputField
                                                     ref={inputRef}
                                                     value={editingItemCount}
                                                     onChangeText={setEditingItemCount}
-                                                    placeholder="Enter Item Stock Count"
+                                                    placeholder={t('itemsManagement.unknownEditModal.itemCount')}
                                                     keyboardType="numeric"
                                                     style={{ height: 40, width: "100%" }}
                                                 />
@@ -2113,7 +2068,7 @@ export default function ScannerScreen() {
                                             {validationErrors.itemCount && (
                                                 <FormControlHelper>
                                                     <FormControlHelperText style={{ color: "red", fontSize: 12 }}>
-                                                        * Digits only. Max 6 digits.
+                                                        * {t('itemsManagement.unknownEditModal.validation.itemCount')}
                                                     </FormControlHelperText>
                                                 </FormControlHelper>
                                             )}
@@ -2124,14 +2079,14 @@ export default function ScannerScreen() {
                                     <VStack style={{ width: "48%" }}>
                                         <FormControl isInvalid={validationErrors.pointsToRedeem}>
                                             <FormControlLabel>
-                                                <FormControlLabelText>Points to Redeem</FormControlLabelText>
+                                                <FormControlLabelText>{t('itemsManagement.unknownEditModal.pointsToRedeem')}</FormControlLabelText>
                                             </FormControlLabel>
                                             <Input isDisabled={isLoading}>
                                                 <InputField
                                                     ref={inputRef}
                                                     value={editingItemPointsToRedeem}
                                                     onChangeText={setEditingItemPointsToRedeem}
-                                                    placeholder="Enter Points To Redeem For Item"
+                                                    placeholder={t('itemsManagement.unknownEditModal.pointsToRedeem')}
                                                     keyboardType="numeric"
                                                     style={{ height: 40, width: "100%" }}
                                                 />
@@ -2139,7 +2094,7 @@ export default function ScannerScreen() {
                                             {validationErrors.pointsToRedeem && (
                                                 <FormControlHelper>
                                                     <FormControlHelperText style={{ color: "red", fontSize: 12 }}>
-                                                        * Digits only. Max 6 digits.
+                                                        * {t('itemsManagement.unknownEditModal.validation.pointsToRedeem')}
                                                     </FormControlHelperText>
                                                 </FormControlHelper>
                                             )}
@@ -2152,10 +2107,10 @@ export default function ScannerScreen() {
                             <ModalFooter>
                                 <HStack space="md" style={{ width: "100%" }}>
                                     <Button variant="outline" style={{ flex: 1, borderColor: "#6B7280" }} onPress={handleCancelUnknownItem} isDisabled={isLoading}>
-                                        <Text style={{ color: "#6B7280" }}>Cancel</Text>
+                                        <Text style={{ color: "#6B7280" }}>{t('itemsManagement.unknownEditModal.cancel')}</Text>
                                     </Button>
                                     <Button style={{ flex: 1, backgroundColor: "#1B9CFF" }} onPress={saveEditedUnknownItem} isDisabled={isLoading}>
-                                        <Text style={{ color: "white", fontWeight: "bold" }}>Save</Text>
+                                        <Text style={{ color: "white", fontWeight: "bold" }}>{t('itemsManagement.unknownEditModal.save')}</Text>
                                     </Button>
                                 </HStack>
                             </ModalFooter>
@@ -2167,7 +2122,7 @@ export default function ScannerScreen() {
                         <ModalBackdrop />
                         <ModalContent style={{ backgroundColor: "white" }}>
                             <ModalHeader>
-                                <Heading size="md" style={{ color: "black" }}>Confirm Receive</Heading>
+                                <Heading size="md" style={{ color: "black" }}>{t('scanner.modals.receive.title')}</Heading>
                                 <ModalCloseButton>
                                     <Icon
                                         as={CloseIcon}
@@ -2196,7 +2151,7 @@ export default function ScannerScreen() {
                                             color: "#111827",
                                         }}
                                     >
-                                        Are you sure you want to receive all selected items?
+                                        {t('scanner.modals.receive.body')}
                                     </Text>
                                 </VStack>
                             </ModalBody>
@@ -2211,7 +2166,7 @@ export default function ScannerScreen() {
                                         }}
                                         onPress={() => setShowReceiveModal(false)}
                                     >
-                                        <Text style={{ color: "#6B7280" }}>Cancel</Text>
+                                        <Text style={{ color: "#6B7280" }}>{t('scanner.modals.receive.cancel')}</Text>
                                     </Button>
                                     <Button
                                         style={{
@@ -2224,7 +2179,7 @@ export default function ScannerScreen() {
                                         }}
                                     >
                                         <Text style={{ color: "white", fontWeight: "bold" }}>
-                                            Confirm
+                                            {t('scanner.modals.receive.confirm')}
                                         </Text>
                                     </Button>
                                 </HStack>
@@ -2237,7 +2192,7 @@ export default function ScannerScreen() {
                         <ModalBackdrop />
                         <ModalContent style={{ backgroundColor: "white" }}>
                             <ModalHeader>
-                                <Heading size="md" style={{ color: "black" }}>Confirm Dispatch</Heading>
+                                <Heading size="md" style={{ color: "black" }}>{t('scanner.modals.dispatch.title')}</Heading>
                                 <ModalCloseButton>
                                     <Icon
                                         as={CloseIcon}
@@ -2266,7 +2221,7 @@ export default function ScannerScreen() {
                                             color: "#111827",
                                         }}
                                     >
-                                        Are you sure you want to dispatch the selected items?
+                                        {t('scanner.modals.dispatch.body')}
                                     </Text>
                                     <Text
                                         style={{
@@ -2275,7 +2230,7 @@ export default function ScannerScreen() {
                                             fontSize: 13,
                                         }}
                                     >
-                                        This will deduct the dispatched quantity from the available stock. Only items with sufficient stock will be dispatched.
+                                        {t('scanner.modals.dispatch.note')}
                                     </Text>
                                 </VStack>
                             </ModalBody>
@@ -2290,7 +2245,7 @@ export default function ScannerScreen() {
                                         }}
                                         onPress={() => setShowDispatchModal(false)}
                                     >
-                                        <Text style={{ color: "#6B7280" }}>Cancel</Text>
+                                        <Text style={{ color: "#6B7280" }}>{t('scanner.modals.dispatch.cancel')}</Text>
                                     </Button>
 
                                     <Button
@@ -2301,7 +2256,7 @@ export default function ScannerScreen() {
                                         onPress={handleDispatch}
                                     >
                                         <Text style={{ color: "white", fontWeight: "bold" }}>
-                                            Confirm
+                                            {t('scanner.modals.dispatch.confirm')}
                                         </Text>
                                     </Button>
                                 </HStack>

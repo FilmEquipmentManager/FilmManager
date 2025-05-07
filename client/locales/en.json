@@ -141,6 +141,27 @@
                 "points": "Digits only. Max 6 digits."
             }
         },
+        "unknownEditModal": {
+            "title": "Add New Item",
+            "barcode": "Barcode",
+            "itemName": "Item Name",
+            "itemDescription": "Item Description",
+            "itemGroup": "Item Group",
+            "selectGroupPlaceholder": "Select Item Group",
+            "location": "Item Warehouse Location",
+            "itemCount": "Item Count",
+            "pointsToRedeem": "Points to Redeem",
+            "validation": {
+                "barcode": "Only letters and numbers. Max 100 characters.",
+                "itemName": "Invalid characters or too long. Max 100 characters.",
+                "itemDescription": "Invalid characters or too long. Max 250 characters.",
+                "location": "Only numbers and dashes. Max 20 characters.",
+                "itemCount": "Digits only. Max 6 digits.",
+                "pointsToRedeem": "Digits only. Max 6 digits."
+            },
+            "cancel": "Cancel",
+            "save": "Save"
+        },
         "toast": {
             "success": "Success",
             "editSuccess": "Item updated successfully.",
@@ -166,5 +187,73 @@
         "myRewardsDesc": "View your redeemed rewards",
         "availablePoints": "Available Points:",
         "points": "PTS"
+    },
+    "scanner": {
+        "title": "Scan Area",
+        "placeholder": "Scan barcode here...",
+        "notice": "We only accept 1D barcodes",
+        "radio": {
+            "receive": "Receive",
+            "dispatch": "Dispatch",
+            "info": "Scan Info"
+        },
+        "scannedResult": {
+            "lastScanned": "Last Scanned:"
+        },
+        "item": {
+            "unnamed": "Unnamed Product",
+            "noDescription": "No Description",
+            "unknownLocation": "Unknown Location"
+        },
+        "stock": "Stock: {{count}}",
+        "requiredPoints": "Required Points: {{count}}",
+        "emptyState": {
+            "title": "Scan results will appear here!"
+        },
+        "footer": {
+            "selectAll": "Select All",
+            "unselectAll": "Unselect All",
+            "clearAll": "Clear All",
+            "receive": "Receive",
+            "dispatch": "Dispatch",
+            "insufficientStock": "Not enough stock to dispatch."
+        },
+        "modals": {
+            "receive": {
+                "title": "Confirm Receive",
+                "body": "Are you sure you want to receive all selected items?",
+                "cancel": "Cancel",
+                "confirm": "Confirm"
+            },
+            "dispatch": {
+                "title": "Confirm Dispatch",
+                "body": "Are you sure you want to dispatch the selected items?",
+                "note": "This will deduct the dispatched quantity from the available stock. Only items with sufficient stock will be dispatched.",
+                "cancel": "Cancel",
+                "confirm": "Confirm"
+            }
+        },
+        "toast": {
+            "socketErrorTitle": "Socket connection error",
+            "socketErrorDesc": "Please check your internet connection and try again.",
+            "invalidBarcodeTitle": "Invalid Barcode",
+            "invalidBarcodeDesc": "2D barcodes like QR codes are not supported.",
+            "scannerErrorTitle": "Scanner Error",
+            "scannerErrorServerDesc": "Could not verify barcode with the server.",
+            "clearedTitle": "Cleared",
+            "clearedDesc": "All scanned results have been removed.",
+            "itemsReceivedTitle": "Items Received",
+            "itemsReceivedDesc": "{{count}} items received.",
+            "receiveErrorTitle": "Receive Error",
+            "receiveErrorDesc": "Failed to receive some items.",
+            "dispatchErrorUnknownTitle": "Dispatch Error",
+            "dispatchErrorUnknownDesc": "You need to receive unknown items first before dispatching.",
+            "dispatchErrorStockTitle": "Dispatch Error",
+            "dispatchErrorStockDesc": "Selected items have insufficient stock to dispatch.",
+            "dispatchSuccessTitle": "Dispatch Successful",
+            "dispatchSuccessDesc": "{{count}} items dispatched.",
+            "editErrorTitle": "Edit Error",
+            "editErrorDesc": "Failed to update barcode. Please try again."
+        }
     }
 }

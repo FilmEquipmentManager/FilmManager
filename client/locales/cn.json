@@ -141,6 +141,27 @@
                 "points": "仅允许数字，最多6位"
             }
         },
+        "unknownEditModal": {
+            "title": "添加新物品",
+            "barcode": "条码",
+            "itemName": "物品名称",
+            "itemDescription": "物品描述",
+            "itemGroup": "物品分类",
+            "selectGroupPlaceholder": "选择物品分类",
+            "location": "仓库位置",
+            "itemCount": "库存数量",
+            "pointsToRedeem": "兑换所需积分",
+            "validation": {
+                "barcode": "仅允许字母和数字，最多100个字符",
+                "itemName": "包含非法字符或过长，最多100个字符",
+                "itemDescription": "包含非法字符或过长，最多250个字符",
+                "location": "仅允许数字和短横线，最多20个字符",
+                "itemCount": "仅允许数字，最多6位",
+                "pointsToRedeem": "仅允许数字，最多6位"
+            },
+            "cancel": "取消",
+            "save": "保存"
+        },
         "toast": {
             "success": "成功",
             "editSuccess": "物品更新成功",
@@ -165,5 +186,73 @@
         "myRewardsDesc": "查看您兑换的奖励",
         "availablePoints": "可用积分:",
         "points": "积分"
+    },
+    "scanner": {
+        "title": "扫描区域",
+        "placeholder": "在此扫描条码…",
+        "notice": "我们仅接受一维条码",
+        "radio": {
+            "receive": "入库",
+            "dispatch": "出库",
+            "info": "扫描信息"
+        },
+        "scannedResult": {
+            "lastScanned": "最近扫描："
+        },
+        "item": {
+            "unnamed": "未命名产品",
+            "noDescription": "无描述",
+            "unknownLocation": "未知位置"
+        },
+        "stock": "库存：{{count}}",
+        "requiredPoints": "所需积分：{{count}}",
+        "emptyState": {
+            "title": "扫描结果将显示在此处！"
+        },
+        "footer": {
+            "selectAll": "全选",
+            "unselectAll": "取消全选",
+            "clearAll": "清除全部",
+            "receive": "入库",
+            "dispatch": "出库",
+            "insufficientStock": "库存不足，无法出库。"
+        },
+        "modals": {
+            "receive": {
+                "title": "确认入库",
+                "body": "您确定要入库所有已选物品吗？",
+                "cancel": "取消",
+                "confirm": "确认"
+            },
+            "dispatch": {
+                "title": "确认出库",
+                "body": "您确定要出库所选物品吗？",
+                "note": "这将从可用库存中扣减出库数量。只有库存充足的物品会被出库。",
+                "cancel": "取消",
+                "confirm": "确认"
+            }
+        },
+        "toast": {
+            "socketErrorTitle": "Socket 连接错误",
+            "socketErrorDesc": "请检查您的网络连接并重试。",
+            "invalidBarcodeTitle": "无效条码",
+            "invalidBarcodeDesc": "不支持 2D 条码（如二维码）。",
+            "scannerErrorTitle": "扫描错误",
+            "scannerErrorServerDesc": "无法与服务器验证条码。",
+            "clearedTitle": "已清除",
+            "clearedDesc": "所有扫描结果已被移除。",
+            "itemsReceivedTitle": "物品已入库",
+            "itemsReceivedDesc": "已入库 {{count}} 个物品。",
+            "receiveErrorTitle": "入库错误",
+            "receiveErrorDesc": "部分物品入库失败。",
+            "dispatchErrorUnknownTitle": "出库错误",
+            "dispatchErrorUnknownDesc": "必须先入库未知物品，然后才能出库。",
+            "dispatchErrorStockTitle": "出库错误",
+            "dispatchErrorStockDesc": "选定物品库存不足，无法出库。",
+            "dispatchSuccessTitle": "出库成功",
+            "dispatchSuccessDesc": "已出库 {{count}} 件物品。",
+            "editErrorTitle": "编辑错误",
+            "editErrorDesc": "更新条码失败。请重试。"
+        }
     }
 }
