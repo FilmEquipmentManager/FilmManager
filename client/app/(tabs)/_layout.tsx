@@ -123,7 +123,7 @@ export default function TabLayout() {
                                     overflow: "hidden",
                                 }}
                             >
-                                <AvatarFallbackText>Profile</AvatarFallbackText>
+                                <AvatarFallbackText>{t("Profile")}</AvatarFallbackText>
                                 <AvatarImage
                                     accessibilityLabel="User Avatar"
                                     source={{ uri: "https://bit.ly/dan-abramov" }}

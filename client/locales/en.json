@@ -1,4 +1,21 @@
 {
     "login": "Login",
-    "navbarChangeLanguage": "Change Language"
+    "navbarChangeLanguage": "Change Language",
+    "profile": "Profile",
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "adminTab": {
+        "scanner": "Scanner",
+        "management": "Management"
+    },
+    "adminButton": {
+        "receive": "Receive",
+        "dispatch": "Dispatch",
+        "checkInfo": "Check Item's Info",
+        "itemsManagement": "Items Management",
+        "userManagement": "User Management"
+    }
 }

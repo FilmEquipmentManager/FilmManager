@@ -1,4 +1,21 @@
 {
     "login": "登录",
-    "navbarChangeLanguage": "切换语言"
+    "navbarChangeLanguage": "切换语言",
+    "profile": "个人资料",
+    "greeting": {
+        "morning": "早上好",
+        "afternoon": "下午好",
+        "evening": "晚上好"
+    },
+    "adminTab": {
+        "scanner": "扫描",
+        "management": "管理"
+    },
+    "adminButton": {
+        "receive": "入库",
+        "dispatch": "出库",
+        "checkInfo": "查看物品信息",
+        "itemsManagement": "物品管理",
+        "userManagement": "用户管理"
+    }
 }

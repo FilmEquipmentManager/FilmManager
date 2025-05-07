@@ -10,18 +10,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useWindowDimensions } from "react-native";
 import ProtectedRoute from "../_wrappers/ProtectedRoute";
-
-const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 18) return "Good afternoon";
-    return "Good evening";
-};
+import { useTranslation } from "react-i18next";
 
 export default function HomepageScreen() {
-    const [activeTab, setActiveTab] = useState<"scanner" | "management">(
-        "scanner"
-    );
+    const [activeTab, setActiveTab] = useState<"scanner" | "management">("scanner");
     const [hoverScannerTab, setHoverScannerTab] = useState(false);
     const [hoverManagementTab, setHoverManagementTab] = useState(false);
     const [hoverReceive, setHoverReceive] = useState(false);
@@ -33,6 +25,14 @@ export default function HomepageScreen() {
     const { width, height } = useWindowDimensions();
     const isShortScreen = height < 750;
     const isMobileScreen = width < 680;
+    const { t } = useTranslation();
+
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return t('greeting.morning');
+        if (hour < 18) return t('greeting.afternoon');
+        return t('greeting.evening');
+    };
 
     const getHoverStyle = (hovered: boolean, baseStyle: object = {}) => ({
         transform: [{ scale: hovered ? 1.02 : 1 }],
@@ -114,7 +114,7 @@ export default function HomepageScreen() {
                                             fontWeight: "600", color: activeTab === "scanner" ? "white" : "black",
                                             fontSize: isMobileScreen ? 15 : isShortScreen ? 20 : 20, textAlign: "center"
                                         }}>
-                                            Scanner
+                                            {t('adminTab.scanner')}
                                         </ButtonText>
                                     </HStack>
                                 </Button>
@@ -143,7 +143,7 @@ export default function HomepageScreen() {
                                             fontWeight: "600", color: activeTab === "management" ? "white" : "black",
                                             fontSize: isMobileScreen ? 15 : isShortScreen ? 20 : 20, textAlign: "center"
                                         }}>
-                                            Management
+                                            {t('adminTab.management')}
                                         </ButtonText>
                                     </HStack>
                                 </Button>
@@ -221,7 +221,7 @@ export default function HomepageScreen() {
                                                         textAlign: "center",
                                                     }}
                                                 >
-                                                    Receive
+                                                    {t('adminButton.receive')}
                                                 </ButtonText>
                                             </VStack>
                                         </Button>
@@ -278,7 +278,7 @@ export default function HomepageScreen() {
                                                         textAlign: "center",
                                                     }}
                                                 >
-                                                    Dispatch
+                                                    {t('adminButton.dispatch')}
                                                 </ButtonText>
                                             </VStack>
                                         </Button>
@@ -322,7 +322,7 @@ export default function HomepageScreen() {
                                                     fontSize: 18,
                                                 }}
                                             >
-                                                Check Item's Info
+                                                {t('adminButton.checkInfo')}
                                             </ButtonText>
                                         </HStack>
                                     </Button>
@@ -397,7 +397,7 @@ export default function HomepageScreen() {
                                                         textAlign: "center",
                                                     }}
                                                 >
-                                                    Items Management
+                                                    {t('adminButton.itemsManagement')}
                                                 </ButtonText>
                                             </VStack>
                                         </Button>
@@ -452,7 +452,7 @@ export default function HomepageScreen() {
                                                         textAlign: "center",
                                                     }}
                                                 >
-                                                    User Management
+                                                    {t('adminButton.userManagement')}
                                                 </ButtonText>
                                             </VStack>
                                         </Button>
