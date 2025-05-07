@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     },
                     (error) => {
                         if (auth.currentUser) {
-                            showToast("Uh‑oh!", "Failed to load user data.");
+                            showToast(t("uhOh"), t("failedToLoadUser"));
                             console.error("Realtime DB error:", error);
                         }
                         setLoading(false);
@@ -84,7 +84,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (firebaseUser) {
                 const freshToken = await firebaseUser.getIdToken();
                 server.defaults.headers.common["Authorization"] = `Bearer ${freshToken}`;
-                console.log("Token set:", freshToken);
             } else {
                 delete server.defaults.headers.common["Authorization"];
             }

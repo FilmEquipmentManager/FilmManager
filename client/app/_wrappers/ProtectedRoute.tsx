@@ -65,10 +65,10 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 	const validateEmail = (email: string) => {
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!email) {
-			setEmailError(t("emailRequired"));
+			setEmailError(t("auth.emailRequired"));
 			return false;
 		} else if (!emailRegex.test(email)) {
-			setEmailError(t("invalidEmail"));
+			setEmailError(t("auth.invalidEmail"));
 			return false;
 		} else {
 			setEmailError("");
@@ -80,19 +80,19 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 		const errors = [];
 
 		if (!password) {
-			errors.push(t("passwordRequired"));
+			errors.push(t("auth.passwordRequired"));
 		} else {
 			if (password.length < 12) {
-				errors.push(t("passwordLength"));
+				errors.push(t("auth.passwordLength"));
 			}
 			if (!/[A-Z]/.test(password)) {
-				errors.push(t("passwordUppercase"));
+				errors.push(t("auth.passwordUppercase"));
 			}
 			if (!/[0-9]/.test(password)) {
-				errors.push(t("passwordNumber"));
+				errors.push(t("auth.passwordNumber"));
 			}
 			if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-				errors.push(t("passwordSpecial"));
+				errors.push(t("auth.passwordSpecial"));
 			}
 		}
 
@@ -107,7 +107,7 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 
 	const validateUsername = (username: string) => {
 		if (isRegister && !username) {
-			setUsernameError(t("usernameRequired"));
+			setUsernameError(t("auth.usernameRequired"));
 			return false;
 		} else {
 			setUsernameError("");
@@ -149,7 +149,7 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 		const isValid = validateForm();
 
 		if (!isValid) {
-			showToast(t("uhOh"), t("checkInputs"));
+			showToast(t("auth.uhOh"), t("auth.checkInputs"));
 			return;
 		}
 
@@ -157,7 +157,7 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 			setIsSubmitting(true);
 			await onSubmit(email.trim(), password.trim(), username.trim());
 		} catch (err) {
-			showToast(t("uhOh"), err);
+			showToast(t("auth.uhOh"), err);
 			setIsSubmitting(false);
 		} finally {
 			setIsSubmitting(false);
@@ -186,14 +186,14 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 						color: "#333"
 					}}
 				>
-					{isRegister ? t("register") : t('login')}
+					{isRegister ? t("auth.register") : t('auth.login')}
 				</Text>
 
 				{isRegister && (
 					<VStack style={{ marginBottom: isWeb ? 16 : 8 }}>
 						<Text style={{ color: "#A0A0A0", fontWeight: "500" }}>{t("account.username")}</Text>
 						<Input variant="underlined" style={{ marginTop: 4 }}>
-							<InputField value={username} onChangeText={setUsername} placeholder={t("enterUsername")} autoCapitalize="none" style={{ fontSize: isWeb ? 16 : 14 }} />
+							<InputField value={username} onChangeText={setUsername} placeholder={t("auth.enterUsername")} autoCapitalize="none" style={{ fontSize: isWeb ? 16 : 14 }} />
 						</Input>
 						{attemptedSubmit && usernameError ? (
 							<Text
@@ -210,18 +210,18 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 				)}
 
 				<VStack style={{ marginBottom: isWeb ? 16 : 8 }}>
-					<Text style={{ color: "#A0A0A0", fontWeight: "500" }}>{t("email")}</Text>
+					<Text style={{ color: "#A0A0A0", fontWeight: "500" }}>{t("auth.email")}</Text>
 					<Input variant="underlined" style={{ marginTop: 4 }}>
-						<InputField value={email.trim()} onChangeText={setEmail} placeholder={t("enterEmail")} autoCapitalize="none" keyboardType="email-address" style={{ fontSize: isWeb ? 16 : 14 }} onSubmitEditing={handleSubmit} />
+						<InputField value={email.trim()} onChangeText={setEmail} placeholder={t("auth.enterEmail")} autoCapitalize="none" keyboardType="email-address" style={{ fontSize: isWeb ? 16 : 14 }} onSubmitEditing={handleSubmit} />
 					</Input>
 					{attemptedSubmit && emailError ? <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>{emailError}</Text> : null}
 				</VStack>
 
 				<VStack style={{ marginBottom: isWeb ? 24 : 16 }}>
-					<Text style={{ color: "#A0A0A0", fontWeight: "500" }}>{t("password")}</Text>
+					<Text style={{ color: "#A0A0A0", fontWeight: "500" }}>{t("auth.password")}</Text>
 					<HStack style={{ alignItems: "center", marginTop: 4 }}>
 						<Input variant="underlined" style={{ flex: 1 }}>
-							<InputField value={password.trim()} onChangeText={setPassword} placeholder={t("enterPassword")} secureTextEntry={!showPassword} style={{ fontSize: isWeb ? 16 : 14 }} onSubmitEditing={handleSubmit} />
+							<InputField value={password.trim()} onChangeText={setPassword} placeholder={t("auth.enterPassword")} secureTextEntry={!showPassword} style={{ fontSize: isWeb ? 16 : 14 }} onSubmitEditing={handleSubmit} />
 						</Input>
 						<Button
 							onPress={() => setShowPassword(!showPassword)}
@@ -257,7 +257,7 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 								fontSize: isWeb ? 16 : 14
 							}}
 						>
-							{isRegister ? t("register") : t('login')}
+							{isRegister ? t("auth.register") : t('auth.login')}
 						</Text>
 					)}
 				</Button>
@@ -278,7 +278,7 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 							fontSize: isWeb ? 15 : 14
 						}}
 					>
-						{isRegister ? t("noAccount") : t("alreadyHaveAccount")}
+						{isRegister ? t("auth.noAccount") : t("auth.alreadyHaveAccount")}
 					</Text>
 				</Button>
 			</VStack>
@@ -333,22 +333,22 @@ export default function ProtectedRoute({ showAuth, children }: ProtectedRoutePro
 				});
 
 				await signInWithEmailAndPassword(auth, email, password);
-				showToast(t("success"), t("loginSuccess"));
+				showToast(t("auth.success"), t("auth.loginSuccess"));
 			} else {
                 await signInWithEmailAndPassword(auth, email, password);
-				showToast(t("success"), t("loginSuccess"));
+				showToast(t("auth.success"), t("auth.loginSuccess"));
 			}
 		} catch (error: any) {
             if (isRegister) {
                 if (error.response && error.response.data && error.response.data.error && typeof error.response.data.error === "string") {
 					if (error.response.data.error.startsWith("UERROR")) {
-						showToast(t('uhOh'), error.response.data.error.substring("UERROR:".length));
+						showToast(t('auth.uhOh'), error.response.data.error.substring("UERROR:".length));
 					} else {
-						showToast(t('uhOh'), error.response.data.error.substring("ERROR:".length));
+						showToast(t('auth.uhOh'), error.response.data.error.substring("ERROR:".length));
 					}
 				}
             } else {
-                showToast(t('uhOh'), FirebaseDecoder({ error: error.message }));
+                showToast(t('auth.uhOh'), FirebaseDecoder({ error: error.message }));
             }
 		}
 	};
@@ -358,12 +358,12 @@ export default function ProtectedRoute({ showAuth, children }: ProtectedRoutePro
 			if (userData) {
 				if (userData.role === "User" && !pathname.startsWith("/auth") && !pathname.startsWith("/client") && pathname !== "/") {
 					router.replace("/auth/account");
-					showToast(t("accessDenied"), t("notPermitted"));
+					showToast(t("auth.accessDenied"), t("auth.notPermitted"));
 				}
 
 				if (userData.role === "Admin" && !pathname.startsWith("/auth") && !pathname.startsWith("/admin") && pathname !== "/") {
 					router.replace("/auth/account");
-					showToast(t("accessDenied"), t("notPermitted"));
+					showToast(t("auth.accessDenied"), t("auth.notPermitted"));
 				}
 			}
 		}
@@ -440,7 +440,7 @@ export default function ProtectedRoute({ showAuth, children }: ProtectedRoutePro
 										color: "#333"
 									}}
 								>
-									{t("welcomeToFilmManager")}
+									{t("auth.welcomeToFilmManager")}
 								</Text>
 							</HStack>
 
@@ -453,7 +453,7 @@ export default function ProtectedRoute({ showAuth, children }: ProtectedRoutePro
 									marginBottom: 6
 								}}
 							>
-								{t("pleaseLogin")}
+								{t("auth.pleaseLogin")}
 							</Text>
 
 							<Button
@@ -482,7 +482,7 @@ export default function ProtectedRoute({ showAuth, children }: ProtectedRoutePro
 											color: "white"
 										}}
 									>
-										{t("loginOrRegister")}
+										{t("auth.loginOrRegister")}
 									</Text>
 								</HStack>
 							</Button>

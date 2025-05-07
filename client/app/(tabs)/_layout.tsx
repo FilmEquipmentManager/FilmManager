@@ -79,7 +79,7 @@ export default function TabLayout() {
                                 >
                                     <Icon as={GlobeIcon} size="sm" color="#4b5563" className="mr-2" />
                                     <Text style={{ color: "#1f2937", fontSize: 14 }}>
-                                    {t("navbarChangeLanguage")}
+                                    {t("navbar.navbarChangeLanguage")}
                                     </Text>
                                 </Pressable>
                                 );
@@ -123,7 +123,7 @@ export default function TabLayout() {
                                     overflow: "hidden",
                                 }}
                             >
-                                <AvatarFallbackText>{t("Profile")}</AvatarFallbackText>
+                                <AvatarFallbackText>{t("profile.profile")}</AvatarFallbackText>
                                 <AvatarImage
                                     accessibilityLabel="User Avatar"
                                     source={{ uri: "https://bit.ly/dan-abramov" }}

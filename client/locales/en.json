@@ -1,7 +1,52 @@
 {
-    "login": "Login",
-    "navbarChangeLanguage": "Change Language",
-    "profile": "Profile",
+    "navbar": {
+        "navbarChangeLanguage": "Change Language"
+    },
+    "profile": {
+        "profile": "Profile"
+    },
+    "auth": {
+        "login": "Login",
+        "register": "Register",
+        "welcomeToFilmManager": "Welcome to FilmManager",
+        "pleaseLogin": "Please log in or create an account to access your profile and manage your content.",
+        "loginOrRegister": "Login / Register",
+        "enterUsername": "Enter username (Min. 3 char)",
+        "enterEmail": "Enter email",
+        "emailRequired": "Email is required",
+        "email": "Email",
+        "password": "Password",
+        "enterPassword": "Enter password",
+        "invalidEmail": "Invalid email format",
+        "passwordRequired": "Password is required",
+        "passwordLength": "Must be at least 12 characters",
+        "passwordUppercase": "Must include an uppercase letter",
+        "passwordNumber": "Must include a number",
+        "passwordSpecial": "Must include a special character",
+        "usernameRequired": "Username is required",
+        "checkInputs": "Please check your inputs again.",
+        "uhOh": "Uh-oh!",
+        "success": "Success!",
+        "loginSuccess": "Logged in successfully.",
+        "alreadyHaveAccount": "Already have an account? Login",
+        "noAccount": "Don't have an account? Register",
+        "accessDenied": "Access unauthorised",
+        "notPermitted": "You are not permitted to access this page",
+        "failedToLoadUser": "Failed to load user data. Please try again."
+    },
+    "account": {
+        "logoutSuccessTitle": "Logout Successful",
+        "logoutSuccessDesc": "You have been logged out successfully.",
+        "logoutFailTitle": "Uh-oh!",
+        "username": "Username",
+        "email": "Email",
+        "pointsRemaining": "Points Remaining",
+        "fetching": "Fetching...",
+        "fetchingPoints": "Fetching points...",
+        "admin": "Admin",
+        "logout": "Log Out",
+        "filmManagerUser": "FilmManager User"
+    },
     "greeting": {
         "morning": "Good morning",
         "afternoon": "Good afternoon",

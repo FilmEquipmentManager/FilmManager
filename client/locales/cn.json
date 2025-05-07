@@ -1,7 +1,52 @@
 {
-    "login": "登录",
-    "navbarChangeLanguage": "切换语言",
-    "profile": "个人资料",
+    "navbar": {
+        "navbarChangeLanguage": "切换语言"
+    },
+    "profile": {
+        "profile": "个人资料"
+    },
+    "auth": {
+        "login": "登录",
+        "register": "注册",
+        "welcomeToFilmManager": "欢迎使用 FilmManager",
+        "pleaseLogin": "请登录或创建帐户以访问您的个人资料并管理您的内容。",
+        "loginOrRegister": "登录 / 注册",
+        "enterUsername": "请输入用户名（至少3个字符）",
+        "enterEmail": "请输入邮箱",
+        "emailRequired": "请输入邮箱",
+        "email": "邮箱",
+        "password": "密码",
+        "enterPassword": "请输入密码",
+        "invalidEmail": "邮箱格式不正确",
+        "passwordRequired": "请输入密码",
+        "passwordLength": "密码长度至少为12位",
+        "passwordUppercase": "必须包含大写字母",
+        "passwordNumber": "必须包含数字",
+        "passwordSpecial": "必须包含特殊字符",
+        "usernameRequired": "请输入用户名",
+        "checkInputs": "请检查输入项",
+        "uhOh": "哎呀！",
+        "success": "成功！",
+        "loginSuccess": "登录成功",
+        "alreadyHaveAccount": "已有账号？点击登录",
+        "noAccount": "没有账号？点击注册",
+        "accessDenied": "访问被拒绝",
+        "notPermitted": "您无权访问该页面",
+        "failedToLoadUser": "无法加载用户数据。请重试。"
+    },
+    "account": {
+        "logoutSuccessTitle": "登出成功",
+        "logoutSuccessDesc": "您已成功登出。",
+        "logoutFailTitle": "哎呀！",
+        "username": "用户名",
+        "email": "电子邮件",
+        "pointsRemaining": "剩余积分",
+        "fetching": "正在获取...",
+        "fetchingPoints": "正在获取积分...",
+        "admin": "管理员",
+        "logout": "退出登录",
+        "filmManagerUser": "FilmManager 用户"
+    },
     "greeting": {
         "morning": "早上好",
         "afternoon": "下午好",
