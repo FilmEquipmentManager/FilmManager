@@ -18,8 +18,10 @@ import { Checkbox, CheckboxIndicator, CheckboxIcon } from "@/components/ui/check
 import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/toast";
 import { ShoppingCart, Check, Minus, Plus, Disc, Camera, AlertCircle, CheckCircle2, Trash2 } from "lucide-react-native";
 import { useAuth } from "@/contexts/AuthContext";
+import { useData } from '@/contexts/DataContext';
 import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
 import server from "../../../networking";
+import { Image } from "@/components/ui/image";
 
 interface Product {
 	id: string;
@@ -31,6 +33,7 @@ interface Product {
 export default function RedeemScreen() {
 	const { width } = useWindowDimensions();
 	const isMobileScreen = width < 680;
+    const isTinyScreen = width < 375;
 	const [products, setProducts] = useState([]);
 	const [cartItems, setCartItems] = useState([]);
 	const [productsLoading, setProductsLoading] = useState(false);
@@ -38,9 +41,12 @@ export default function RedeemScreen() {
 	const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
 	const [confirmCheckoutModalVisible, setConfirmCheckoutModalVisible] = useState(false);
 	const [checkingOut, setCheckingOut] = useState(false);
+    const [imageUrls, setImageUrls] = useState({});
 	const toast = useToast();
 
     const { userData } = useAuth();
+
+    const { barcodes, loading } = useData();
 
 	const mapBarcodeToProduct = (b: any): Product => ({
 		id: b.id,
@@ -160,11 +166,46 @@ export default function RedeemScreen() {
 		});
 	};
 
+    const fetchImagesForAllBarcodes = async () => {
+        if (!barcodes || Object.keys(barcodes).length === 0) {
+            console.log("Barcodes data not available.");
+            return;
+        }
+
+        const newImageUrls = {};
+
+        for (const [itemId, item] of Object.entries(barcodes)) {
+            let finalUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s';
+
+            if (item?.imageUrl) {
+                try {
+                    const fileName = item.imageUrl.split("/").pop();
+                    const response = await server.get(`/api/image/url/${fileName}`);
+                    if (response.data?.url) {
+                        finalUrl = response.data.url;
+                    }
+                } catch (err) {
+                    console.error(`Error fetching image for ${itemId}:`, err);
+                }
+            }
+
+            newImageUrls[itemId] = finalUrl;
+        }
+
+        setImageUrls(newImageUrls);
+    };
+
 	useEffect(() => {
         if (userData) {
             fetchBarcodes();
         }
 	}, [userData]);
+
+    useEffect(() => {
+        if (barcodes && Object.keys(barcodes).length > 0) {
+            fetchImagesForAllBarcodes();
+        }
+    }, [barcodes]);
 
 	if (!productsLoading) return (
         <ProtectedRoute>
@@ -273,46 +314,11 @@ export default function RedeemScreen() {
                                         >
                                             <HStack space="md">
                                                 {/* Product Image */}
-                                                <Box
-                                                    style={{
-                                                        width: 100,
-                                                        height: 100,
-                                                        borderRadius: 8,
-                                                        backgroundColor: "#F9FAFB",
-                                                        justifyContent: "center",
-                                                        alignItems: "center",
-                                                        overflow: "hidden"
-                                                    }}
-                                                >
-                                                    {product.image ? (
-                                                        <Avatar
-                                                            size="xl"
-                                                            style={{
-                                                                width: 100,
-                                                                height: 100
-                                                            }}
-                                                        >
-                                                            <AvatarImage
-                                                                style={{
-                                                                    width: 100,
-                                                                    height: 100
-                                                                }}
-                                                                source={{
-                                                                    uri: `/api/placeholder/100/100`
-                                                                }}
-                                                                alt={`${product.itemName} image`}
-                                                            />
-                                                        </Avatar>
-                                                    ) : (
-                                                        <Icon
-                                                            as={Camera}
-                                                            size="xl"
-                                                            style={{
-                                                                color: "#9CA3AF"
-                                                            }}
-                                                        />
-                                                    )}
-                                                </Box>
+                                                <Image
+                                                    style={{ width: isTinyScreen ? 36 : 48, height: isTinyScreen ? 36 : 48, borderRadius: 8 }}
+                                                    source={{ uri: imageUrls[product.id] || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s' }}
+                                                    alt="item image"
+                                                />
 
                                                 {/* Product Info */}
                                                 <VStack
