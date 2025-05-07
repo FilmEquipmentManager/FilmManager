@@ -25,6 +25,7 @@ import { Box } from '@/components/ui/box';
 import { Spinner } from '@/components/ui/spinner';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
+import { useTranslation } from 'react-i18next';
 
 interface BarcodeItem {
     id: string;
@@ -39,7 +40,7 @@ interface BarcodeItem {
     sessionCount: number;
     location: string;
     pointsToRedeem: number;
-    imageUrl?: string; // Added imageUrl property
+    imageUrl?: string;
 }
 
 const ItemsManagement = () => {
@@ -83,12 +84,24 @@ const ItemsManagement = () => {
 
     const { barcodes, loading } = useData();
 
+    const { t } = useTranslation();
+
     const fetchedIdsRef = useRef<string[]>([]);
 
     const { API_KEY } = Constants.expoConfig.extra;
 
-    const groupLabels = { all: "All Equipment", available: "Available Items", unavailable: "Unavailable Items", consumable: "消耗品", rental: "租赁物" };
-    const editingGroupLabels = { consumable: "消耗品", rental: "租赁物" };
+    const groupLabels = { 
+        all: t('itemsManagement.groups.all'), 
+        available: t('itemsManagement.groups.available'), 
+        unavailable: t('itemsManagement.groups.unavailable'), 
+        consumable: t('itemsManagement.groups.consumable'), 
+        rental: t('itemsManagement.groups.rental') 
+    };
+
+    const editingGroupLabels = { 
+        consumable: t('itemsManagement.groups.consumable'), 
+        rental: t('itemsManagement.groups.rental') 
+    };
     const barcodeArray: BarcodeItem[] = barcodes ? Object.values(barcodes) : [];
 
     const filteredItems: BarcodeItem[] = barcodeArray.filter((barcode: BarcodeItem) => {
@@ -214,7 +227,7 @@ const ItemsManagement = () => {
                     setEditingItemImage(uploadedFilePath);
                 } catch (error) {
                     console.error("Error uploading image:", error);
-                    showToast("Image Upload Failed", "An unexpected error occurred. Please try again.");
+                    showToast(t('itemsManagement.toast.imageError'), t('itemsManagement.toast.imageErrorDesc'));
                     setIsLoading(false);
                     return;
                 }
@@ -236,7 +249,7 @@ const ItemsManagement = () => {
 
             setShowEditModal(false);
             setEditingItem(null);
-            showToast("Success", "Item updated successfully.");
+            showToast(t('itemsManagement.toast.success'), t('itemsManagement.toast.editSuccess'));
         } catch (error) {
             console.error("Edit Error:", error);
             if (
@@ -246,7 +259,7 @@ const ItemsManagement = () => {
                 error.response.data.error.startsWith("UERROR: ")
             ) {
                 const cleanedMessage = error.response.data.error.replace("UERROR: ", "");
-                showToast("Edit Error", cleanedMessage);
+                showToast(t('itemsManagement.toast.editError'), cleanedMessage);
             }
         } finally {
             setIsLoading(false);
@@ -269,10 +282,10 @@ const ItemsManagement = () => {
                 headers: { apiKey: API_KEY }
             });
             setPendingItems((prev) => prev.filter((item) => item.id !== id));
-            showToast("Delete Success", "The item has been successfully deleted.");
+            showToast(t('itemsManagement.toast.success'), t('itemsManagement.toast.deleteSuccess'));
         } catch (error) {
             console.error("Error deleting barcode:", error);
-            showToast("Delete failed", "Failed to delete barcode. Please try again.");
+            showToast(t('itemsManagement.toast.deleteError'), t('itemsManagement.toast.deleteErrorDesc'));
         }
         setIsLoading(false);
         setShowEditModal(false);
@@ -421,7 +434,7 @@ const ItemsManagement = () => {
                 <LinearGradient colors={isMobileScreen ? ["#00FFDD", "#1B9CFF"] : ["#1B9CFF", "#00FFDD"]} start={isMobileScreen ? { x: 0, y: 0 } : { x: 0, y: 0 }} end={isMobileScreen ? { x: 0, y: 1 } : { x: 1, y: 1 }} style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
                     <Box style={{ padding: 40, alignItems: "center" }}>
                         <Spinner size="large" />
-                        <Text style={{ marginTop: 16, color: "black" }}>Loading items...</Text>
+                        <Text style={{ marginTop: 16, color: "black" }}>{t('itemsManagement.loading')}</Text>
                     </Box>
                 </LinearGradient>
             </ProtectedRoute>
@@ -448,7 +461,7 @@ const ItemsManagement = () => {
                                         style={{ backgroundColor: "white" }}
                                     >
                                         {!isMobileScreen && (
-                                            <SelectInput value={groupLabels[selectedGroup]} placeholder="Category" style={{ color: "black" }} />
+                                            <SelectInput value={groupLabels[selectedGroup]} placeholder={t('itemsManagement.groups.all')} style={{ color: "black" }} />
                                         )}
                                         {isMobileScreen && (
                                             <Text style={{ color: "black", fontSize: 14, padding: 10 }}>{groupLabels[selectedGroup]}</Text>
@@ -478,7 +491,7 @@ const ItemsManagement = () => {
                             <Input style={{ backgroundColor: "white" }} size={isShortScreen ? "sm" : "md"}>
                                 {!isShortScreen && (
                                     <InputField
-                                        placeholder="Find an item..."
+                                        placeholder={t('itemsManagement.search.placeholder')}
                                         value={searchQuery}
                                         onChangeText={(text) => setSearchQuery(text)}
                                         style={{ color: "black" }}
@@ -486,7 +499,7 @@ const ItemsManagement = () => {
                                 )}
                                 {isShortScreen && (
                                     <InputField
-                                        placeholder="Search"
+                                        placeholder={t('itemsManagement.search.shortPlaceholder')}
                                         value={searchQuery}
                                         onChangeText={(text) => setSearchQuery(text)}
                                         style={{ color: "black" }}
@@ -526,7 +539,7 @@ const ItemsManagement = () => {
                                         marginBottom: 8
                                     }}
                                 >
-                                    No items found
+                                    {t('itemsManagement.noItems.title')}
                                 </Text>
 
                                 <Text
@@ -536,7 +549,7 @@ const ItemsManagement = () => {
                                         textAlign: "center"
                                     }}
                                 >
-                                    Try adjusting your search criteria or category filter
+                                    {t('itemsManagement.noItems.description')}
                                 </Text>
                             </VStack>
                         )}
@@ -574,7 +587,7 @@ const ItemsManagement = () => {
                                                     letterSpacing: -0.5,
                                                     textTransform: "uppercase"
                                                 }}>
-                                                    {groupLabels[groupKey] || "Other"}
+                                                    {groupLabels[groupKey] || t('itemsManagement.groups.other')}
                                                 </Text>
                                             </HStack>
 
@@ -618,7 +631,7 @@ const ItemsManagement = () => {
                                                                                 fontSize: isTinyScreen ? 10 : isMobileScreen ? 12 : 14
                                                                             }}
                                                                         >
-                                                                            {col.label}
+                                                                            {t(`itemsManagement.columns.${col.key}`)}
                                                                         </Text>
                                                                     </TableHead>
                                                                 );
@@ -784,17 +797,17 @@ const ItemsManagement = () => {
                             <ModalBackdrop />
                             <ModalContent>
                                 <ModalHeader>
-                                    <Heading>Confirm Deletion</Heading>
+                                    <Heading>{t('itemsManagement.deleteModal.title')}</Heading>
                                     <ModalCloseButton>
                                         <Icon as={CloseIcon} />
                                     </ModalCloseButton>
                                 </ModalHeader>
                                 <ModalBody>
-                                    <Text>Are you sure you want to delete this item? This action cannot be undone.</Text>
+                                    <Text>{t('itemsManagement.deleteModal.content')}</Text>
                                 </ModalBody>
                                 <ModalFooter>
                                     <Button variant="outline" style={{ marginRight: 3 }} onPress={handleCancelDelete}>
-                                        <ButtonText>Cancel</ButtonText>
+                                        <ButtonText>{t('itemsManagement.deleteModal.cancel')}</ButtonText>
                                     </Button>
                                     <Button
                                         style={{ backgroundColor: "red" }}
@@ -803,7 +816,7 @@ const ItemsManagement = () => {
                                             setShowDeleteModal(false);
                                         }}
                                     >
-                                        <ButtonText>Delete</ButtonText>
+                                        <ButtonText>{t('itemsManagement.deleteModal.confirm')}</ButtonText>
                                     </Button>
                                 </ModalFooter>
                             </ModalContent>
@@ -814,7 +827,7 @@ const ItemsManagement = () => {
                             <ModalBackdrop />
                             <ModalContent>
                                 <ModalHeader>
-                                    <Heading size="md" className="text-typography-950">Edit Items</Heading>
+                                    <Heading size="md" className="text-typography-950">{t('itemsManagement.editModal.title')}</Heading>
                                     <ModalCloseButton style={{ backgroundColor: "transparent" }}>
                                         <Icon as={CloseIcon} size="md" className="stroke-background-400 group-[:hover]/modal-close-button:stroke-background-700 group-[:active]/modal-close-button:stroke-background-900 group-[:focus-visible]/modal-close-button:stroke-background-900" />
                                     </ModalCloseButton>
@@ -824,14 +837,14 @@ const ItemsManagement = () => {
                                     {/* Barcode */}
                                     <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.barcode}>
                                         <FormControlLabel>
-                                            <FormControlLabelText>Barcode</FormControlLabelText>
+                                            <FormControlLabelText>{t('itemsManagement.editModal.barcode')}</FormControlLabelText>
                                         </FormControlLabel>
                                         <Input isDisabled={isLoading}>
-                                            <InputField value={editingBarcode} onChangeText={setEditingBarcode} placeholder="Enter Item's Barcode" style={{ height: 40, width: "100%" }} />
+                                            <InputField value={editingBarcode} onChangeText={setEditingBarcode} placeholder={t('itemsManagement.editModal.barcode')}  style={{ height: 40, width: "100%" }} />
                                         </Input>
                                         {validationErrors.barcode && (
                                             <FormControlHelper>
-                                                <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Only letters and numbers. Max 100 characters.</FormControlHelperText>
+                                                <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* {t('itemsManagement.editModal.validation.barcode')}</FormControlHelperText>
                                             </FormControlHelper>
                                         )}
                                     </FormControl>
@@ -839,14 +852,14 @@ const ItemsManagement = () => {
                                     {/* Item Name */}
                                     <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.itemName}>
                                         <FormControlLabel>
-                                            <FormControlLabelText>Item Name</FormControlLabelText>
+                                            <FormControlLabelText>{t('itemsManagement.editModal.itemName')}</FormControlLabelText>
                                         </FormControlLabel>
                                         <Input isDisabled={isLoading}>
-                                            <InputField value={editingItemName} onChangeText={setEditingItemName} placeholder="Enter Item Name" style={{ height: 40, width: "100%" }} />
+                                            <InputField value={editingItemName} onChangeText={setEditingItemName} placeholder={t('itemsManagement.editModal.itemName')}  style={{ height: 40, width: "100%" }} />
                                         </Input>
                                         {validationErrors.itemName && (
                                             <FormControlHelper>
-                                                <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Invalid characters or too long. Max 100 characters.</FormControlHelperText>
+                                                <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* {t('itemsManagement.editModal.validation.itemName')}</FormControlHelperText>
                                             </FormControlHelper>
                                         )}
                                     </FormControl>
@@ -854,14 +867,14 @@ const ItemsManagement = () => {
                                     {/* Item Description */}
                                     <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.itemDescription}>
                                         <FormControlLabel>
-                                            <FormControlLabelText>Item Description</FormControlLabelText>
+                                            <FormControlLabelText>{t('itemsManagement.editModal.itemDescription')}</FormControlLabelText>
                                         </FormControlLabel>
                                         <Input isDisabled={isLoading}>
-                                            <InputField value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder="Enter Item Description" style={{ height: 40, width: "100%" }} />
+                                            <InputField value={editingItemDescription} onChangeText={setEditingItemDescription} placeholder={t('itemsManagement.editModal.itemDescription')} style={{ height: 40, width: "100%" }} />
                                         </Input>
                                         {validationErrors.itemDescription && (
                                             <FormControlHelper>
-                                                <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* Invalid characters or too long. Max 250 characters.</FormControlHelperText>
+                                                <FormControlHelperText style={{ color: "red", fontSize: 12 }}>* {t('itemsManagement.editModal.validation.itemDescription')}</FormControlHelperText>
                                             </FormControlHelper>
                                         )}
                                     </FormControl>
@@ -879,7 +892,7 @@ const ItemsManagement = () => {
                                         <VStack style={{ width: "48%" }}>
                                             <FormControl>
                                                 <FormControlLabel>
-                                                    <FormControlLabelText>Item Group</FormControlLabelText>
+                                                    <FormControlLabelText>{t('itemsManagement.editModal.itemGroup')}</FormControlLabelText>
                                                 </FormControlLabel>
                                                 <Select
                                                     isDisabled={isLoading}
@@ -900,7 +913,7 @@ const ItemsManagement = () => {
                                                             justifyContent: isMobileScreen ? "flex-start" : "space-between",
                                                         }}
                                                     >
-                                                        <SelectInput value={editingGroupLabels[editingItemGroup]} placeholder="Select Item Group" />
+                                                        <SelectInput value={editingGroupLabels[editingItemGroup]} placeholder={t('itemsManagement.editModal.itemGroup')} />
                                                         <SelectIcon className="mr-3" as={ChevronDownIcon} />
                                                     </SelectTrigger>
                                                     <SelectPortal>
@@ -922,20 +935,20 @@ const ItemsManagement = () => {
                                         <VStack style={{ width: "48%" }}>
                                             <FormControl isInvalid={validationErrors.location}>
                                                 <FormControlLabel>
-                                                    <FormControlLabelText>Location</FormControlLabelText>
+                                                    <FormControlLabelText>{t('itemsManagement.editModal.location')}</FormControlLabelText>
                                                 </FormControlLabel>
                                                 <Input isDisabled={isLoading}>
                                                     <InputField
                                                         value={editingItemLocation}
                                                         onChangeText={setEditingItemLocation}
-                                                        placeholder="Enter Item Warehouse Location"
+                                                        placeholder={t('itemsManagement.editModal.location')}
                                                         style={{ height: 40, width: "100%" }}
                                                     />
                                                 </Input>
                                                 {validationErrors.location && (
                                                     <FormControlHelper>
                                                         <FormControlHelperText style={{ color: "red", fontSize: 12 }}>
-                                                            * Only numbers and dashes. Max 20 characters.
+                                                            * {t('itemsManagement.editModal.validation.location')}
                                                         </FormControlHelperText>
                                                     </FormControlHelper>
                                                 )}
@@ -945,7 +958,7 @@ const ItemsManagement = () => {
 
                                     <FormControl style={{ marginBottom: 12 }}>
                                         <FormControlLabel>
-                                            <FormControlLabelText>Item Image</FormControlLabelText>
+                                            <FormControlLabelText>{t('itemsManagement.editModal.itemImage')}</FormControlLabelText>
                                         </FormControlLabel>
                                         <Button
                                             onPress={handleImageSelection}
@@ -957,7 +970,7 @@ const ItemsManagement = () => {
                                                     style={{ width: 120, height: 120, borderRadius: 8 }}
                                                 />
                                             ) : (
-                                                <Text>Select Image</Text>
+                                                <Text>{t('itemsManagement.editModal.selectImage')}</Text>
                                             )}
                                         </Button>
                                     </FormControl>
@@ -975,13 +988,13 @@ const ItemsManagement = () => {
                                         <VStack style={{ width: "48%" }}>
                                             <FormControl style={{ marginBottom: 12 }} isInvalid={validationErrors.itemCount}>
                                                 <FormControlLabel>
-                                                    <FormControlLabelText>Item Count</FormControlLabelText>
+                                                    <FormControlLabelText>{t('itemsManagement.editModal.itemCount')}</FormControlLabelText>
                                                 </FormControlLabel>
                                                 <Input isDisabled={isLoading}>
                                                     <InputField
                                                         value={editingItemCount}
                                                         onChangeText={setEditingItemCount}
-                                                        placeholder="Enter Item Stock Count"
+                                                        placeholder={t('itemsManagement.editModal.itemCount')}
                                                         keyboardType="numeric"
                                                         style={{ height: 40, width: "100%" }}
                                                     />
@@ -989,7 +1002,7 @@ const ItemsManagement = () => {
                                                 {validationErrors.itemCount && (
                                                     <FormControlHelper>
                                                         <FormControlHelperText style={{ color: "red", fontSize: 12 }}>
-                                                            * Digits only. Max 6 digits.
+                                                            * {t('itemsManagement.editModal.validation.itemCount')}
                                                         </FormControlHelperText>
                                                     </FormControlHelper>
                                                 )}
@@ -1000,13 +1013,13 @@ const ItemsManagement = () => {
                                         <VStack style={{ width: "48%" }}>
                                             <FormControl isInvalid={validationErrors.pointsToRedeem}>
                                                 <FormControlLabel>
-                                                    <FormControlLabelText>Points to Redeem</FormControlLabelText>
+                                                    <FormControlLabelText>{t('itemsManagement.editModal.pointsToRedeem')}</FormControlLabelText>
                                                 </FormControlLabel>
                                                 <Input isDisabled={isLoading}>
                                                     <InputField
                                                         value={editingItemPointsToRedeem}
                                                         onChangeText={setEditingItemPointsToRedeem}
-                                                        placeholder="Enter Points To Redeem For Item"
+                                                        placeholder={t('itemsManagement.editModal.pointsToRedeem')}
                                                         keyboardType="numeric"
                                                         style={{ height: 40, width: "100%" }}
                                                     />
@@ -1014,7 +1027,7 @@ const ItemsManagement = () => {
                                                 {validationErrors.pointsToRedeem && (
                                                     <FormControlHelper>
                                                         <FormControlHelperText style={{ color: "red", fontSize: 12 }}>
-                                                            * Digits only. Max 6 digits.
+                                                            * {t('itemsManagement.editModal.validation.points')}
                                                         </FormControlHelperText>
                                                     </FormControlHelper>
                                                 )}
@@ -1031,14 +1044,14 @@ const ItemsManagement = () => {
                                             onPress={handleCancelKnownItem}
                                             isDisabled={isLoading}
                                         >
-                                            <Text style={{ color: "#6B7280" }}>Cancel</Text>
+                                            <Text style={{ color: "#6B7280" }}>{t('itemsManagement.editModal.cancel')}</Text>
                                         </Button>
                                         <Button
                                             style={{ flex: 1, backgroundColor: "#1B9CFF" }}
                                             onPress={saveEditedBarcode}
                                             isDisabled={isLoading}
                                         >
-                                            <Text style={{ color: "white", fontWeight: "bold" }}>Save</Text>
+                                            <Text style={{ color: "white", fontWeight: "bold" }}>{t('itemsManagement.editModal.save')}</Text>
                                         </Button>
                                     </HStack>
                                 </ModalFooter>

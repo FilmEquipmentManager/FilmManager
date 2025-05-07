@@ -71,6 +71,7 @@
         "deleteConfirmation": "您确定要删除此用户吗？此操作无法撤销。",
         "cancel": "取消",
         "delete": "删除",
+        "deleting": "正在删除…",
         "fetchErrorTitle": "获取错误",
         "fetchErrorDesc": "加载用户失败。请重试。",
         "deleteSuccessTitle": "成功",
@@ -84,6 +85,76 @@
             "points": "积分",
             "created": "加入时间",
             "actions": "操作"
+        }
+    },
+    "itemsManagement": {
+        "groups": {
+            "all": "所有设备",
+            "available": "可用物品",
+            "unavailable": "不可用物品",
+            "consumable": "消耗品",
+            "rental": "租赁物"
+        },
+        "columns": {
+            "image": "图片",
+            "barcode": "条码",
+            "itemName": "名称",
+            "itemDescription": "描述",
+            "location": "位置",
+            "stock": "库存",
+            "points": "积分",
+            "actions": "操作"
+        },
+        "search": {
+            "placeholder": "搜索物品...",
+            "shortPlaceholder": "搜索"
+        },
+        "noItems": {
+            "title": "未找到物品",
+            "description": "请尝试调整搜索条件或分类筛选"
+        },
+        "deleteModal": {
+            "title": "确认删除",
+            "content": "您确定要删除此物品吗？此操作不可撤销。",
+            "cancel": "取消",
+            "confirm": "删除"
+        },
+        "editModal": {
+            "title": "编辑物品",
+            "barcode": "条码",
+            "itemName": "物品名称",
+            "itemDescription": "物品描述",
+            "itemGroup": "物品分类",
+            "location": "仓库位置",
+            "itemImage": "物品图片",
+            "itemCount": "库存数量",
+            "pointsToRedeem": "兑换所需积分",
+            "selectImage": "选择图片",
+            "cancel": "取消",
+            "save": "保存",
+            "validation": {
+                "barcode": "仅允许字母和数字，最多100个字符",
+                "itemName": "包含非法字符或过长，最多100个字符",
+                "itemDescription": "包含非法字符或过长，最多250个字符",
+                "location": "仅允许数字和短横线，最多20个字符",
+                "itemCount": "仅允许数字，最多6位",
+                "points": "仅允许数字，最多6位"
+            }
+        },
+        "toast": {
+            "success": "成功",
+            "editSuccess": "物品更新成功",
+            "editError": "编辑失败",
+            "deleteSuccess": "物品删除成功",
+            "imageError": "图片上传失败",
+            "imageErrorDesc": "发生意外错误，请重试",
+            "deleteError": "删除失败",
+            "deleteErrorDesc": "无法删除条码，请重试"
+        },
+        "stockStatus": {
+            "low": "低库存",
+            "medium": "中库存",
+            "high": "高库存"
         }
     }
 }

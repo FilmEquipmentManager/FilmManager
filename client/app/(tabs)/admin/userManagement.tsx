@@ -259,7 +259,7 @@ export default function UserManagement() {
                                                                                     setShowDeleteModal(true);
                                                                                 }}
                                                                             >
-                                                                                {deletingUsers.has(user.email) ? "Deleting..." : <Text style={{ color: "#dc2626", cursor: "pointer" }}>{t('userManagement.delete')}</Text>}
+                                                                                {deletingUsers.has(user.email) ? t('userManagement.deleting'): <Text style={{ color: "#dc2626", cursor: "pointer" }}>{t('userManagement.delete')}</Text>}
                                                                             </Pressable>
 																		</TableData>
 																	);
@@ -334,7 +334,7 @@ export default function UserManagement() {
 											setShowDeleteModal(false);
 										}}
 									>
-										<ButtonText>{t('userManagement.cancel')}</ButtonText>
+										<ButtonText>{t('userManagement.delete')}</ButtonText>
 									</Button>
 								</ModalFooter>
 							</ModalContent>
