@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { SafeAreaView, useWindowDimensions } from "react-native";
 import { Tabs } from "expo-router";
-import { HouseIcon, ShoppingCart, User2 } from "lucide-react-native";
+import { GlobeIcon, HouseIcon, ShoppingCart, User2 } from "lucide-react-native";
 import { HStack } from "@/components/ui/hstack";
 import { useRouter } from "expo-router";
 import { Pressable } from "@/components/ui/pressable";
@@ -10,11 +10,15 @@ import { Text } from "@/components/ui/text";
 import { Icon } from "@/components/ui/icon";
 import { Avatar, AvatarFallbackText, AvatarImage } from '@/components/ui/avatar';
 import { LinearGradient } from "expo-linear-gradient";
+import { Menu, MenuItem, MenuItemLabel  } from "@/components/ui/menu";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
 
 export default function TabLayout() {
     const { width } = useWindowDimensions();
     const isLargeScreen = width >= 680;
     const router = useRouter();
+    const { t } = useTranslation();
 
     const CustomHeader = () => {
         return (
@@ -55,6 +59,53 @@ export default function TabLayout() {
                     </Pressable>
 
                     <SafeAreaView style={{ flexDirection: "row", alignItems: "center" }}>
+                        <Menu
+                            placement="bottom"
+                            offset={5}
+                            trigger={({ ...triggerProps }) => {
+                                return (
+                                <Pressable
+                                    {...triggerProps}
+                                    style={{
+                                    paddingVertical: 8,
+                                    paddingHorizontal: 12,
+                                    marginRight: 12,
+                                    backgroundColor: "#f3f4f6",
+                                    borderRadius: 6,
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    gap: 6,
+                                    }}
+                                >
+                                    <Icon as={GlobeIcon} size="sm" color="#4b5563" className="mr-2" />
+                                    <Text style={{ color: "#1f2937", fontSize: 14 }}>
+                                    {t("navbarChangeLanguage")}
+                                    </Text>
+                                </Pressable>
+                                );
+                            }}
+                            >
+                            <MenuItem
+                                key="en"
+                                textValue="English"
+                                onPress={() => {
+                                i18n.changeLanguage("en");
+                                localStorage.setItem("i18nextLng", "en");
+                                }}
+                            >
+                                <MenuItemLabel size="sm">English (EN)</MenuItemLabel>
+                            </MenuItem>
+                            <MenuItem
+                                key="cn"
+                                textValue="中文"
+                                onPress={() => {
+                                i18n.changeLanguage("cn");
+                                localStorage.setItem("i18nextLng", "cn");
+                                }}
+                            >
+                                <MenuItemLabel size="sm">中文 (CN)</MenuItemLabel>
+                            </MenuItem>
+                        </Menu>
                         {/* Avatar for Profile */}
                         <Pressable
                             onPress={() => router.push("/auth/account" as any)}

@@ -15,6 +15,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
 
 import "../global.css";
+import '../i18n';
 
 export {
     // Catch any errors thrown by the Layout component.

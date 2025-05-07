@@ -18,6 +18,7 @@ import { Eye, EyeClosed, LogInIcon } from "lucide-react-native";
 import { Platform, useWindowDimensions } from "react-native";
 import server from "../../networking";
 import FirebaseDecoder from "../tools/FirebaseDecoder";
+import { useTranslation } from 'react-i18next';
 
 type AuthFormProps = {
 	isRegister: boolean;
@@ -33,6 +34,8 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const toast = useToast();
+
+	const { t } = useTranslation();
 
 	const [emailError, setEmailError] = useState("");
 	const [passwordError, setPasswordError] = useState("");
@@ -183,7 +186,7 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 						color: "#333"
 					}}
 				>
-					{isRegister ? "Register" : "Login"}
+					{isRegister ? "Register" : t('login')}
 				</Text>
 
 				{isRegister && (
@@ -254,7 +257,7 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 								fontSize: isWeb ? 16 : 14
 							}}
 						>
-							{isRegister ? "Register" : "Login"}
+							{isRegister ? "Register" : t('login')}
 						</Text>
 					)}
 				</Button>
