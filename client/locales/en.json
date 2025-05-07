@@ -157,5 +157,14 @@
             "medium": "Medium",
             "high": "High"
         }
+    },
+    "userHomepage": {
+        "readyToExplore": "Ready to explore amazing rewards?",
+        "availableRewards": "Available Rewards",
+        "availableRewardsDesc": "Browse and redeem exciting rewards using your points",
+        "myRewards": "My Rewards",
+        "myRewardsDesc": "View your redeemed rewards",
+        "availablePoints": "Available Points:",
+        "points": "PTS"
     }
 }

@@ -156,5 +156,14 @@
             "medium": "中库存",
             "high": "高库存"
         }
+    },
+    "userHomepage": {
+        "readyToExplore": "准备好探索惊人的奖励了吗？",
+        "availableRewards": "可用奖励",
+        "availableRewardsDesc": "浏览并使用您的积分兑换令人兴奋的奖励",
+        "myRewards": "我的奖励",
+        "myRewardsDesc": "查看您兑换的奖励",
+        "availablePoints": "可用积分:",
+        "points": "积分"
     }
 }

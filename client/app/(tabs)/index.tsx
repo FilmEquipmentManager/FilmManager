@@ -485,7 +485,7 @@ export default function HomepageScreen() {
                                     textAlign: "center",
                                     marginTop: 20
                                 }}>
-                                    Ready to explore amazing rewards?
+                                    {t("userHomepage.readyToExplore")}
                                 </Text>
                             </Box>
 
@@ -536,14 +536,14 @@ export default function HomepageScreen() {
                                             color: "#1B9CFF",
                                             marginTop: 16
                                         }}>
-                                            Available Rewards
+                                            {t("userHomepage.availableRewards")}
                                         </Text>
                                         <Text style={{
                                             textAlign: "center",
                                             color: "#666",
                                             fontSize: isMobileScreen ? 14 : 16
                                         }}>
-                                            Browse and redeem exciting rewards using your points
+                                            {t("userHomepage.availableRewardsDesc")}
                                         </Text>
                                     </VStack>
                                 </Button>
@@ -585,14 +585,14 @@ export default function HomepageScreen() {
                                             color: "#FF6B6B",
                                             marginTop: 16
                                         }}>
-                                            My Rewards
+                                            {t("userHomepage.myRewards")}
                                         </Text>
                                         <Text style={{
                                             textAlign: "center",
                                             color: "#666",
                                             fontSize: isMobileScreen ? 14 : 16
                                         }}>
-                                            View your redeemed rewards and track their status
+                                            {t("userHomepage.myRewardsDesc")}
                                         </Text>
                                     </VStack>
                                 </Button>
@@ -608,10 +608,10 @@ export default function HomepageScreen() {
                                 <HStack space="sm" style={{ alignItems: "center" }}>
                                     <Ionicons name="wallet" size={24} color="white" />
                                     <Text style={{ color: "white", fontSize: 16 }}>
-                                        Available Points:
+                                        {t("userHomepage.availablePoints")}
                                     </Text>
                                     <Text style={{ color: "white", fontSize: 16, fontWeight: "bold" }}>
-                                        {userData?.points || 0} PTS
+                                        {userData?.points || 0} {t("userHomepage.points")}
                                     </Text>
                                 </HStack>
                             </Box>
