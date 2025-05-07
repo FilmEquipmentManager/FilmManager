@@ -16,9 +16,9 @@ import { useEffect, useState, useRef } from "react";
 import { Input, InputField } from "@/components/ui/input";
 import { Eye, EyeClosed, LogInIcon } from "lucide-react-native";
 import { Platform, useWindowDimensions } from "react-native";
+import { useTranslation } from "react-i18next";
 import server from "../../networking";
 import FirebaseDecoder from "../tools/FirebaseDecoder";
-import { useTranslation } from 'react-i18next';
 
 type AuthFormProps = {
 	isRegister: boolean;
@@ -65,10 +65,10 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 	const validateEmail = (email: string) => {
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!email) {
-			setEmailError("Email is required");
+			setEmailError(t("emailRequired"));
 			return false;
 		} else if (!emailRegex.test(email)) {
-			setEmailError("Invalid email format");
+			setEmailError(t("invalidEmail"));
 			return false;
 		} else {
 			setEmailError("");
@@ -80,19 +80,19 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 		const errors = [];
 
 		if (!password) {
-			errors.push("Password is required");
+			errors.push(t("passwordRequired"));
 		} else {
 			if (password.length < 12) {
-				errors.push("Must be at least 12 characters");
+				errors.push(t("passwordLength"));
 			}
 			if (!/[A-Z]/.test(password)) {
-				errors.push("Must include an uppercase letter");
+				errors.push(t("passwordUppercase"));
 			}
 			if (!/[0-9]/.test(password)) {
-				errors.push("Must include a number");
+				errors.push(t("passwordNumber"));
 			}
 			if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-				errors.push("Must include a special character");
+				errors.push(t("passwordSpecial"));
 			}
 		}
 
@@ -107,7 +107,7 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 
 	const validateUsername = (username: string) => {
 		if (isRegister && !username) {
-			setUsernameError("Username is required");
+			setUsernameError(t("usernameRequired"));
 			return false;
 		} else {
 			setUsernameError("");
@@ -149,7 +149,7 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 		const isValid = validateForm();
 
 		if (!isValid) {
-			showToast("Uh-oh!", "Please check your inputs again.");
+			showToast(t("uhOh"), t("checkInputs"));
 			return;
 		}
 
@@ -157,7 +157,7 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 			setIsSubmitting(true);
 			await onSubmit(email.trim(), password.trim(), username.trim());
 		} catch (err) {
-			showToast("Uh-oh!", err);
+			showToast(t("uhOh"), err);
 			setIsSubmitting(false);
 		} finally {
 			setIsSubmitting(false);
@@ -186,14 +186,14 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 						color: "#333"
 					}}
 				>
-					{isRegister ? "Register" : t('login')}
+					{isRegister ? t("register") : t('login')}
 				</Text>
 
 				{isRegister && (
 					<VStack style={{ marginBottom: isWeb ? 16 : 8 }}>
-						<Text style={{ color: "#A0A0A0", fontWeight: "500" }}>Username</Text>
+						<Text style={{ color: "#A0A0A0", fontWeight: "500" }}>{t("account.username")}</Text>
 						<Input variant="underlined" style={{ marginTop: 4 }}>
-							<InputField value={username} onChangeText={setUsername} placeholder="Enter username (Min. 3 char)" autoCapitalize="none" style={{ fontSize: isWeb ? 16 : 14 }} />
+							<InputField value={username} onChangeText={setUsername} placeholder={t("enterUsername")} autoCapitalize="none" style={{ fontSize: isWeb ? 16 : 14 }} />
 						</Input>
 						{attemptedSubmit && usernameError ? (
 							<Text
@@ -210,18 +210,18 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 				)}
 
 				<VStack style={{ marginBottom: isWeb ? 16 : 8 }}>
-					<Text style={{ color: "#A0A0A0", fontWeight: "500" }}>Email</Text>
+					<Text style={{ color: "#A0A0A0", fontWeight: "500" }}>{t("email")}</Text>
 					<Input variant="underlined" style={{ marginTop: 4 }}>
-						<InputField value={email.trim()} onChangeText={setEmail} placeholder="Enter email" autoCapitalize="none" keyboardType="email-address" style={{ fontSize: isWeb ? 16 : 14 }} onSubmitEditing={handleSubmit} />
+						<InputField value={email.trim()} onChangeText={setEmail} placeholder={t("enterEmail")} autoCapitalize="none" keyboardType="email-address" style={{ fontSize: isWeb ? 16 : 14 }} onSubmitEditing={handleSubmit} />
 					</Input>
 					{attemptedSubmit && emailError ? <Text style={{ color: "red", fontSize: 12, marginTop: 4 }}>{emailError}</Text> : null}
 				</VStack>
 
 				<VStack style={{ marginBottom: isWeb ? 24 : 16 }}>
-					<Text style={{ color: "#A0A0A0", fontWeight: "500" }}>Password</Text>
+					<Text style={{ color: "#A0A0A0", fontWeight: "500" }}>{t("password")}</Text>
 					<HStack style={{ alignItems: "center", marginTop: 4 }}>
 						<Input variant="underlined" style={{ flex: 1 }}>
-							<InputField value={password.trim()} onChangeText={setPassword} placeholder="Enter password (Min. 12 char)" secureTextEntry={!showPassword} style={{ fontSize: isWeb ? 16 : 14 }} onSubmitEditing={handleSubmit} />
+							<InputField value={password.trim()} onChangeText={setPassword} placeholder={t("enterPassword")} secureTextEntry={!showPassword} style={{ fontSize: isWeb ? 16 : 14 }} onSubmitEditing={handleSubmit} />
 						</Input>
 						<Button
 							onPress={() => setShowPassword(!showPassword)}
@@ -257,7 +257,7 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 								fontSize: isWeb ? 16 : 14
 							}}
 						>
-							{isRegister ? "Register" : t('login')}
+							{isRegister ? t("register") : t('login')}
 						</Text>
 					)}
 				</Button>
@@ -278,7 +278,7 @@ const AuthForm = ({ isRegister, onSubmit, switchForm }: AuthFormProps) => {
 							fontSize: isWeb ? 15 : 14
 						}}
 					>
-						{isRegister ? "Already have an account? Login" : "Don't have an account? Register"}
+						{isRegister ? t("noAccount") : t("alreadyHaveAccount")}
 					</Text>
 				</Button>
 			</VStack>
@@ -299,6 +299,8 @@ export default function ProtectedRoute({ showAuth, children }: ProtectedRoutePro
 	const toast = useToast();
 
 	const pathname = usePathname();
+
+	const { t } = useTranslation();
 
 	const { width, height } = useWindowDimensions();
 	const isMobileScreen = width < 680;
@@ -331,22 +333,22 @@ export default function ProtectedRoute({ showAuth, children }: ProtectedRoutePro
 				});
 
 				await signInWithEmailAndPassword(auth, email, password);
-				showToast("Success!", "Logged in successfully.");
+				showToast(t("success"), t("loginSuccess"));
 			} else {
                 await signInWithEmailAndPassword(auth, email, password);
-				showToast("Success!", "Logged in successfully.");
+				showToast(t("success"), t("loginSuccess"));
 			}
 		} catch (error: any) {
             if (isRegister) {
                 if (error.response && error.response.data && error.response.data.error && typeof error.response.data.error === "string") {
 					if (error.response.data.error.startsWith("UERROR")) {
-						showToast("Uh-oh!", error.response.data.error.substring("UERROR:".length));
+						showToast(t('uhOh'), error.response.data.error.substring("UERROR:".length));
 					} else {
-						showToast("Uh-oh!", error.response.data.error.substring("ERROR:".length));
+						showToast(t('uhOh'), error.response.data.error.substring("ERROR:".length));
 					}
 				}
             } else {
-                showToast("Uh-oh!", FirebaseDecoder({ error: error.message }));
+                showToast(t('uhOh'), FirebaseDecoder({ error: error.message }));
             }
 		}
 	};
@@ -356,12 +358,12 @@ export default function ProtectedRoute({ showAuth, children }: ProtectedRoutePro
 			if (userData) {
 				if (userData.role === "User" && !pathname.startsWith("/auth") && !pathname.startsWith("/client") && pathname !== "/") {
 					router.replace("/auth/account");
-					showToast("Access unauthorised", "You are not permitted to access this page");
+					showToast(t("accessDenied"), t("notPermitted"));
 				}
 
 				if (userData.role === "Admin" && !pathname.startsWith("/auth") && !pathname.startsWith("/admin") && pathname !== "/") {
 					router.replace("/auth/account");
-					showToast("Access unauthorised", "You are not permitted to access this page");
+					showToast(t("accessDenied"), t("notPermitted"));
 				}
 			}
 		}
@@ -438,7 +440,7 @@ export default function ProtectedRoute({ showAuth, children }: ProtectedRoutePro
 										color: "#333"
 									}}
 								>
-									Welcome to FilmManager
+									{t("welcomeToFilmManager")}
 								</Text>
 							</HStack>
 
@@ -451,7 +453,7 @@ export default function ProtectedRoute({ showAuth, children }: ProtectedRoutePro
 									marginBottom: 6
 								}}
 							>
-								Please log in or create an account to access your profile and manage your content.
+								{t("pleaseLogin")}
 							</Text>
 
 							<Button
@@ -480,7 +482,7 @@ export default function ProtectedRoute({ showAuth, children }: ProtectedRoutePro
 											color: "white"
 										}}
 									>
-										Login / Register
+										{t("loginOrRegister")}
 									</Text>
 								</HStack>
 							</Button>

@@ -13,6 +13,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Avatar, AvatarFallbackText, AvatarImage } from "@/components/ui/avatar";
 import { signOut } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
+import { useTranslation } from "react-i18next";
 import FirebaseDecoder from "@/app/tools/FirebaseDecoder";
 import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
 
@@ -24,6 +25,8 @@ export default function ProfileScreen() {
     const isMobileScreen = width < 680;
 
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+    const { t } = useTranslation();
 
     const toast = useToast();
 
@@ -51,9 +54,9 @@ export default function ProfileScreen() {
         setIsLoggingOut(true);
         try {
             await signOut(auth);
-            showToast("Logout Successful", "You have been logged out successfully.");
+            showToast(t("account.logoutSuccessTitle"), t("account.logoutSuccessDesc"));
         } catch (error: any) {
-            showToast("Uh-oh!", FirebaseDecoder({ error: error }));
+            showToast(t("account.logoutFailTitle"), FirebaseDecoder({ error: error }));
         } finally {
             setIsLoggingOut(false);
         }
@@ -141,7 +144,7 @@ export default function ProfileScreen() {
                                                 marginBottom: 10,
                                             }}
                                         >
-                                            {userData?.username || "FilmManager User"}
+                                            {userData?.username || t("account.filmManagerUser")}
                                         </Text>
 
                                         <VStack style={{ marginBottom: 10 }}>
@@ -152,7 +155,7 @@ export default function ProfileScreen() {
                                                     fontSize: 20,
                                                 }}
                                             >
-                                                Username
+                                                {t("account.username")}
                                             </Text>
 
                                             <Input
@@ -165,7 +168,7 @@ export default function ProfileScreen() {
                                             >
                                                 <InputField
                                                     editable={false}
-                                                    value={userData?.username || "Fetching..."}
+                                                    value={userData?.username || t("account.fetching")}
                                                     style={{
                                                         fontSize: 20,
                                                         fontWeight: "600",
@@ -183,7 +186,7 @@ export default function ProfileScreen() {
                                                     fontSize: 20,
                                                 }}
                                             >
-                                                Email
+                                                {t("account.email")}
                                             </Text>
 
                                             <Input
@@ -196,7 +199,7 @@ export default function ProfileScreen() {
                                             >
                                                 <InputField
                                                     editable={false}
-                                                    value={userData?.email || "Fetching..."}
+                                                    value={userData?.email || t("account.fetching")}
                                                     style={{
                                                         fontSize: 20,
                                                         fontWeight: "600",
@@ -229,7 +232,7 @@ export default function ProfileScreen() {
                                                         fontSize: isLargeScreen ? 20 : 14,
                                                     }}
                                                 >
-                                                    Points Remaining
+                                                    {t("account.pointsRemaining")}
                                                 </Text>
                                             </VStack>
                                         ) : (
@@ -241,7 +244,7 @@ export default function ProfileScreen() {
                                                     fontSize: isLargeScreen ? 20 : 14,
                                                 }}
                                             >
-                                                Fetching points...
+                                                {t("account.fetchingPoints")}
                                             </Text>
                                         ) : (
                                             <Text
@@ -252,7 +255,7 @@ export default function ProfileScreen() {
                                                     fontSize: isLargeScreen ? 20 : 14,
                                                 }}
                                             >
-                                                Admin
+                                                {t("account.admin")}
                                             </Text>
                                         )}
                                     </VStack>
@@ -278,7 +281,7 @@ export default function ProfileScreen() {
                                         <Spinner size="small" color="white" />
                                     ) : (
                                         <Text style={{ color: "white", fontWeight: "700" }}>
-                                            Log Out
+                                            {t("account.logout")}
                                         </Text>
                                     )}
                                 </Button>
