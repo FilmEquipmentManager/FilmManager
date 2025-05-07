@@ -207,6 +207,21 @@ export default function RedeemScreen() {
         }
     }, [barcodes]);
 
+    if (productsLoading) {
+        return (
+            <VStack
+                style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center"
+                }}
+            >
+                <Spinner size="large" color="#10B981" />
+                <Text style={{ marginTop: 16, color: "#6B7280" }}>Loading available equipment...</Text>
+            </VStack>
+        );
+    }
+
 	if (!productsLoading) return (
         <ProtectedRoute>
             {userData => (
