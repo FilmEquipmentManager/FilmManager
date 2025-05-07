@@ -220,7 +220,9 @@ export default function RedeemScreen() {
                 <Text style={{ marginTop: 16, color: "#6B7280" }}>Loading available equipment...</Text>
             </VStack>
         );
-    } else {
+    }
+
+	if (!productsLoading) return (
         <ProtectedRoute>
             {userData => (
                 <LinearGradient colors={["#F0FDF4", "#ECFEFF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }}>
@@ -1047,5 +1049,5 @@ export default function RedeemScreen() {
                 </LinearGradient>
             )}
         </ProtectedRoute>
-    }
+	);
 }
