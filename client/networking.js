@@ -14,6 +14,7 @@ instance.interceptors.request.use(
         if (user) {
             const token = await user.getIdToken();
             config.headers["Authorization"] = `Bearer ${token}`;
+            config.headers["bypass-tunnel-reminder"] = "true";
             config.headers["API_KEY"] = API_KEY;
         }
 

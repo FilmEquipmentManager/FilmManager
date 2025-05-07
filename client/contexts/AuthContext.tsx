@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     },
                     (error) => {
                         if (auth.currentUser) {
-                            showToast(t("uhOh"), t("failedToLoadUser"));
+                            showToast(t("auth.uhOh"), t("failedToLoadUser"));
                             console.error("Realtime DB error:", error);
                         }
                         setLoading(false);

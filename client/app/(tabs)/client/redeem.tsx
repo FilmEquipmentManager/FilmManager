@@ -19,6 +19,7 @@ import { useToast, Toast, ToastTitle, ToastDescription } from "@/components/ui/t
 import { ShoppingCart, Check, Minus, Plus, Disc, Camera, AlertCircle, CheckCircle2, Trash2 } from "lucide-react-native";
 import { useAuth } from "@/contexts/AuthContext";
 import { useData } from '@/contexts/DataContext';
+import { useTranslation, Trans } from 'react-i18next';
 import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
 import server from "../../../networking";
 import { Image } from "@/components/ui/image";
@@ -44,6 +45,8 @@ export default function RedeemScreen() {
     const [imageUrls, setImageUrls] = useState({});
 	const toast = useToast();
 
+    const { t } = useTranslation();
+
     const { userData } = useAuth();
 
     const { barcodes, loading } = useData();
@@ -67,9 +70,9 @@ export default function RedeemScreen() {
 		} catch (error) {
 			if (error.response && error.response.data && error.response.data.error && typeof error.response.data.error === "string") {
 				if (error.response.data.error.startsWith("UERROR")) {
-					showToast("Uh-oh!", error.response.data.error.substring("UERROR:".length));
+					showToast(t("userRedeem.toast.error.title"), error.response.data.error.substring("UERROR:".length));
 				} else {
-					showToast("Uh-oh!", error.response.data.error.substring("ERROR:".length));
+					showToast(t("userRedeem.toast.error.title"), error.response.data.error.substring("ERROR:".length));
 				}
 			}
 		} finally {
@@ -140,13 +143,13 @@ export default function RedeemScreen() {
 			setCartModalVisible(false);
 			setConfirmCheckoutModalVisible(false);
 			setCheckoutModalVisible(false);
-			showToast("Success", "Redemption successful!");
+			showToast(t("userRedeem.toast.success.title"), t("userRedeem.toast.success.description"));
 		} catch (error) {
 			if (error.response && error.response.data && error.response.data.error && typeof error.response.data.error === "string") {
 				if (error.response.data.error.startsWith("UERROR")) {
-					showToast("Uh-oh!", error.response.data.error.substring("UERROR:".length));
+					showToast(t("userRedeem.toast.error.title"), error.response.data.error.substring("UERROR:".length));
 				} else {
-					showToast("Uh-oh!", error.response.data.error.substring("ERROR:".length));
+					showToast(t("userRedeem.toast.error.title"), error.response.data.error.substring("ERROR:".length));
 				}
 			}
 		} finally {
@@ -168,7 +171,6 @@ export default function RedeemScreen() {
 
     const fetchImagesForAllBarcodes = async () => {
         if (!barcodes || Object.keys(barcodes).length === 0) {
-            console.log("Barcodes data not available.");
             return;
         }
 
@@ -217,7 +219,7 @@ export default function RedeemScreen() {
                 }}
             >
                 <Spinner size="large" color="#10B981" />
-                <Text style={{ marginTop: 16, color: "#6B7280" }}>Loading available equipment...</Text>
+                <Text style={{ marginTop: 16, color: "#6B7280" }}>{t('userRedeem.loading')}</Text>
             </VStack>
         );
     }
@@ -239,7 +241,7 @@ export default function RedeemScreen() {
                         >
                             <VStack>
                                 <Heading size="lg" style={{ color: "#166534" }}>
-                                    Equipment Redemption
+                                    {t('userRedeem.header.equipmentRedemption')}
                                 </Heading>
                                 <HStack space="xs" style={{ alignItems: "center", marginTop: 4 }}>
                                     <Icon as={Disc} size="sm" style={{ color: "#059669" }} />
@@ -249,7 +251,7 @@ export default function RedeemScreen() {
                                             fontWeight: "medium"
                                         }}
                                     >
-                                        Available Points: {userData?.points || 0}
+                                        {t('userRedeem.header.availablePoints', { points: userData?.points || 0 })}
                                     </Text>
                                 </HStack>
                             </VStack>
@@ -301,12 +303,7 @@ export default function RedeemScreen() {
 
                         {/* Main Content */}
                         <ScrollView contentContainerStyle={{ padding: 16 }}>
-                            {productsLoading ? (
-                                <Box style={{ padding: 40, alignItems: "center" }}>
-                                    <Spinner size="large" color="#10B981" />
-                                    <Text style={{ marginTop: 16, color: "#6B7280" }}>Loading available equipment...</Text>
-                                </Box>
-                            ) : products.length > 0 ? (
+                            {products.length > 0 ? (
                                 <VStack space="lg">
                                     {products.map(product => (
                                         <Card
@@ -329,11 +326,18 @@ export default function RedeemScreen() {
                                         >
                                             <HStack space="md">
                                                 {/* Product Image */}
-                                                <Image
-                                                    style={{ width: isTinyScreen ? 36 : 48, height: isTinyScreen ? 36 : 48, borderRadius: 8 }}
-                                                    source={{ uri: imageUrls[product.id] || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s' }}
-                                                    alt="item image"
-                                                />
+                                                <Box
+                                                    style={{
+                                                        borderRadius: 8,
+                                                        overflow: "hidden"
+                                                    }}
+                                                >
+                                                    <Image
+                                                        size="md"
+                                                        source={{ uri: imageUrls[product.id] || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s' }}
+                                                        alt="item image"
+                                                    />
+                                                </Box>
 
                                                 {/* Product Info */}
                                                 <VStack
@@ -385,7 +389,7 @@ export default function RedeemScreen() {
                                                                 color: "#059669"
                                                             }}
                                                         >
-                                                            {product.pointsToRedeem} points
+                                                            {t('userRedeem.product.points', { points: product.pointsToRedeem })}
                                                         </Text>
 
                                                         {cartItems.some(i => i.product.id === product.id) ? (
@@ -477,7 +481,7 @@ export default function RedeemScreen() {
                                                                             marginLeft: 3
                                                                         }}
                                                                     >
-                                                                        Add to Cart
+                                                                        {t('userRedeem.product.addToCart')}
                                                                     </Text>
                                                                 </HStack>
                                                             </Button>
@@ -503,7 +507,7 @@ export default function RedeemScreen() {
                                             textAlign: "center"
                                         }}
                                     >
-                                        No equipment available
+                                        {t('userRedeem.emptyState')}
                                     </Text>
                                 </VStack>
                             )}
@@ -514,7 +518,7 @@ export default function RedeemScreen() {
                             <ModalBackdrop />
                             <ModalContent>
                                 <ModalHeader style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
-                                    <Heading size="lg">Cart</Heading>
+                                    <Heading size="lg">{t('userRedeem.cart.title')}</Heading>
                                 </ModalHeader>
 
                                 <ModalBody style={{ paddingRight: 10, marginLeft: 10 }}>
@@ -533,10 +537,10 @@ export default function RedeemScreen() {
                                                     textAlign: "center"
                                                 }}
                                             >
-                                                Your cart is empty. Add items to get started.
+                                                {t('userRedeem.cart.emptyMessage')}
                                             </Text>
                                             <Button onPress={() => setCartModalVisible(false)} style={{ marginTop: 8, backgroundColor: "#10B981" }}>
-                                                <Text style={{ color: "white" }}>Browse Equipment</Text>
+                                                <Text style={{ color: "white" }}>{t('userRedeem.cart.browseEquipment')}</Text>
                                             </Button>
                                         </VStack>
                                     ) : (
@@ -578,15 +582,15 @@ export default function RedeemScreen() {
                                                                 {/* Product Icon */}
                                                                 <Box
                                                                     style={{
-                                                                        width: 50,
-                                                                        height: 50,
-                                                                        borderRadius: 6,
-                                                                        backgroundColor: "#F9FAFB",
-                                                                        justifyContent: "center",
-                                                                        alignItems: "center"
+                                                                        borderRadius: 8,
+                                                                        overflow: "hidden"
                                                                     }}
                                                                 >
-                                                                    <Icon as={Camera} size="md" style={{ color: "#9CA3AF" }} />
+                                                                    <Image
+                                                                        size="sm"
+                                                                        source={{ uri: imageUrls[item.product.id] || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s' }}
+                                                                        alt="item image"
+                                                                    />
                                                                 </Box>
 
                                                                 {/* Product Info */}
@@ -628,7 +632,7 @@ export default function RedeemScreen() {
                                                                                 paddingRight: 4
                                                                             }}
                                                                         >
-                                                                            {item.product.pointsToRedeem * item.quantity} pts
+                                                                            {item.product.pointsToRedeem * item.quantity} {t("userRedeem.product.pts")}
                                                                         </Text>
                                                                     </HStack>
                                                                 </VStack>
@@ -674,7 +678,7 @@ export default function RedeemScreen() {
                                                                 color: "#111827"
                                                             }}
                                                         >
-                                                            Total:
+                                                            {t('userRedeem.cart.total')}
                                                         </Text>
                                                         <Text
                                                             style={{
@@ -683,7 +687,7 @@ export default function RedeemScreen() {
                                                                 fontSize: 16
                                                             }}
                                                         >
-                                                            {calculateTotal()} pts
+                                                            {calculateTotal()} {t("userRedeem.product.pts")}
                                                         </Text>
                                                     </HStack>
                                                 </VStack>
@@ -703,7 +707,7 @@ export default function RedeemScreen() {
                                                 }}
                                                 onPress={() => setCartModalVisible(false)}
                                             >
-                                                <Text style={{ color: "#6B7280" }}>Continue Shopping</Text>
+                                                <Text style={{ color: "#6B7280" }}>{t('userRedeem.cart.continueShopping')}</Text>
                                             </Button>
 
                                             <Button
@@ -723,7 +727,7 @@ export default function RedeemScreen() {
                                                         fontWeight: "bold"
                                                     }}
                                                 >
-                                                    Checkout
+                                                    {t('userRedeem.cart.checkout')}
                                                 </Text>
                                             </Button>
                                         </HStack>
@@ -737,7 +741,7 @@ export default function RedeemScreen() {
                             <ModalBackdrop />
                             <ModalContent>
                                 <ModalHeader style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
-                                    <Heading size="lg">Checkout</Heading>
+                                    <Heading size="lg">{t('userRedeem.checkout.title')}</Heading>
                                 </ModalHeader>
 
                                 <ModalBody style={{ paddingRight: 10, marginLeft: 10 }}>
@@ -756,7 +760,7 @@ export default function RedeemScreen() {
                                                     textAlign: "center"
                                                 }}
                                             >
-                                                You have nothing to checkout.
+                                                {t("userRedeem.checkout.nothingToCheckout")}
                                             </Text>
                                             <Button
                                                 onPress={() => {
@@ -765,7 +769,7 @@ export default function RedeemScreen() {
                                                 }}
                                                 style={{ marginTop: 8, backgroundColor: "#10B981" }}
                                             >
-                                                <Text style={{ color: "white" }}>Go back to cart</Text>
+                                                <Text style={{ color: "white" }}>{t("userRedeem.checkout.goBackCart")}</Text>
                                             </Button>
                                         </VStack>
                                     ) : (
@@ -790,20 +794,14 @@ export default function RedeemScreen() {
                                                         >
                                                             <Box
                                                                 style={{
-                                                                    width: 50,
-                                                                    height: 50,
-                                                                    borderRadius: 6,
-                                                                    backgroundColor: "#F9FAFB",
-                                                                    justifyContent: "center",
-                                                                    alignItems: "center"
+                                                                    borderRadius: 8,
+                                                                    overflow: "hidden"
                                                                 }}
                                                             >
-                                                                <Icon
-                                                                    as={Camera}
-                                                                    size="md"
-                                                                    style={{
-                                                                        color: "#9CA3AF"
-                                                                    }}
+                                                                <Image
+                                                                    size="sm"
+                                                                    source={{ uri: imageUrls[item.product.id] || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQVNer1ZryNxWVXojlY9Hoyy1-4DVNAmn7lrg&s' }}
+                                                                    alt="item image"
                                                                 />
                                                             </Box>
 
@@ -850,7 +848,7 @@ export default function RedeemScreen() {
                                                         color: "#111827"
                                                     }}
                                                 >
-                                                    Order Summary
+                                                    {t('userRedeem.checkout.orderSummary')}
                                                 </Text>
 
                                                 <VStack space="sm">
@@ -873,7 +871,7 @@ export default function RedeemScreen() {
                                                                 color: "#111827"
                                                             }}
                                                         >
-                                                            Total:
+                                                            {t("userRedeem.cart.total")}
                                                         </Text>
                                                         <Text
                                                             style={{
@@ -882,7 +880,7 @@ export default function RedeemScreen() {
                                                                 fontSize: 16
                                                             }}
                                                         >
-                                                            {calculateTotal()} pts
+                                                            {calculateTotal()} {t("userRedeem.product.pts")}
                                                         </Text>
                                                     </HStack>
                                                 </VStack>
@@ -911,7 +909,7 @@ export default function RedeemScreen() {
                                                             fontSize: 13
                                                         }}
                                                     >
-                                                        {calculateTotal() > (userData?.points || 0) ? `Insufficient points (${userData?.points || 0} available)` : `You have enough points (${userData?.points || 0} available)`}
+                                                        {calculateTotal() > (userData?.points || 0) ? t('userRedeem.checkout.insufficientPoints', { points: userData?.points || 0 }) : t('userRedeem.checkout.enoughPoints', { points: userData?.points || 0 })}
                                                     </Text>
                                                 </HStack>
                                             </Card>
@@ -933,7 +931,7 @@ export default function RedeemScreen() {
                                                     setCartModalVisible(true);
                                                 }}
                                             >
-                                                <Text style={{ color: "#6B7280" }}>Go back to cart</Text>
+                                                <Text style={{ color: "#6B7280" }}>{t("userRedeem.checkout.goBackCart")}</Text>
                                             </Button>
 
                                             <Button
@@ -953,7 +951,7 @@ export default function RedeemScreen() {
                                                         fontWeight: "bold"
                                                     }}
                                                 >
-                                                    Proceed
+                                                    {t("userRedeem.checkout.proceed")}
                                                 </Text>
                                             </Button>
                                         </HStack>
@@ -967,7 +965,7 @@ export default function RedeemScreen() {
                             <ModalBackdrop />
                             <ModalContent>
                                 <ModalHeader style={{ display: "flex", justifyContent: "center" }}>
-                                    <Heading size="md">Confirm Redemption?</Heading>
+                                    <Heading size="md">{t('userRedeem.confirm.title')}</Heading>
                                 </ModalHeader>
 
                                 <ModalBody>
@@ -984,25 +982,23 @@ export default function RedeemScreen() {
                                                 color: "#111827"
                                             }}
                                         >
-                                            You are about to spend{" "}
-                                            <Text
-                                                style={{
-                                                    fontWeight: "bold",
-                                                    color: "#059669"
-                                                }}
-                                            >
-                                                {calculateTotal()} points.
-                                            </Text>
+                                            <Trans
+                                                i18nKey="userRedeem.confirm.description"
+                                                values={{ points: calculateTotal() }}
+                                                components={{ strong: <Text style={{ fontWeight: 'bold' }} /> }}
+                                            />
                                         </Text>
 
                                         <Text
                                             style={{
-                                                textAlign: "center",
-                                                color: "#6B7280",
-                                                fontSize: 13
+                                                textAlign: "center"
                                             }}
                                         >
-                                            After redemption, you will have <Text style={{ fontWeight: "bold" }}>{(userData?.points || 0) - calculateTotal()} points</Text> remaining.
+                                            <Trans
+                                                i18nKey="userRedeem.confirm.remaining"
+                                                values={{ points: (userData?.points || 0) - calculateTotal() }}
+                                                components={{ strong: <Text style={{ fontWeight: 'bold', fontSize: 13, color: "#6B7280" }} /> }}
+                                            />
                                         </Text>
 
                                         <HStack space="md" style={{ width: "100%", marginTop: 16 }}>
@@ -1017,7 +1013,7 @@ export default function RedeemScreen() {
                                                     setCheckoutModalVisible(true);
                                                 }}
                                             >
-                                                <Text style={{ color: "#6B7280" }}>Cancel</Text>
+                                                <Text style={{ color: "#6B7280" }}>{t("userRedeem.confirm.cancel")}</Text>
                                             </Button>
 
                                             <Button
@@ -1036,7 +1032,7 @@ export default function RedeemScreen() {
                                                             fontWeight: "bold"
                                                         }}
                                                     >
-                                                        Place order
+                                                        {t("userRedeem.confirm.placeOrder")}
                                                     </Text>
                                                 )}
                                             </Button>
