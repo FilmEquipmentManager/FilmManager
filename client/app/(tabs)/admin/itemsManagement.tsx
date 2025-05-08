@@ -110,8 +110,8 @@ const ItemsManagement = () => {
         const matchesSearch =
             barcode.itemName?.toLowerCase().includes(searchLower) ||
             barcode.itemDescription?.toLowerCase().includes(searchLower) ||
-            barcode.barcode?.toLowerCase().includes(searchLower);
-        barcode.location?.toLowerCase().includes(searchLower);
+            barcode.barcode?.toLowerCase().includes(searchLower) ||
+            barcode.location?.toLowerCase().includes(searchLower);
 
         const matchesGroup =
             selectedGroup === 'all' ? true :

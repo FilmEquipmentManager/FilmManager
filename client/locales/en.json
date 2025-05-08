@@ -61,7 +61,7 @@
 		"receive": "Receive",
 		"dispatch": "Dispatch",
 		"checkInfo": "Check Item's Info",
-		"itemsManagement": "Items Management",
+		"itemsManagement": "Item Management",
 		"userManagement": "User Management"
 	},
 	"userManagement": {
