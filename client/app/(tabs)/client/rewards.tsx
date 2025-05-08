@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { LinearGradient } from "expo-linear-gradient";
 import { ScrollView } from "react-native";
+import { useTranslation } from "react-i18next";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Text } from "@/components/ui/text";
@@ -13,6 +14,8 @@ import ProtectedRoute from "@/app/_wrappers/ProtectedRoute";
 import { Package, Gift, Zap } from "lucide-react-native";
 
 export default function RewardsScreen() {
+	const { t } = useTranslation();
+
 	return (
 		<ProtectedRoute>
 			{userData => {
@@ -31,11 +34,11 @@ export default function RewardsScreen() {
 							{/* Header Section */}
 							<VStack space="sm" style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: "#E2E8F0" }}>
 								<Heading size="lg" style={{ color: "#166534" }}>
-									My Rewards
+									{t("userRewards.header.title")}
 								</Heading>
 								<HStack space="xs" style={{ alignItems: "center" }}>
 									<Icon as={Zap} size="sm" style={{ color: "#059669" }} />
-									<Text style={{ color: "#059669", fontWeight: "medium" }}>Available Points: {userData?.points || 0}</Text>
+									<Text style={{ color: "#059669", fontWeight: "medium" }}>{t("userRewards.header.availablePoints", { points: userData?.points || 0 })}</Text>
 								</HStack>
 							</VStack>
 
@@ -51,9 +54,9 @@ export default function RewardsScreen() {
 								}}
 							>
 								<HStack style={{ alignItems: "center" }}>
-									<Text style={{ flex: 3, fontSize: 14, fontWeight: "600", color: "#64748B" }}>ITEM</Text>
-									<Text style={{ flex: 2, fontSize: 14, fontWeight: "600", color: "#64748B" }}>GROUP</Text>
-									<Text style={{ flex: 1, fontSize: 14, fontWeight: "600", color: "#64748B", textAlign: "right" }}>QTY</Text>
+									<Text style={{ flex: 3, fontSize: 14, fontWeight: "600", color: "#64748B" }}>{t("userRewards.table.item")}</Text>
+									<Text style={{ flex: 2, fontSize: 14, fontWeight: "600", color: "#64748B" }}>{t("userRewards.table.group")}</Text>
+									<Text style={{ flex: 1, fontSize: 14, fontWeight: "600", color: "#64748B", textAlign: "right" }}>{t("userRewards.table.quantity")}</Text>
 								</HStack>
 							</Card>
 
@@ -62,7 +65,11 @@ export default function RewardsScreen() {
 								{redemptions.length === 0 ? (
 									<VStack space="md" style={{ alignItems: "center", padding: 24 }}>
 										<Icon as={Package} size="xl" style={{ color: "#D1D5DB" }} />
-										<Text style={{ color: "#6B7280", textAlign: "center" }}>No rewards redeemed yet. Start redeeming amazing items!</Text>
+										<Text style={{ color: "#6B7280", textAlign: "center" }}>
+											{t("userRewards.emptyState.title")}
+											{"\n"}
+											{t("userRewards.emptyState.description")}
+										</Text>
 									</VStack>
 								) : (
 									<VStack space="sm">

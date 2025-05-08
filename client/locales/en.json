@@ -305,5 +305,20 @@
 				"generic": "Something went wrong. Please try again."
 			}
 		}
-	}
+	},
+    "userRewards": {
+        "header": {
+            "title": "My Rewards",
+            "availablePoints": "Available Points: {{points}}"
+        },
+        "table": {
+            "item": "ITEM",
+            "group": "GROUP",
+            "quantity": "QTY"
+        },
+        "emptyState": {
+            "title": "No rewards redeemed yet",
+            "description": "Start redeeming amazing items!"
+        }
+    }
 }
